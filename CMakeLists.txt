@@ -89,7 +89,7 @@ include_directories(
 LINK_DIRECTORIES(${BRICS_3D_LINK_DIRECTORIES})
 
 # Compile library rsgsenderlib
-add_library(rsgsenderlib SHARED ..//microblx_rsg_bridge/src/rsg_sender.cpp )
+add_library(rsgsenderlib SHARED src/rsg_sender.cpp )
 set_target_properties(rsgsenderlib PROPERTIES PREFIX "")
 target_link_libraries(rsgsenderlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
 
@@ -99,7 +99,7 @@ set_property(TARGET rsgsenderlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgsenderlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
 # Compile library rsgrecieverlib
-add_library(rsgrecieverlib SHARED ..//microblx_rsg_bridge/src/rsg_reciever.cpp )
+add_library(rsgrecieverlib SHARED src/rsg_reciever.cpp )
 set_target_properties(rsgrecieverlib PROPERTIES PREFIX "")
 target_link_libraries(rsgrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
 
@@ -109,7 +109,7 @@ set_property(TARGET rsgrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
 # Compile library rsgscenesetuplib
-add_library(rsgscenesetuplib SHARED ..//microblx_rsg_bridge/src/rsg_scene_setup.cpp )
+add_library(rsgscenesetuplib SHARED src/rsg_scene_setup.cpp )
 set_target_properties(rsgscenesetuplib PROPERTIES PREFIX "")
 target_link_libraries(rsgscenesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
 
@@ -120,11 +120,11 @@ install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
 
 # Compile library tstnodesetuplib
-add_library(tstnodesetuplib SHARED ..//microblx_rsg_bridge/src/tst_node_setup.cpp )
-set_target_properties(tstnodesetuplib PROPERTIES PREFIX "")
-target_link_libraries(tstnodesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
+#add_library(tstnodesetuplib SHARED src/tst_node_setup.cpp )
+#set_target_properties(tstnodesetuplib PROPERTIES PREFIX "")
+#target_link_libraries(tstnodesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
 
 # Install rsgscenesetuplib
-install(TARGETS tstnodesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT tstnodesetuplib-block)
-set_property(TARGET tstnodesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
-install(EXPORT tstnodesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
+#install(TARGETS tstnodesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT tstnodesetuplib-block)
+#set_property(TARGET tstnodesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+#install(EXPORT tstnodesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
