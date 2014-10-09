@@ -1,0 +1,63 @@
+-- blockdiagram for a example of a distributed world model
+
+local function get_root()
+ return os.getenv("UBX_ROOT").."/"
+end
+
+local rsg = require("rsg")
+local fbx_path = os.getenv("BRICS_3D_FUNCTION_BLOCKS_DIR") .. "/" 
+
+-- create in inscanteced/delegates of the world model 
+wm = rsg.WorldModel()
+wm_replica = rsg.WorldModel()
+
+return bd.system
+{
+   imports = {
+      get_root().."std_types/stdtypes/stdtypes.so",
+      get_root().."std_blocks/ptrig/ptrig.so",
+      get_root().."std_blocks/lfds_buffers/lfds_cyclic.so",
+      get_root().."std_blocks/logging/file_logger.so",
+      "blocks/irospublisher.so",
+      "blocks/irossubscriber.so",
+      "types/rsg_types.so",  
+      "build/rsgrecieverlib.so",
+	  "build/rsgsenderlib.so",
+	  "build/rsgscenesetuplib.so",
+   },
+
+   -- A mirrowed setup of "componentA and componentB"
+   blocks = {
+      { name="rsgsenderA", type="rsg_sender" }, -- don't use idenetical names here!
+      { name="rsgrecieverA", type="rsg_reciever" },
+      { name="rsgsenderB", type="rsg_sender" }, 
+      { name="rsgrecieverB", type="rsg_reciever" },
+      { name="publisherA", type="rosbridge/publisher" },
+      { name="subscriberA", type="rosbridge/subscriber" },
+      { name="publisherB", type="rosbridge/publisher" },
+      { name="subscriberB", type="rosbridge/subscriber" },
+	  { name="scenesetup", type="rsg_scene_setup" },
+
+   },
+   
+   connections = {
+      { src="rsgsenderA.rsg_out", tgt="publisherA" },
+      { src="rsgsenderB.rsg_out", tgt="publisherB" },
+      { src="subscriberA", tgt="rsgrecieverA.rsg_in" },
+      { src="subscriberB", tgt="rsgrecieverB.rsg_in" },
+   },
+   
+   configurations = {
+   	  { name="rsgsenderA", config =  { wm_handle={wm = wm:getHandle().wm} } },
+   	  { name="rsgsenderB", config =  { wm_handle={wm = wm_replica:getHandle().wm} } },
+   	  { name="rsgrecieverA", config =  { wm_handle={wm = wm:getHandle().wm} } },
+   	  { name="rsgrecieverB", config =  { wm_handle={wm = wm_replica:getHandle().wm} } },
+      { name="publisherA", config = { topic_name="mytopic_forwards" } },
+      { name="publisherB", config = { topic_name="mytopic_backwards" } },
+      { name="subscriberA", config = { topic_name="mytopic_backwards" ,
+      	trig_blocks={ { b="#rsgrecieverA", num_steps=1, measure=0 } } } },	
+      { name="subscriberB", config = { topic_name="mytopic_forwards" ,
+      	trig_blocks={ { b="#rsgrecieverB", num_steps=1, measure=0 } } } },		
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },					
+   },
+}
