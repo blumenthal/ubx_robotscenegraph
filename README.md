@@ -1,4 +1,4 @@
-Function blocks for the BRICS_3D library
+RSG integration into Microblox (UBX)
 ==========================================================
 
 Overview
@@ -23,6 +23,30 @@ Compilation
  $ make 
 ```
 
+Environment Variables
+---------------------
+
+Please make sure the following environment variables are set. (The should be ) 
+
+Default variables for Microblox:
+
+
+| Name          | Description |
+| ------------- | ----------- |
+| UBX_ROOT      | Points to the installation folder of UBX.  Used within the CMake scripts to discover the UBX library. |
+| UBX_MODULES   | Points to the the place where the UBX types, blocks etc. are installed. Used to load the types and modules at run-time |
+
+
+
+
+Dependencies to BRICS_3D and HDF5:
+
+
+| Name          | Description |
+| ------------- | ----------- |
+| BRICS_3D_DIR  | Points to the installation folder of BRICS_3D. Used within the CMake scripts to discover the BRICS_3D library. |
+| FBX_MODULES   | Points to the the root folder of the BRICS_3D function blocks. Used to discover the rsg lua scripts.  |
+| HDF5_ROOT (optional)     | Points to the installation folder of HDF5. Use it in case it is not into installed to the default folders. |
 
 
 
