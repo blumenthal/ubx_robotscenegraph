@@ -5,7 +5,6 @@ local function get_root()
 end
 
 local rsg = require("rsg")
-local fbx_path = os.getenv("BRICS_3D_FUNCTION_BLOCKS_DIR") .. "/" 
 
 -- create in inscanteced/delegates of the world model 
 wm = rsg.WorldModel()
