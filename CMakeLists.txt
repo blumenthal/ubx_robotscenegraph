@@ -118,6 +118,10 @@ install(TARGETS rsgscenesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rs
 set_property(TARGET rsgscenesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
+# To compile the rsg_bridge_test_app uncomment this section and update all mudules paths within src/rsg_bridge_test_app.c
+#add_executable(rsg_bridge_test_app src/rsg_bridge_test_app.c)
+#target_link_libraries(rsg_bridge_test_app ${UBX_LIBRARIES})
+#add_dependencies(rsg_bridge_test_app gen_hexarr)
 
 # Compile library tstnodesetuplib
 #add_library(tstnodesetuplib SHARED src/tst_node_setup.cpp )
