@@ -104,8 +104,12 @@ int rsg_sender_init(ubx_block_t *b)
     	assert(clen != 0);
     	inf->wm = reinterpret_cast<brics_3d::WorldModel*>(tmpWmHandle.wm); // We know that this pointer stores the world model type
     	if(inf->wm == 0) {
-    		LOG(FATAL) << " World model handle could not be initialized.";
-    		return -1;
+//    		LOG(FATAL) << " World model handle could not be initialized.";
+    		//return -1;
+    		LOG(ERROR) << "World model handle could not be optained via configuration parameter."
+    					  "Creating a new world model instance instead (mostly for debugging purposes)."
+    					  "Please check your system design if this is intended!";
+    		inf->wm = new brics_3d::WorldModel();
     	}
 
     	/* Attach debug graph printe */

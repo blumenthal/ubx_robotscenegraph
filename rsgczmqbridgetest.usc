@@ -22,8 +22,8 @@ return bd.system
       "blocks/zmqsenderlib.so",
       "types/rsg_types.so",  
       "build/rsgrecieverlib.so",
-	  "build/rsgsenderlib.so",
-	  "build/rsgscenesetuplib.so",
+      "build/rsgsenderlib.so",
+      "build/rsgscenesetuplib.so",
    },
 
    -- A mirrowed setup of "componentA and componentB"
@@ -39,9 +39,9 @@ return bd.system
 	  { name="scenesetup", type="rsg_scene_setup" },
 	  -- we have to explicitly configure the buffers for large message sized (cf. config setion)
 	  { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
-      { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
-      { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" },
-      { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
+	  { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+	  { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" },
+	  { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
 
    },
    
@@ -60,14 +60,14 @@ return bd.system
    },
    
    configurations = {
-   	  { name="rsgsenderA", config =  { wm_handle={wm = wm:getHandle().wm} } },
-   	  { name="rsgsenderB", config =  { wm_handle={wm = wm_replica:getHandle().wm} } },
-   	  { name="rsgrecieverA", config =  { wm_handle={wm = wm:getHandle().wm} } },
-   	  { name="rsgrecieverB", config =  { wm_handle={wm = wm_replica:getHandle().wm} } },
-      { name="publisherA", config = { connection_spec="tcp://*:11411" } },
+	  { name="rsgsenderA", config =  { wm_handle={wm = wm:getHandle().wm} } },
+	  { name="rsgsenderB", config =  { wm_handle={wm = wm_replica:getHandle().wm} } },
+	  { name="rsgrecieverA", config =  { wm_handle={wm = wm:getHandle().wm} } },
+	  { name="rsgrecieverB", config =  { wm_handle={wm = wm_replica:getHandle().wm} } },
+	  { name="publisherA", config = { connection_spec="tcp://*:11411" } },
       { name="publisherB", config = { connection_spec="tcp://*:11511" } },
-      { name="subscriberA", config = { connection_spec= "tcp://localhost:11411"  } },	
-      { name="subscriberB", config = { connection_spec= "tcp://localhost:11511"  } },		
+      { name="subscriberA", config = { connection_spec= "tcp://localhost:11511"  } },	
+      { name="subscriberB", config = { connection_spec= "tcp://localhost:11411"  } },		
       { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
       { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
