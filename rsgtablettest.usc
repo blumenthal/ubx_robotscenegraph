@@ -30,6 +30,7 @@ return bd.system
       "build/rsgrecieverlib.so",
       "build/rsgsenderlib.so",
       "build/rsgscenesetuplib.so",
+      "blocks/irospublisher.so",
    },
 
    blocks = {
@@ -42,6 +43,7 @@ return bd.system
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
       { name="cyclic_input_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+      { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
 
    },
    
@@ -51,6 +53,8 @@ return bd.system
                   
       { src="subscriber.zmq_in", tgt="bytestreambuffer2" },
       { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      
+      { src="subscriber.zmq_in", tgt="visualization_publisher" },
       
    },
    
@@ -65,6 +69,7 @@ return bd.system
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
     { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
     { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
-    { name="cyclic_input_trigger", config = { period = {sec=0, usec=100000 }, trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } }					
+    { name="cyclic_input_trigger", config = { period = {sec=0, usec=100000 }, trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },	
+    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },				
    },
 }
