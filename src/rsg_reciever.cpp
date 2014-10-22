@@ -83,7 +83,14 @@ int rsg_reciever_init(ubx_block_t *b)
         inf->wm_deserializer = new brics_3d::rsg::HDF5UpdateDeserializer(inf->wm);
 
         /* Setup input buffer for hdf5 messages */
-        inf->hdf_5_input_buffer_size = DEFAULT_HDF5_BUFFER_SIZE;
+        inf->hdf_5_input_buffer_size = *((uint32_t*) ubx_config_get_data_ptr(b, "buffer_len", &clen));
+    	if((clen == 0) || (inf->hdf_5_input_buffer_size == 0)) {
+            inf->hdf_5_input_buffer_size = DEFAULT_HDF5_BUFFER_SIZE;
+    		LOG(WARNING) << "Invalid or missing configuration for buffer_len. "
+    	                    "Falling back to default value buffer_len = " << DEFAULT_HDF5_BUFFER_SIZE;
+    	}
+    	LOG(DEBUG) << "HDF5 input buffer len set to " << inf->hdf_5_input_buffer_size;
+
         if((inf->hdf_5_input_buffer = (unsigned char *)malloc(inf->hdf_5_input_buffer_size)) == NULL) {
           ERR("failed to allocate hdf5 input buffer");
           free(inf->hdf_5_input_buffer);

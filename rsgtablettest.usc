@@ -60,7 +60,7 @@ return bd.system
    
    configurations = {
 	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm} } },
-	  { name="rsgreciever", config =  { wm_handle={wm = wm:getHandle().wm} } },
+	  { name="rsgreciever", config =  { buffer_len=300, wm_handle={wm = wm:getHandle().wm} } },
 	  { name="publisher", config = { connection_spec="tcp://*:11511" } },
 	  -- The IP for the subscriber has to come from the Android device. 
 	  -- Use the WiFi setting menue to obtain it.

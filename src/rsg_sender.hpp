@@ -12,8 +12,8 @@ ubx_type_t types[] = {
 
 /* block meta information */
 char rsg_sender_meta[] =
-        " { doc='',"
-        "   real-time=true,"
+        " { doc='A block that encodes and sends HDF5 based updates for the Robot Scene Graph',"
+        "   real-time=false,"
         "}";
 
 /* declaration of block configuration */
