@@ -5,6 +5,7 @@
 
 /* BRICS_3D includes */
 #include <brics_3d/core/Logger.h>
+#include <brics_3d/core/HomogeneousMatrix44.h>
 #include <brics_3d/worldModel/WorldModel.h>
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/HDF5UpdateSerializer.h>
@@ -157,12 +158,42 @@ void rsg_scene_setup_step(ubx_block_t *b)
         brics_3d::WorldModel* wm = inf->wm;
 
     	/* Add group nodes */
+//    	std::vector<brics_3d::rsg::Attribute> attributes;
+//    	attributes.clear();
+//    	attributes.push_back(rsg::Attribute("taskType", "scene_objecs_scene_setup"));
+//    	rsg::Id sceneObjectsId;
+//    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
+////    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
+
+    	/* Add group nodes */
     	std::vector<brics_3d::rsg::Attribute> attributes;
     	attributes.clear();
-    	attributes.push_back(rsg::Attribute("taskType", "scene_objecs_scene_setup"));
+    	attributes.push_back(rsg::Attribute("taskType", "scene_objecs"));
+    	pid_t pid = getpid();
+    	std::stringstream pidAsSteam("");
+    	pidAsSteam << pid;
+    	attributes.push_back(rsg::Attribute("PID", pidAsSteam.str()));
     	rsg::Id sceneObjectsId;
     	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
-//    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
+
+    	/* Box for "virtual fence" */
+    	attributes.clear();
+    	attributes.push_back(rsg::Attribute("name", "box_tf"));
+    	attributes.push_back(rsg::Attribute("taskType", "sceneObject"));
+    	rsg::Id boxTfId;
+    	brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr transform120(new brics_3d::HomogeneousMatrix44(1,0,0,  	// Rotation coefficients
+    			0,1,0,
+    			0,0,1,
+    			1,2,0)); 						// Translation coefficients
+    	wm->scene.addTransformNode(sceneObjectsId, boxTfId, attributes, transform120, wm->now());
+
+    	attributes.clear();
+    	attributes.push_back(rsg::Attribute("shape", "Box"));
+    	attributes.push_back(rsg::Attribute("name", "virtual_fence")); // this name serves as a conventions here
+    	rsg::Box::BoxPtr box( new rsg::Box(1,2,0));
+    	rsg::Id boxId;
+    	wm->scene.addGeometricNode(boxTfId, boxId, attributes, box, wm->now());
+
 
 #ifdef GENERATED_SCENE_SETUP
     	brics_3d::rsg::IFunctionBlock* scene_setup = new SceneSetup(wm);
