@@ -8,6 +8,7 @@
 #include <brics_3d/worldModel/WorldModel.h>
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/HDF5UpdateSerializer.h>
+#include <brics_3d/worldModel/sceneGraph/SceneGraphToUpdatesTraverser.h>
 
 
 using namespace brics_3d;
@@ -75,6 +76,7 @@ struct rsg_sender_info
         /* add custom block local data here */
 		brics_3d::WorldModel* wm;
 		brics_3d::rsg::DotVisualizer* wm_printer;
+		brics_3d::rsg::SceneGraphToUpdatesTraverser* wm_resender;
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -122,7 +124,12 @@ int rsg_sender_init(ubx_block_t *b)
     	brics_3d::rsg::HDF5UpdateSerializer* wmUpdatesToHdf5Serializer = new brics_3d::rsg::HDF5UpdateSerializer(wmUpdatesUbxPort);
     	inf->wm->scene.attachUpdateObserver(wmUpdatesToHdf5Serializer);
 
+    	/* Set error policy of RSG */
     	inf->wm->scene.setCallObserversEvenIfErrorsOccurred(false);
+
+    	/* Initialize resender that resends the complete graph, if necessary */
+    	inf->wm_resender = new brics_3d::rsg::SceneGraphToUpdatesTraverser(wmUpdatesToHdf5Serializer);
+
         return 0;
 }
 
@@ -143,6 +150,15 @@ void rsg_sender_stop(ubx_block_t *b)
 /* cleanup */
 void rsg_sender_cleanup(ubx_block_t *b)
 {
+        struct rsg_sender_info *inf = (struct rsg_sender_info*) b->private_data;
+        if(inf->wm_printer) {
+        	delete inf->wm_printer;
+        	inf->wm_printer = 0;
+        }
+        if(inf->wm_resender) {
+        	delete inf->wm_resender;
+        	inf->wm_resender = 0;
+        }
         free(b->private_data);
 }
 
@@ -154,12 +170,17 @@ void rsg_sender_step(ubx_block_t *b)
         brics_3d::WorldModel* wm = inf->wm;
 
     	/* Add group nodes */
-    	std::vector<brics_3d::rsg::Attribute> attributes;
-    	attributes.clear();
-    	attributes.push_back(rsg::Attribute("taskType", "scene_objecs"));
-    	rsg::Id sceneObjectsId;
-    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
+//    	std::vector<brics_3d::rsg::Attribute> attributes;
+//    	attributes.clear();
+//    	attributes.push_back(rsg::Attribute("taskType", "scene_objecs"));
+//    	rsg::Id sceneObjectsId;
 //    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
+//    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
+
+        /* Resend the complete scene graph */
+        LOG(INFO) << "Resending the complete RSG now.";
+        inf->wm_resender->reset();
+        wm->scene.executeGraphTraverser(inf->wm_resender, wm->scene.getRootId());
 
 }
 
