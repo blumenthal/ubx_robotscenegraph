@@ -55,6 +55,7 @@ return bd.system
       { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
       
       { src="subscriber.zmq_in", tgt="visualization_publisher" },
+      { src="rsgsender.rsg_out", tgt="visualization_publisher" },
       
    },
    
