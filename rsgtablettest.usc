@@ -44,6 +44,7 @@ return bd.system
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+      { name="coodination_subscriber", type="zmq_receiver" },
 
    },
    
@@ -66,7 +67,8 @@ return bd.system
 	  -- The IP for the subscriber has to come from the Android device. 
 	  -- Use the WiFi setting menue to obtain it.
 	  -- Per default the tablet will publish to port 11411 (and listen to 11511)
-    { name="subscriber", config = { connection_spec= "tcp://192.168.1.104:11411"  } },	
+    { name="subscriber", config = { connection_spec= "tcp://192.168.1.104:11411"  } },
+    { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.104:22422"  } },	
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
     { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
     { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
