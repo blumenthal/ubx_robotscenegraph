@@ -146,7 +146,7 @@ void rsg_reciever_step(ubx_block_t *b)
 		const char *dataBuffer = (char *)msg.data;
 		int transferred_bytes;
 		if ((dataBuffer!=0) && (msg.len > 1) && (readBytes > 1)) {
-			inf->wm_deserializer->write(dataBuffer, msg.len, transferred_bytes);
+			inf->wm_deserializer->write(dataBuffer, readBytes, transferred_bytes);
 			LOG(DEBUG) << "rsg_reciever: \t transferred_bytes = " << transferred_bytes;
 		} else if (dataBuffer == 0) {
 			LOG(ERROR) << "Pointer to data buffer is zero. Aborting this update.";
