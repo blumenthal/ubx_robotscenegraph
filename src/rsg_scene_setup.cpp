@@ -178,7 +178,7 @@ void rsg_scene_setup_step(ubx_block_t *b)
 
     	/* Box for "virtual fence" */
     	attributes.clear();
-    	attributes.push_back(rsg::Attribute("name", "box_tf"));
+    	attributes.push_back(rsg::Attribute("name", "virtual_fence")); // this name serves as a conventions here
     	attributes.push_back(rsg::Attribute("taskType", "sceneObject"));
     	rsg::Id boxTfId;
     	brics_3d::IHomogeneousMatrix44::IHomogeneousMatrix44Ptr transform120(new brics_3d::HomogeneousMatrix44(1,0,0,  	// Rotation coefficients
@@ -189,7 +189,6 @@ void rsg_scene_setup_step(ubx_block_t *b)
 
     	attributes.clear();
     	attributes.push_back(rsg::Attribute("shape", "Box"));
-    	attributes.push_back(rsg::Attribute("name", "virtual_fence")); // this name serves as a conventions here
     	rsg::Box::BoxPtr box( new rsg::Box(1,2,0));
     	rsg::Id boxId;
     	wm->scene.addGeometricNode(boxTfId, boxId, attributes, box, wm->now());
