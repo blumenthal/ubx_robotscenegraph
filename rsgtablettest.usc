@@ -24,6 +24,7 @@ return bd.system
       "std_blocks/lfds_buffers/lfds_cyclic.so",
       "std_blocks/lfds_buffers/lfds_cyclic_raw.so",
       "std_blocks/logging/file_logger.so",
+      "std_blocks/hexdump/hexdump.so",
       "blocks/zmqreceiverlib.so",
       "blocks/zmqsenderlib.so",
       "types/rsg_types.so",  
@@ -31,6 +32,7 @@ return bd.system
       "build/rsgsenderlib.so",
       "build/rsgscenesetuplib.so",
       "blocks/irospublisher.so",
+      "blocks/fmpcwmlib.so",
    },
 
    blocks = {
@@ -45,6 +47,8 @@ return bd.system
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
       { name="coodination_subscriber", type="zmq_receiver" },
+      { name="fmpc_wm", type="fmpc_world_model" },
+      { name="hexdump1", type="hexdump/hexdump" },
 
    },
    
@@ -58,6 +62,7 @@ return bd.system
       { src="subscriber.zmq_in", tgt="visualization_publisher" },
       { src="rsgsender.rsg_out", tgt="visualization_publisher" },
       
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
    },
    
    configurations = {
@@ -68,6 +73,7 @@ return bd.system
 	  -- Use the WiFi setting menue to obtain it.
 	  -- Per default the tablet will publish to port 11411 (and listen to 11511)
     { name="subscriber", config = { connection_spec= "tcp://192.168.1.104:11411"  } },
+    --{ name="subscriber", config = { connection_spec= "tcp://localhost:11511"  } }, -- loopback test
     { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.104:22422"  } },	
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
     { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
@@ -77,10 +83,13 @@ return bd.system
       period = {sec=0, usec=100000 }, 
         trig_blocks={ 
           { b="#rsgreciever", num_steps=1, measure=0 },
-          { b="#publisher", num_steps=1, measure=0 }  
+          { b="#publisher", num_steps=1, measure=0 },
+          --{ b="#rsgsender", num_steps=1, measure=0 },
+          { b="#fmpc_wm", num_steps=1, measure=0 },      
         } 
       } 
     },	
-    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },				
+    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
+    { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },				
    },
 }
