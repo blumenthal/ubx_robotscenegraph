@@ -33,6 +33,7 @@ return bd.system
       "build/rsgscenesetuplib.so",
       "blocks/irospublisher.so",
       "blocks/fmpcwmlib.so",
+      "blocks/fmpcmockuplib.so",
    },
 
    blocks = {
@@ -48,6 +49,7 @@ return bd.system
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
       { name="coodination_subscriber", type="zmq_receiver" },
       { name="fmpc_wm", type="fmpc_world_model" },
+      { name="fmpc_dummy", type="fmpc_mockup" },
       { name="hexdump1", type="hexdump/hexdump" },
 
    },
@@ -63,6 +65,10 @@ return bd.system
       { src="rsgsender.rsg_out", tgt="visualization_publisher" },
       
       { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc_dummy.fmpc_virtual_fence" },
+      { src="fmpc_wm.fmpc_obstacle", tgt="fmpc_dummy.fmpc_obstacle" },
+      { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc_dummy.fmpc_goal_pose" },
+      { src="fmpc_dummy.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
    },
    
    configurations = {
@@ -85,7 +91,8 @@ return bd.system
           { b="#rsgreciever", num_steps=1, measure=0 },
           { b="#publisher", num_steps=1, measure=0 },
           --{ b="#rsgsender", num_steps=1, measure=0 },
-          { b="#fmpc_wm", num_steps=1, measure=0 },      
+          { b="#fmpc_wm", num_steps=1, measure=0 },
+          { b="#fmpc_dummy", num_steps=2, measure=0 },      
         } 
       } 
     },	
