@@ -83,7 +83,7 @@ include_directories(
   $ENV{FBX_MODULES}
   ${BRICS_3D_INCLUDE_DIRS}
   ${EIGEN_INCLUDE_DIR}
-  ${HDF5_CXX_INCLUDE_DIR} 
+  ${HDF5_CXX_INCLUDE_DIR}
 )
 
 LINK_DIRECTORIES(${BRICS_3D_LINK_DIRECTORIES})
@@ -117,6 +117,7 @@ target_link_libraries(rsgscenesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} $
 install(TARGETS rsgscenesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgscenesetuplib-block)
 set_property(TARGET rsgscenesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
 
 # To compile the rsg_bridge_test_app uncomment this section and update all mudules paths within src/rsg_bridge_test_app.c
 #add_executable(rsg_bridge_test_app src/rsg_bridge_test_app.c)

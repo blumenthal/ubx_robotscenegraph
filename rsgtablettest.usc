@@ -34,6 +34,8 @@ return bd.system
       "blocks/irospublisher.so",
       "blocks/fmpcwmlib.so",
       "blocks/fmpcmockuplib.so",
+--      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
+      "blocks/motioncoordinatorlib.so"
    },
 
    blocks = {
@@ -51,6 +53,8 @@ return bd.system
       { name="fmpc_wm", type="fmpc_world_model" },
       { name="fmpc_dummy", type="fmpc_mockup" },
       { name="hexdump1", type="hexdump/hexdump" },
+      --{ name = "motion_coordinator", type="lua/lua_coordinator" }
+      { name = "motion_coordinator1", type="motion_coordinator" }
 
    },
    
@@ -69,6 +73,9 @@ return bd.system
       { src="fmpc_wm.fmpc_obstacle", tgt="fmpc_dummy.fmpc_obstacle" },
       { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc_dummy.fmpc_goal_pose" },
       { src="fmpc_dummy.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
+      
+      { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },
+
    },
    
    configurations = {
@@ -78,9 +85,11 @@ return bd.system
 	  -- The IP for the subscriber has to come from the Android device. 
 	  -- Use the WiFi setting menue to obtain it.
 	  -- Per default the tablet will publish to port 11411 (and listen to 11511)
-    { name="subscriber", config = { connection_spec= "tcp://192.168.1.104:11411"  } },
+   -- { name="subscriber", config = { connection_spec= "tcp://192.168.1.104:11411"  } },
+    { name="subscriber", config = { connection_spec= "tcp://192.168.1.102:11411"  } }, -- Acer Tablet
     --{ name="subscriber", config = { connection_spec= "tcp://localhost:11511"  } }, -- loopback test
-    { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.104:22422"  } },	
+    --{ name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.104:22422"  } },	
+    { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.102:22422"  } }, -- Acer Tablet 
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
     { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
     { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
@@ -91,12 +100,23 @@ return bd.system
           { b="#rsgreciever", num_steps=1, measure=0 },
           { b="#publisher", num_steps=1, measure=0 },
           --{ b="#rsgsender", num_steps=1, measure=0 },
+          { b="#motion_coordinator1", num_steps=1, measure=0 },  
           { b="#fmpc_wm", num_steps=1, measure=0 },
-          { b="#fmpc_dummy", num_steps=2, measure=0 },      
+          { b="#fmpc_dummy", num_steps=1, measure=0 },      
         } 
       } 
     },	
     { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
-    { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },				
+    { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },
+    
+    { name="motion_coordinator1", 
+      config = { 
+        trig_blocks={ 
+          { b="#fmpc_wm", num_steps=1, measure=0 },
+          { b="#fmpc_dummy", num_steps=2, measure=0 },  
+        } 
+      }      
+    },		
+    		
    },
 }
