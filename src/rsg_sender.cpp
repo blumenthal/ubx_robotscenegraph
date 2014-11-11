@@ -9,6 +9,7 @@
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/HDF5UpdateSerializer.h>
 #include <brics_3d/worldModel/sceneGraph/SceneGraphToUpdatesTraverser.h>
+#include <brics_3d/worldModel/sceneGraph/FrequencyAwareUpdateFilter.h>
 
 
 using namespace brics_3d;
@@ -77,6 +78,7 @@ struct rsg_sender_info
 		brics_3d::WorldModel* wm;
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::SceneGraphToUpdatesTraverser* wm_resender;
+		brics_3d::rsg::FrequencyAwareUpdateFilter* frequency_filter;
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -118,11 +120,18 @@ int rsg_sender_init(ubx_block_t *b)
     	inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
     	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
 
+    	inf->frequency_filter = new brics_3d::rsg::FrequencyAwareUpdateFilter();
+    	inf->frequency_filter->setMaxGeometricNodeUpdateFrequency(0); // everything;
+    	inf->frequency_filter->setMaxTransformUpdateFrequency(1); // not more then x Hz;
+
     	/* Attach the UBX port to the world model */
     	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
     	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
     	brics_3d::rsg::HDF5UpdateSerializer* wmUpdatesToHdf5Serializer = new brics_3d::rsg::HDF5UpdateSerializer(wmUpdatesUbxPort);
-    	inf->wm->scene.attachUpdateObserver(wmUpdatesToHdf5Serializer);
+//    	inf->wm->scene.attachUpdateObserver(wmUpdatesToHdf5Serializer);
+    	inf->wm->scene.attachUpdateObserver(inf->frequency_filter);
+    	inf->frequency_filter->attachUpdateObserver(wmUpdatesToHdf5Serializer);
+
 
     	/* Set error policy of RSG */
     	inf->wm->scene.setCallObserversEvenIfErrorsOccurred(false);
