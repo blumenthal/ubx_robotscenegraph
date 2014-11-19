@@ -1,0 +1,156 @@
+-- This system works in conjunction with the AndroidRSGDemoZMQ[1] app for 
+-- Android. Both the app and this UBX system have a "World Model Agent (WMA)"
+-- i.e. in this case single instance of the Robot Scene Graph (RSG). Both 
+-- use HDF5 for encoding and decoding. ZMQ is used as network layer.
+-- Each update on the RSG is porpageted to the other WMA and vice versa.
+--
+-- The tablet has GUI elemts to update its WMA, while the UBX system has 
+-- a scene setup block that performs an update whenever the setep function is
+-- triggered.
+--  
+-- [1] https://github.com/blumenthal/brics_3d_jni/tree/master/examples/AndroidRSGDemoZMQ
+
+local rsg = require("rsg")
+
+-- create in inctance of the RSG to serve as world model agent 
+wm = rsg.WorldModel()
+
+
+return bd.system
+{
+   imports = {
+      "std_types/stdtypes/stdtypes.so",
+      "std_blocks/ptrig/ptrig.so",
+      "std_blocks/lfds_buffers/lfds_cyclic.so",
+      "std_blocks/lfds_buffers/lfds_cyclic_raw.so",
+      "std_blocks/logging/file_logger.so",
+      "std_blocks/hexdump/hexdump.so",
+      "blocks/zmqreceiverlib.so",
+      "blocks/zmqsenderlib.so",
+      "types/rsg_types.so",  
+      "build/rsgrecieverlib.so",
+      "build/rsgsenderlib.so",
+      "build/rsgscenesetuplib.so",
+      "blocks/irospublisher.so",
+      "blocks/fmpcwmlib.so",
+      "blocks/fmpcmockuplib.so",
+--      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
+      "blocks/motioncoordinatorlib.so"
+   },
+
+   blocks = {
+      { name="rsgsender", type="rsg_sender" }, 
+      { name="rsgreciever", type="rsg_reciever" },
+      { name="publisher", type="zmq_sender" },
+      { name="subscriber", type="zmq_receiver" },
+      -- Additional ZMQ bridges for the "remote" FMPC
+      { name="publisher_fence", type="zmq_sender" },
+      { name="publisher_obstacle", type="zmq_sender" },
+      { name="publisher_goal", type="zmq_sender" },
+      { name="subscriber_robot", type="zmq_receiver" },
+      { name="scenesetup", type="rsg_scene_setup" },
+      -- we have to explicitly configure the buffers for large message sized (cf. config setion)
+      { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      -- Additional buffers for remote" FMPC
+      { name="bytestreambuffer_fmpc1",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer_fmpc2",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer_fmpc3",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer_fmpc4",type="lfds_buffers/cyclic_raw" },
+      { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+     -- { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+      { name="coodination_subscriber", type="zmq_receiver" },
+      { name="fmpc_wm", type="fmpc_world_model" },
+      --{ name="fmpc_dummy", type="fmpc_mockup" },
+      { name="hexdump1", type="hexdump/hexdump" },
+      { name = "motion_coordinator1", type="motion_coordinator" } -- the "remote" FMPC has it own motion_coordinator with the same role
+
+   },
+   
+   connections = {
+      { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
+      { src="bytestreambuffer1", tgt="publisher.zmq_out" },
+                  
+      { src="subscriber.zmq_in", tgt="bytestreambuffer2" },
+      { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      
+     -- { src="subscriber.zmq_in", tgt="visualization_publisher" },
+     -- { src="rsgsender.rsg_out", tgt="visualization_publisher" },
+      
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="bytestreambuffer_fmpc1" },
+      { src="fmpc_wm.fmpc_obstacle", tgt="bytestreambuffer_fmpc2" },
+      { src="fmpc_wm.fmpc_goal_pose", tgt="bytestreambuffer_fmpc3" },
+      { src="bytestreambuffer_fmpc4", tgt="fmpc_wm.fmpc_robot_pose" }, 
+      
+      { src="bytestreambuffer_fmpc1", tgt="publisher_fence.zmq_out" },
+      { src="bytestreambuffer_fmpc2", tgt="publisher_obstacle.zmq_out" },
+      { src="bytestreambuffer_fmpc3", tgt="publisher_goal.zmq_out" },
+      
+      { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },      
+      -- feed forward coordination commands as well? 
+
+   },
+   
+   configurations = {
+	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm} } },
+	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+	  { name="publisher", config = { connection_spec="tcp://*:11511" } },
+	  { name="publisher_fence", config = { connection_spec="tcp://*:33133" } },    
+    { name="publisher_obstacle", config = { connection_spec="tcp://*:33233" } },  
+    { name="publisher_goal", config = { connection_spec="tcp://*:33333" } },  
+	  
+	  -- The IP for the subscriber has to come from the Android device. 
+	  -- Use the WiFi setting menue to obtain it.
+	  -- Per default the tablet will publish to port 11411 (and listen to 11511)
+   -- { name="subscriber", config = { connection_spec= "tcp://192.168.1.104:11411"  } },
+    { name="subscriber", config = { connection_spec= "tcp://192.168.1.100:11411"  } }, -- Acer Tablet
+   -- { name="subscriber", config = { connection_spec= "tcp://localhost:11511"  } }, -- loopback test 
+   -- { name="subscriber", config = { connection_spec= "tcp://192.168.10.226:11411"  } }, -- Samsung Tablet @ robolab
+    
+    -- IP has to come from robot whrere the FMPC is deployed
+    { name="subscriber_robot", config = { connection_spec= "tcp://localhost:33433"  } }, 
+    
+    --{ name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.104:22422"  } },	
+    { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.100:22422"  } }, -- Acer Tablet 
+    --{ name="coodination_subscriber", config = { connection_spec= "tcp://192.168.10.226:22422"  } }, -- Samsung Tablet @ robolab
+    
+
+    { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
+    { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
+    { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
+    { name="bytestreambuffer_fmpc1", config = { element_num=10 , element_size=2000 } },
+    { name="bytestreambuffer_fmpc2", config = { element_num=10 , element_size=2000 } },
+    { name="bytestreambuffer_fmpc3", config = { element_num=10 , element_size=2000 } },
+    { name="bytestreambuffer_fmpc4", config = { element_num=10 , element_size=2000 } },
+    { name="cyclic_io_trigger", 
+      config = { 
+      period = {sec=0, usec=100000 }, 
+        trig_blocks={         
+          { b="#rsgreciever", num_steps=1, measure=0 },
+          { b="#publisher", num_steps=1, measure=0 },
+          { b="#motion_coordinator1", num_steps=1, measure=0 },  
+          { b="#fmpc_wm", num_steps=1, measure=0 },
+          -- puplichers for FMPC need  to be after wm to account for latest query results
+          { b="#publisher_fence", num_steps=1, measure=0 },
+          { b="#publisher_obstacle", num_steps=1, measure=0 }, 
+          { b="#publisher_goal", num_steps=1, measure=0 }, 
+         -- { b="#fmpc_dummy", num_steps=1, measure=0 },      
+        } 
+      } 
+    },	
+   -- { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
+    { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },
+    
+    { name="motion_coordinator1", 
+      config = { 
+        trig_blocks={ 
+          { b="#fmpc_wm", num_steps=1, measure=0 },
+       --   { b="#fmpc_dummy", num_steps=2, measure=0 },  
+        } 
+      }      
+    },		
+    		
+   },
+}
+

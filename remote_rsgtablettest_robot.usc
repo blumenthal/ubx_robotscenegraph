@@ -1,0 +1,106 @@
+-- System with FMPC and ZMQ brigdes to be deployed on the robot. 
+
+return bd.system
+{
+   imports = {
+      "std_types/stdtypes/stdtypes.so",
+      "std_blocks/ptrig/ptrig.so",
+      "std_blocks/lfds_buffers/lfds_cyclic.so",
+      "std_blocks/lfds_buffers/lfds_cyclic_raw.so",
+      "std_blocks/hexdump/hexdump.so",
+      "blocks/zmqreceiverlib.so",
+      "blocks/zmqsenderlib.so",
+      "blocks/fmpcmockuplib.so",
+      "blocks/motioncoordinatorlib.so"
+   },
+
+   blocks = {
+      { name="subscriber_fence", type="zmq_receiver" },
+      { name="subscriber_obstacle", type="zmq_receiver" },
+      { name="subscriber_goal", type="zmq_receiver" },
+      { name="publisher_pose", type="zmq_sender" },
+     
+      { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
+      
+      { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+      { name="coodination_subscriber", type="zmq_receiver" },
+      { name="fmpc_dummy", type="fmpc_mockup" }, -- This one has to be later replaces by the real FMPC
+      { name="hexdump1", type="hexdump/hexdump" },
+      { name = "motion_coordinator1", type="motion_coordinator" }
+
+   },
+   
+   connections = {
+      -- Input buffers
+      { src="subscriber_fence.zmq_in", tgt="bytestreambuffer1" },
+      { src="subscriber_obstacle.zmq_in", tgt="bytestreambuffer2" },
+      { src="subscriber_goal.zmq_in", tgt="bytestreambuffer3" },
+      
+      -- Output buffer
+      { src="bytestreambuffer4", tgt="publisher_pose.zmq_out" },
+      
+      -- Debug output
+      { src="subscriber_fence.zmq_in", tgt="hexdump1" },
+      
+      -- Wiring to FMPC                
+      { src="bytestreambuffer1", tgt="fmpc_dummy.fmpc_virtual_fence" },
+      { src="bytestreambuffer2", tgt="fmpc_dummy.fmpc_obstacle" },
+      { src="bytestreambuffer3", tgt="fmpc_dummy.fmpc_goal_pose" },
+      { src="fmpc_dummy.fmpc_robot_pose", tgt="bytestreambuffer4" }, 
+      
+      
+      -- Coordnator
+      { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },
+
+   },
+   
+   configurations = {
+
+	
+	  -- The IP for the subscriber has to come from the PC that host the other UBX system
+	  -- e.g. tcp://192.168.10.226:33133 
+    { name="subscriber_fence", config = { connection_spec= "tcp://localhost:33133"  } }, 
+    { name="subscriber_obstacle", config = { connection_spec= "tcp://localhost:33233"  } }, 
+    { name="subscriber_goal", config = { connection_spec= "tcp://localhost:33333"  } }, 
+    
+    -- The puplisher we don't have to touch
+    { name="publisher_pose", config = { connection_spec="tcp://*:33433" } }, --
+
+    -- The IP for the coodination_subscriber is supposed to come from the tablet directly.
+    -- It could also subscribe to the PC, incase the cooradination commands are relayed.
+    { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.100:22422"  } }, 
+    
+    -- Buffer specs with conservative memory reserves.
+    { name="bytestreambuffer1", config = { element_num=10 , element_size=2000 } },
+    { name="bytestreambuffer2", config = { element_num=10 , element_size=2000 } },
+    { name="bytestreambuffer3", config = { element_num=10 , element_size=2000 } },
+    { name="bytestreambuffer4", config = { element_num=10 , element_size=2000 } },
+    
+    -- Central scheduler. Incomming data is stashed automatically in the buffers.
+    -- Outgoing data we have to trigger ourselves.
+    { name="cyclic_io_trigger", 
+      config = { 
+      period = {sec=0, usec=100000 }, 
+        trig_blocks={ 
+          { b="#publisher_pose", num_steps=1, measure=0 },
+          { b="#motion_coordinator1", num_steps=1, measure=0 },  
+          { b="#fmpc_dummy", num_steps=1, measure=0 },      
+        } 
+      } 
+    },	
+    
+    -- Toggels the FMPC ON or OFF
+    { name="motion_coordinator1", 
+      config = { 
+        trig_blocks={ 
+          { b="#fmpc_dummy", num_steps=1, measure=0 },  
+        } 
+      }      
+    },		
+    		
+   },
+   
+}
