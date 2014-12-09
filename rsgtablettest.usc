@@ -15,6 +15,20 @@ local rsg = require("rsg")
 -- create in inctance of the RSG to serve as world model agent 
 wm = rsg.WorldModel()
 
+function start_all() -- non particular order assumed her
+    ni:b("rsgsender"):do_start()
+    ni:b("rsgreciever"):do_start()
+    ni:b("publisher"):do_start()
+    ni:b("subscriber"):do_start()
+    ni:b("bytestreambuffer1"):do_start()
+    ni:b("bytestreambuffer2"):do_start()
+    ni:b("coodination_subscriber"):do_start()
+    ni:b("motion_coordinator1"):do_start()
+    ni:b("fmpc_wm"):do_start()
+    ni:b("fmpc_dummy"):do_init()
+    ni:b("fmpc_dummy"):do_start()
+    ni:b("cyclic_io_trigger"):do_start()
+end
 
 return bd.system
 {
