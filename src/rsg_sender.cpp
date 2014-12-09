@@ -122,7 +122,7 @@ int rsg_sender_init(ubx_block_t *b)
 
     	inf->frequency_filter = new brics_3d::rsg::FrequencyAwareUpdateFilter();
     	inf->frequency_filter->setMaxGeometricNodeUpdateFrequency(0); // everything;
-    	inf->frequency_filter->setMaxTransformUpdateFrequency(1); // not more then x Hz;
+    	inf->frequency_filter->setMaxTransformUpdateFrequency(0.5); // not more then x Hz;
 
     	/* Attach the UBX port to the world model */
     	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
@@ -168,6 +168,10 @@ void rsg_sender_cleanup(ubx_block_t *b)
         	delete inf->wm_resender;
         	inf->wm_resender = 0;
         }
+        if(inf->frequency_filter){
+        	delete inf->frequency_filter;
+        	inf->frequency_filter = 0;
+        }
         free(b->private_data);
 }
 
@@ -188,8 +192,9 @@ void rsg_sender_step(ubx_block_t *b)
 
         /* Resend the complete scene graph */
         LOG(INFO) << "Resending the complete RSG now.";
+        inf->wm->scene.advertiseRootNode(); // Make shure root node is always send; The graph traverser cannot handle this.
         inf->wm_resender->reset();
-        wm->scene.executeGraphTraverser(inf->wm_resender, wm->scene.getRootId());
+        wm->scene.executeGraphTraverser(inf->wm_resender, wm->scene.getRootId()); // Note: addRemoteRoot node is only forwarded once
 
 }
 

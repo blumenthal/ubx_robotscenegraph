@@ -8,6 +8,7 @@
 #include <brics_3d/worldModel/WorldModel.h>
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/HDF5UpdateDeserializer.h>
+#include <brics_3d/worldModel/sceneGraph/RemoteRootNodeAutoMounter.h>
 
 using namespace brics_3d;
 using brics_3d::Logger;
@@ -27,6 +28,7 @@ struct rsg_reciever_info
 		brics_3d::WorldModel* wm;
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::HDF5UpdateDeserializer* wm_deserializer;
+		brics_3d::rsg::RemoteRootNodeAutoMounter* wm_auto_mounter;
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -78,6 +80,10 @@ int rsg_reciever_init(ubx_block_t *b)
         inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
         inf->wm_printer->setFileName("ubx_current_replica_graph");
         inf->wm->scene.attachUpdateObserver(inf->wm_printer);
+
+        /* Use auto mount policy */
+    	inf->wm_auto_mounter = new brics_3d::rsg::RemoteRootNodeAutoMounter(&inf->wm->scene, inf->wm->getRootNodeId()); //mount everything relative to root node
+    	inf->wm->scene.attachUpdateObserver(inf->wm_auto_mounter);
 
         /* Attach deserializer (invoked at step function) */
         inf->wm_deserializer = new brics_3d::rsg::HDF5UpdateDeserializer(inf->wm);

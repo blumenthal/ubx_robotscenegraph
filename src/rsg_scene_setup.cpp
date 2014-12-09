@@ -117,7 +117,7 @@ int rsg_scene_setup_init(ubx_block_t *b)
     	/* Attach debug graph printe */
     	inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
     	inf->wm_printer->setFileName("scene_setup_graph");
-    	inf->wm_printer->setKeepHistory(true);
+    	inf->wm_printer->setKeepHistory(false);
     	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
 
     	/* Attach the UBX port to the world model */
