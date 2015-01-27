@@ -116,9 +116,21 @@ int rsg_sender_init(ubx_block_t *b)
     		inf->wm = new brics_3d::WorldModel();
     	}
 
-    	/* Attach debug graph printe */
+    	/* Attach debug graph printer */
     	inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
     	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
+    	int* store_history_as_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_history_as_dot_files", &clen));
+    	if(clen == 0) {
+    		LOG(DEBUG) << "No store_history_as_dot_files configuation given. Turned off by default.";
+    	} else {
+    		if (*store_history_as_dot_files == 1) {
+    			LOG(DEBUG) << "store_history_as_dot_files turned on.";
+    			inf->wm_printer->setKeepHistory(true);
+    		} else {
+    			LOG(DEBUG) << "store_history_as_dot_files turned off.";
+    			inf->wm_printer->setKeepHistory(false);
+    		}
+    	}
 
     	inf->frequency_filter = new brics_3d::rsg::FrequencyAwareUpdateFilter();
     	inf->frequency_filter->setMaxGeometricNodeUpdateFrequency(0); // everything;

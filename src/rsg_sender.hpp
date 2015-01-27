@@ -19,6 +19,7 @@ char rsg_sender_meta[] =
 /* declaration of block configuration */
 ubx_config_t rsg_sender_config[] = {
         { .name="wm_handle", .type_name = "struct rsg_wm_handle", .doc="Handle to the world wodel instance. This parameter is mandatory." },
+        { .name="store_history_as_dot_files", .type_name = "int", .doc="If true every modifcation of the scene graph is stored in a seperate dot file. To be used for debugginh." },
         { NULL },
 };
 
