@@ -93,7 +93,7 @@ return bd.system
    },
    
    configurations = {
-	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
+	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 1 } },
 	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
 	  { name="publisher", config = { connection_spec="tcp://*:11511" } },
 	  -- The IP for the subscriber has to come from the Android device. 

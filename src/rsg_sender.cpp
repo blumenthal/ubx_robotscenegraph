@@ -130,6 +130,23 @@ int rsg_sender_init(ubx_block_t *b)
     			LOG(DEBUG) << "store_history_as_dot_files turned off.";
     			inf->wm_printer->setKeepHistory(false);
     		}
+
+
+    		/* retrive optinal dot file prefix from config */
+    		char* chrptr = (char*) ubx_config_get_data_ptr(b, "dot_name_prefix", &clen);
+    		if(clen == 0) {
+    			LOG(DEBUG) << "No dot_name_prefix configuation given. Selecting a default name.";
+    		} else {
+				if(strcmp(chrptr, "")==0) {
+					LOG(DEBUG) << "dot_name_prefix is empty. Selecting a default name.";
+				} else {
+					std::string prefix(chrptr);
+					LOG(DEBUG) << "Using dot_name_prefix = " << prefix;
+					inf->wm_printer->setFileName(prefix);
+				}
+    		}
+
+
     	}
 
     	inf->frequency_filter = new brics_3d::rsg::FrequencyAwareUpdateFilter();
