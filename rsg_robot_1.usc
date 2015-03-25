@@ -20,6 +20,7 @@ function start_all() -- non particular order assumed her
     ni:b("rsgreciever"):do_start()
     ni:b("publisher"):do_start()
     ni:b("subscriber"):do_start()
+    ni:b("subscriber_hmi"):do_start()
     ni:b("bytestreambuffer1"):do_start()
     ni:b("bytestreambuffer2"):do_start()
     ni:b("coodination_subscriber"):do_start()
@@ -30,7 +31,7 @@ function start_all() -- non particular order assumed her
     ni:b("cyclic_io_trigger"):do_start()
 end
 
-local tablet_ip = "192.168.1.101"
+local tablet_ip = "192.168.1.100"
 local tablet_out_port = "11411"
 local tablet_coordination_port = "22422"
 local robot_1_ip = "localhost"   -- this is me
@@ -65,6 +66,7 @@ return bd.system
       { name="rsgreciever", type="rsg_reciever" },
       { name="publisher", type="zmq_sender" },
       { name="subscriber", type="zmq_receiver" },
+      { name="subscriber_hmi", type="zmq_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
       -- we have to explicitly configure the buffers for large message sized (cf. config setion)
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
@@ -84,9 +86,10 @@ return bd.system
       { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
       { src="bytestreambuffer1", tgt="publisher.zmq_out" },
                   
-      { src="subscriber.zmq_in", tgt="bytestreambuffer2" },
+      { src="subscriber.zmq_in",     tgt="bytestreambuffer2" },
+      { src="subscriber_hmi.zmq_in", tgt="bytestreambuffer2" },
       { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
-      
+           
       { src="subscriber.zmq_in", tgt="visualization_publisher" },
       { src="rsgsender.rsg_out", tgt="visualization_publisher" },
       
@@ -101,13 +104,14 @@ return bd.system
    },
    
    configurations = {
-	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 1, dot_name_prefix = "robot_1" } },
+	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, dot_name_prefix = "robot_1" } },
 	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
 	  { name="publisher", config = { connection_spec="tcp://*:" .. robot_1_out_port  } },
 	  -- The IP for the subscriber has to come from the Android device. 
 	  -- Use the WiFi setting menue to obtain it.
 	  -- Per default the tablet will publish to port 11411 (and listen to 11511)
     { name="subscriber", config = { connection_spec= "tcp://" .. robot_2_ip .. ":" .. robot_2_out_port  } }, 
+    { name="subscriber_hmi", config = { connection_spec= "tcp://" .. tablet_ip .. ":" .. tablet_out_port  } }, 
     { name="coodination_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" ..tablet_coordination_port  } },	
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
     { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },

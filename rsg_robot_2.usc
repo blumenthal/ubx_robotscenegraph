@@ -30,7 +30,7 @@ function start_all() -- non particular order assumed her
     ni:b("cyclic_io_trigger"):do_start()
 end
 
-local tablet_ip = "192.168.1.101"
+local tablet_ip = "192.168.1.100"
 local tablet_out_port = "11411"
 local tablet_coordination_port = "22422"
 local robot_1_ip = "localhost"   
@@ -101,7 +101,7 @@ return bd.system
    },
    
    configurations = {
-    { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 1, dot_name_prefix = "robot_2" } },
+    { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, dot_name_prefix = "robot_2" } },
     { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
     { name="publisher", config = { connection_spec="tcp://*:" .. robot_2_out_port } },
     -- The IP for the subscriber has to come from the Android device. 
