@@ -256,7 +256,8 @@ return bd.system
       { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc1.fmpc_virtual_fence" },
       { src="fmpc_wm.fmpc_obstacle", tgt="fmpc1.fmpc_obstacle" },
       { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc1.fmpc_goal_pose" },
-      { src="fmpc1.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
+      { src="fmpc_wm.fmpc_goal_pose", tgt="hexdump1" },
+      { src="fmpc1.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, 
       
       -- real robot:  fmpc <-> youbot
 --      { src="fmpc1.cmd_twist" , tgt="youbot1.base_cmd_twist" }, -- This does not work!
@@ -303,14 +304,14 @@ return bd.system
       config = { 
       period = {sec=0, usec=100000 }, 
         trig_blocks={ 
-          { b="#fmpc1", num_steps=1, measure=0 },
+         -- { b="#fmpc1", num_steps=1, measure=0 },
           { b="#rsgreciever", num_steps=1, measure=0 },
           { b="#publisher", num_steps=1, measure=0 },
           --{ b="#rsgsender", num_steps=1, measure=0 },
           { b="#motion_coordinator1", num_steps=1, measure=0 },  
           { b="#fmpc_wm", num_steps=1, measure=0 },
           --{ b="#fmpc_dummy", num_steps=1, measure=0 },
-          --{ b="#fmpc1", num_steps=1, measure=0 },      
+          { b="#fmpc1", num_steps=1, measure=0 },      
         } 
       } 
     },	
