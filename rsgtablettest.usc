@@ -11,9 +11,150 @@
 -- [1] https://github.com/blumenthal/brics_3d_jni/tree/master/examples/AndroidRSGDemoZMQ
 
 local rsg = require("rsg")
+--local fmpc = require("fmpc") -- Util functions to test the robot.
 
 -- create in inctance of the RSG to serve as world model agent 
 wm = rsg.WorldModel()
+
+
+
+--- youbot and fmpc relates test functionality (mostly taken form youbot.usc example) ---
+
+yb_pinv=nil
+fmpc_pinv=nil
+
+--- Create a table of all inversely connected ports:
+function make_pinv_tab(name)
+   if yb_pinv~=nil then return end
+   yb_pinv={}
+   local youbot1 = ni:b(name) -- name to handle conversion
+   ubx.ports_map(youbot1,
+     function(p)
+        local pname = ubx.safe_tostr(p.name)
+        yb_pinv[pname] = ubx.port_clone_conn(youbot1, pname)
+     end)
+end
+
+function make_fmpc_pinv_tab(name)
+   if fmpc_pinv~=nil then return end
+   fmpc_pinv={}
+   local fmpc = ni:b(name) -- name to handle conversion
+   ubx.ports_map(fmpc,
+     function(p)
+        local pname = ubx.safe_tostr(p.name)
+        fmpc_pinv[pname] = ubx.port_clone_conn(fmpc, pname)
+     end)
+end
+
+function gettime()
+   local __time = ubx.clock_mono_gettime()
+   return {sec=tonumber(__time.sec), nsec=tonumber(__time.nsec)}
+end
+
+--- Configure the base control mode.
+-- @param mode control mode.
+-- @return true if mode was set, false otherwise.
+function base_set_control_mode(mode)
+   ubx.port_write(yb_pinv.base_control_mode, mode)
+   local res, rval = ubx.port_read_timed(yb_pinv.base_control_mode, nil, 3)
+   return ubx.data_tolua(rval)==mode
+end
+
+--- Return once the youbot is initialized or raise an error.
+function base_initialized()
+   local res,rval=ubx.port_read_timed(yb_pinv.base_control_mode, nil, 5)
+   return ubx.data_tolua(rval)==0 -- 0=MOTORSTOP
+end
+
+--- Move each wheel with an individual RPM value.
+-- @param table of size for with wheel velocity
+-- @param dur time in seconds to apply velocity
+function base_move_vel(vel_tab, dur)
+   base_set_control_mode(2) -- VELOCITY
+
+   local ts_start = ubx.clock_mono_gettime()
+   local ts_cur = ubx.clock_mono_gettime()
+
+   while ts_cur - ts_start < dur do
+      ubx.port_write(yb_pinv.base_cmd_vel, vel_tab)
+      ubx.clock_mono_gettime(ts_cur)
+   end
+   ubx.port_write(yb_pinv.base_cmd_vel, {0,0,0,0})
+end
+
+--- Move with a given twist.
+-- @param twist table.
+-- @param dur duration in seconds
+function base_move_twist(twist_tab, dur)
+   base_set_control_mode(2) -- VELOCITY
+
+   local ts_start = ubx.clock_mono_gettime()
+   local ts_cur = ubx.clock_mono_gettime()
+
+   while ts_cur - ts_start < dur do
+      ubx.port_write(yb_pinv.base_cmd_twist, twist_tab)
+      ubx.clock_mono_gettime(ts_cur)
+   end
+   ubx.port_write(yb_pinv.base_cmd_twist, {vel={0,0,0}, rot={0,0,0}})
+end
+
+--- FMPC test script
+-- fmpc_move(10, {5,0}, {3,0,0.2})
+function fmpc_move(dur_in, goal_arr, obs_arr)
+   base_set_control_mode(2) -- VELOCITY
+
+--   goal_arr_data=ubx.data_alloc(ni, "float", 2)
+--   obs_arr_data=ubx.data_alloc(ni, "float", 3)
+--
+--   ubx.data_set(goal_arr_data, goal_arr)
+--   ubx.data_set(obs_arr_data, obs_arr)
+
+   ubx.port_write(fmpc_pinv.fmpc_obstacle, obs_arr)
+   ubx.port_write(fmpc_pinv.fmpc_goal_pose, goal_arr)
+
+   ni:b("cyclic_io_trigger"):do_start()
+   local dur = {sec=0, nsec=0}
+   dur.sec,dur.nsec=math.modf(dur_in)
+   dur.nsec = dur.nsec * 1000000000
+        print(dur.sec, dur.nsec)
+   local ts_start=gettime()
+   local ts_cur=gettime()
+   local diff = {sec=0,nsec=0}
+
+   while true do
+      diff.sec,diff.nsec=time.sub(ts_cur, ts_start)
+      if time.cmp(diff, dur)==1 then break end     
+      ts_cur=gettime()
+   end
+   
+   ni:b("cyclic_io_trigger"):do_stop()
+   ubx.port_write(yb_pinv.base_cmd_vel, {0,0,0,0}) -- stop
+end
+
+function motion_test() base_move_vel({50, 50, 50, 50}, 3) end
+function twist_test()  base_move_twist({vel={x=0.05,y=0,z=0},rot={x=0,y=0,z=0.1}}, 3) end
+function fmpc_test() fmpc_move(10, {5,0}, {3,0,0.2}) end
+
+function start_youbot() 
+
+  -- intialize the convenience tables with the ports for the driver asn fmpc
+  make_pinv_tab("youbot1") 
+  make_fmpc_pinv_tab("fmpc1")
+
+  ni:b("youbot1"):do_start()  
+  ni:b("youbot_trigger"):do_start()
+
+  base_initialized()
+  
+  ni:b("fmpc1"):do_init() 
+  ni:b("fmpc1"):do_start()
+  ni:b("fifo1"):do_init()
+  ni:b("fifo1"):do_start()
+  ni:b("fifo2"):do_init()
+  ni:b("fifo2"):do_start()
+  ni:b("fifo3"):do_init()
+  ni:b("fifo3"):do_start()  
+end
 
 function start_all() -- non particular order assumed her
     ni:b("rsgsender"):do_start()
@@ -25,10 +166,22 @@ function start_all() -- non particular order assumed her
     ni:b("coodination_subscriber"):do_start()
     ni:b("motion_coordinator1"):do_start()
     ni:b("fmpc_wm"):do_start()
-    ni:b("fmpc_dummy"):do_init()
-    ni:b("fmpc_dummy"):do_start()
+--    ni:b("fmpc_dummy"):do_init()
+--    ni:b("fmpc_dummy"):do_start()
     ni:b("cyclic_io_trigger"):do_start()
+--    ni:b("youbot1"):do_init()   
+--    ni:b("youbot1"):do_start()   
+--    ni:b("fmpc1"):do_init() 
+--    ni:b("fmpc1"):do_start()
+    
 end
+
+local tablet_ip = "192.168.1.103" 
+--local tablet_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
+local tablet_out_port = "11411"
+local tablet_coordination_port = "22422"
+local robot_1_ip = "localhost"   -- this is me
+local robot_1_out_port = "11511" -- this is me
 
 return bd.system
 {
@@ -49,7 +202,12 @@ return bd.system
       "blocks/fmpcwmlib.so",
       "blocks/fmpcmockuplib.so",
 --      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
-      "blocks/motioncoordinatorlib.so"
+      "blocks/motioncoordinatorlib.so",
+      
+      -- Real driver:
+      "types/kdl_types.so",
+      "blocks/youbot_driver.so",
+      "blocks/fmpc.so"
    },
 
    blocks = {
@@ -62,14 +220,20 @@ return bd.system
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+      { name="youbot_trigger", type="std_triggers/ptrig" },
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
       { name="coodination_subscriber", type="zmq_receiver" },
       { name="fmpc_wm", type="fmpc_world_model" },
       { name="fmpc_dummy", type="fmpc_mockup" },
       { name="hexdump1", type="hexdump/hexdump" },
       --{ name = "motion_coordinator", type="lua/lua_coordinator" }
-      { name = "motion_coordinator1", type="motion_coordinator" }
+      { name = "motion_coordinator1", type="motion_coordinator" },
 
+      { name="fifo1",type="lfds_buffers/cyclic_raw" }, -- oldish way of connecting things in ubx...
+      { name="fifo2",type="lfds_buffers/cyclic_raw" },
+      { name="fifo3",type="lfds_buffers/cyclic_raw" },
+      { name = "youbot1", type="youbot/youbot_driver" }, 
+      { name = "fmpc1", type="fmpc/fmpc" }
    },
    
    connections = {
@@ -82,11 +246,39 @@ return bd.system
       { src="subscriber.zmq_in", tgt="visualization_publisher" },
       { src="rsgsender.rsg_out", tgt="visualization_publisher" },
       
-      { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
-      { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc_dummy.fmpc_virtual_fence" },
-      { src="fmpc_wm.fmpc_obstacle", tgt="fmpc_dummy.fmpc_obstacle" },
-      { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc_dummy.fmpc_goal_pose" },
-      { src="fmpc_dummy.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
+--      { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
+--      { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc_dummy.fmpc_virtual_fence" },
+--      { src="fmpc_wm.fmpc_obstacle", tgt="fmpc_dummy.fmpc_obstacle" },
+--      { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc_dummy.fmpc_goal_pose" },
+--      { src="fmpc_dummy.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
+  
+      -- real robot:  wm <-> fmpc
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc1.fmpc_virtual_fence" },
+      { src="fmpc_wm.fmpc_obstacle", tgt="fmpc1.fmpc_obstacle" },
+      { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc1.fmpc_goal_pose" },
+      { src="fmpc1.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
+      
+      -- real robot:  fmpc <-> youbot
+--      { src="fmpc1.cmd_twist" , tgt="youbot1.base_cmd_twist" }, -- This does not work!
+--      { src="fmpc1.cmd_twist", tgt="hexdump1" },
+--      { src="youbot1.base_msr_odom" , tgt="fmpc1.fmpc_odom_port" },  -- This does not work!
+--      { src="youbot1.base_msr_twist" , tgt="fmpc1.fmpc_twist_port" },  -- This does not work!
+      
+      { src="fmpc1.cmd_twist", tgt="fifo1" }, --we have to use the raw buffer here, thus we cannot connect directly
+      { src="fifo1", tgt="youbot1.base_cmd_twist" },
+      { src="youbot1.base_msr_odom", tgt="fifo2" }, 
+      { src="fifo2", tgt="fmpc1.fmpc_odom_port" },
+      { src="youbot1.base_msr_twist", tgt="fifo3" }, 
+      { src="fifo3", tgt="fmpc1.fmpc_twist_port" },
+      
+--ubx.port_connect_out(p_fmpc_cmd_twist, fifo1);
+--ubx.port_connect_in(p_youbot_twist_input, fifo1);
+--
+--ubx.port_connect_out(p_youbot_msr_odom,fifo2);
+--ubx.port_connect_in(p_fmpc_odom_input,fifo2);
+--
+--ubx.port_connect_out(p_youbot_msr_twist,fifo3);
+--ubx.port_connect_in(p_fmpc_twist_input,fifo3);
       
       { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },
 
@@ -95,30 +287,30 @@ return bd.system
    configurations = {
 	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 1 } },
 	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
-	  { name="publisher", config = { connection_spec="tcp://*:11511" } },
+	  { name="publisher", config = { connection_spec="tcp://*:" .. robot_1_out_port  } },
 	  -- The IP for the subscriber has to come from the Android device. 
 	  -- Use the WiFi setting menue to obtain it.
 	  -- Per default the tablet will publish to port 11411 (and listen to 11511)
-    { name="subscriber", config = { connection_spec= "tcp://192.168.1.101:11411"  } },
-    --{ name="subscriber", config = { connection_spec= "tcp://192.168.1.102:11411"  } }, -- Acer Tablet
-   -- { name="subscriber", config = { connection_spec= "tcp://localhost:11511"  } }, -- loopback test
-      { name="subscriber", config = { connection_spec= "tcp://192.168.10.226:11411"  } }, -- Samsung Tablet @ robolab
-    { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.101:22422"  } },	
-    --{ name="coodination_subscriber", config = { connection_spec= "tcp://192.168.1.102:22422"  } }, -- Acer Tablet 
-   -- { name="coodination_subscriber", config = { connection_spec= "tcp://192.168.10.226:22422"  } }, -- Samsung Tablet @ robolab
+    { name="subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" .. tablet_out_port  } }, 
+    { name="coodination_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" ..tablet_coordination_port  } },  
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
     { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
     { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
+    { name="fifo1", config = { element_num=4 , element_size=48 } },
+    { name="fifo2", config = { element_num=4 , element_size=96 } },
+    { name="fifo3", config = { element_num=4 , element_size=48 } },
     { name="cyclic_io_trigger", 
       config = { 
       period = {sec=0, usec=100000 }, 
         trig_blocks={ 
+          { b="#fmpc1", num_steps=1, measure=0 },
           { b="#rsgreciever", num_steps=1, measure=0 },
           { b="#publisher", num_steps=1, measure=0 },
           --{ b="#rsgsender", num_steps=1, measure=0 },
           { b="#motion_coordinator1", num_steps=1, measure=0 },  
           { b="#fmpc_wm", num_steps=1, measure=0 },
-          { b="#fmpc_dummy", num_steps=1, measure=0 },      
+          --{ b="#fmpc_dummy", num_steps=1, measure=0 },
+          --{ b="#fmpc1", num_steps=1, measure=0 },      
         } 
       } 
     },	
@@ -129,10 +321,43 @@ return bd.system
       config = { 
         trig_blocks={ 
           { b="#fmpc_wm", num_steps=1, measure=0 },
-          { b="#fmpc_dummy", num_steps=2, measure=0 },  
+         -- { b="#fmpc_dummy", num_steps=2, measure=0 }, 
+         { b="#fmpc1", num_steps=1, measure=0 },  
+       --  { b="#youbot1", num_steps=1, measure=0 },   
         } 
       }      
     },		
-    		
+    	
+   { name="youbot1", config = { ethernet_if="eth0"} },
+
+    { name="youbot_trigger", 
+      config = { 
+        period = {sec=0, usec=1000 }, 
+        sched_policy="SCHED_FIFO", 
+        sched_priority=80,
+        trig_blocks={ 
+          { b="#youbot1", num_steps=1, measure=0 },
+--          { b="#fmpc1", num_steps=1, measure=0 },
+        }
+      } 
+    },
+
+   { name="fmpc1", 
+     config = {
+      fmpc_config={
+        param_kappa=5e-5,
+        param_iteration=12,
+        param_fence={0,0,0,0},
+        param_states_max={5,5,0.4,0.4},
+        param_states_min={-5,-5,-0.4,-0.4},
+        param_states_init={-5,0,0,0},
+        param_inputs_max={3.9195,3.9195,3.9195,3.9195},
+        param_inputs_min={-3.9195,-3.9195,-3.9195,-3.9195},
+        param_inputs_init={0,0,0,0},
+        param_obstacle={-3.5,0.1,0.5}
+      } 
+     }   
+ 		},
+ 		
    },
 }
