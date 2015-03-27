@@ -156,7 +156,7 @@ function start_youbot()
   ni:b("fifo3"):do_start()  
 end
 
-function start_all() -- non particular order assumed her
+function start_wm() -- non particular order assumed her
     ni:b("rsgsender"):do_start()
     ni:b("rsgreciever"):do_start()
     ni:b("publisher"):do_start()
@@ -165,15 +165,16 @@ function start_all() -- non particular order assumed her
     ni:b("bytestreambuffer2"):do_start()
     ni:b("coodination_subscriber"):do_start()
     ni:b("motion_coordinator1"):do_start()
+    ni:b("motion_coordinator2"):do_start()
     ni:b("fmpc_wm"):do_start()
 --    ni:b("fmpc_dummy"):do_init()
 --    ni:b("fmpc_dummy"):do_start()
-    ni:b("cyclic_io_trigger"):do_start()
---    ni:b("youbot1"):do_init()   
---    ni:b("youbot1"):do_start()   
---    ni:b("fmpc1"):do_init() 
---    ni:b("fmpc1"):do_start()
-    
+    ni:b("cyclic_io_trigger"):do_start()    
+end
+
+function start_all()
+  start_youbot()
+  start_wm()
 end
 
 local tablet_ip = "192.168.1.103" 
@@ -201,7 +202,7 @@ return bd.system
       "blocks/irospublisher.so",
       "blocks/fmpcwmlib.so",
       "blocks/fmpcmockuplib.so",
---      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
+      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
       "blocks/motioncoordinatorlib.so",
       
       -- Real driver:
@@ -226,9 +227,9 @@ return bd.system
       { name="fmpc_wm", type="fmpc_world_model" },
       { name="fmpc_dummy", type="fmpc_mockup" },
       { name="hexdump1", type="hexdump/hexdump" },
-      --{ name = "motion_coordinator", type="lua/lua_coordinator" }
       { name = "motion_coordinator1", type="motion_coordinator" },
-
+      { name = "motion_coordinator2", type="lua/lua_coordinator" },
+      -- youbot + fmpc:
       { name="fifo1",type="lfds_buffers/cyclic_raw" }, -- oldish way of connecting things in ubx...
       { name="fifo2",type="lfds_buffers/cyclic_raw" },
       { name="fifo3",type="lfds_buffers/cyclic_raw" },
@@ -272,16 +273,11 @@ return bd.system
       { src="youbot1.base_msr_twist", tgt="fifo3" }, 
       { src="fifo3", tgt="fmpc1.fmpc_twist_port" },
       
---ubx.port_connect_out(p_fmpc_cmd_twist, fifo1);
---ubx.port_connect_in(p_youbot_twist_input, fifo1);
---
---ubx.port_connect_out(p_youbot_msr_odom,fifo2);
---ubx.port_connect_in(p_fmpc_odom_input,fifo2);
---
---ubx.port_connect_out(p_youbot_msr_twist,fifo3);
---ubx.port_connect_in(p_fmpc_twist_input,fifo3);
-      
+   
       { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },
+      { src="coodination_subscriber.zmq_in", tgt="motion_coordinator2.motion_toggler" }, 
+      { src="motion_coordinator2.youbot_cmd_mode", tgt="youbot1.base_control_mode" },
+      { src="motion_coordinator2.youbot_cmd_mode", tgt="hexdump1" },
 
    },
    
@@ -300,7 +296,7 @@ return bd.system
     { name="fifo1", config = { element_num=4 , element_size=48 } },
     { name="fifo2", config = { element_num=4 , element_size=96 } },
     { name="fifo3", config = { element_num=4 , element_size=48 } },
-    { name="cyclic_io_trigger", 
+    { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
       config = { 
       period = {sec=0, usec=100000 }, 
         trig_blocks={ 
@@ -308,7 +304,8 @@ return bd.system
           { b="#rsgreciever", num_steps=1, measure=0 },
           { b="#publisher", num_steps=1, measure=0 },
           --{ b="#rsgsender", num_steps=1, measure=0 },
-          { b="#motion_coordinator1", num_steps=1, measure=0 },  
+          { b="#motion_coordinator1", num_steps=1, measure=0 },
+          { b="#motion_coordinator2", num_steps=1, measure=0 },   
           { b="#fmpc_wm", num_steps=1, measure=0 },
           --{ b="#fmpc_dummy", num_steps=1, measure=0 },
           { b="#fmpc1", num_steps=1, measure=0 },      
@@ -328,6 +325,13 @@ return bd.system
         } 
       }      
     },		
+    
+    { name="motion_coordinator2", -- sends commands to youbot
+        config = { 
+          lua_file="../ubx_rsg_fmpc/src/motion_coordinator.lua",
+          trig_blocks={} 
+        }      
+      },
     	
    { name="youbot1", config = { ethernet_if="eth0"} },
 
@@ -349,9 +353,11 @@ return bd.system
         param_kappa=5e-5,
         param_iteration=12,
         param_fence={0,0,0,0},
-        param_states_max={5,5,0.4,0.4},
-        param_states_min={-5,-5,-0.4,-0.4},
-        param_states_init={-5,0,0,0},
+        --- X represents the state, that is [position_x, position_y, velocity_x, velocity_y]. 
+        --- xmax and xmin are the limits of the four state variables.  
+        param_states_max={3,3,0.1,0.1}, -- im [m], [m], [m/s], [m/s]
+        param_states_min={-3,-3,-0.1,-0.1},
+        param_states_init={0,0,0,0},
         param_inputs_max={3.9195,3.9195,3.9195,3.9195},
         param_inputs_min={-3.9195,-3.9195,-3.9195,-3.9195},
         param_inputs_init={0,0,0,0},
