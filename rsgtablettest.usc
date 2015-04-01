@@ -172,6 +172,10 @@ function start_wm() -- non particular order assumed her
     ni:b("cyclic_io_trigger"):do_start()    
 end
 
+function start_viz()
+      ni:b("visualization_publisher"):do_start()
+end
+
 function start_all()
   start_youbot()
   start_wm()
@@ -282,7 +286,7 @@ return bd.system
    },
    
    configurations = {
-	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 1 } },
+	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
 	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
 	  { name="publisher", config = { connection_spec="tcp://*:" .. robot_1_out_port  } },
 	  -- The IP for the subscriber has to come from the Android device. 
@@ -291,8 +295,8 @@ return bd.system
     { name="subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" .. tablet_out_port  } }, 
     { name="coodination_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" ..tablet_coordination_port  } },  
     { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
-    { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
-    { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
+    { name="bytestreambuffer1", config = { element_num=50 , element_size=20000 } },
+    { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
     { name="fifo1", config = { element_num=4 , element_size=48 } },
     { name="fifo2", config = { element_num=4 , element_size=96 } },
     { name="fifo3", config = { element_num=4 , element_size=48 } },

@@ -10,32 +10,14 @@
 #include <brics_3d/worldModel/sceneGraph/HDF5UpdateSerializer.h>
 #include <brics_3d/worldModel/sceneGraph/SceneGraphToUpdatesTraverser.h>
 #include <brics_3d/worldModel/sceneGraph/FrequencyAwareUpdateFilter.h>
+#include <brics_3d/worldModel/sceneGraph/ISceneGraphUpdateObserver.h>
 
 
 using namespace brics_3d;
 using brics_3d::Logger;
-
+using namespace brics_3d::rsg;
 
 UBX_MODULE_LICENSE_SPDX(BSD-3-Clause)
-
-/* hexdump a buffer */
-//static void hexdump(unsigned char *buf, unsigned long index, unsigned long width)
-//{
-//	unsigned long i, fill;
-//
-//	for (i=0;i<index;i++) { printf("%02x ", buf[i]); } /* dump data */
-//	for (fill=index; fill<width; fill++) printf(" ");  /* pad on right */
-//
-//	printf(": ");
-//
-//	/* add ascii repesentation */
-//	for (i=0; i<index; i++) {
-//		if (buf[i] < 32) printf(".");
-//		else printf("%c", buf[i]);
-//	}
-//	printf("\n");
-//}
-
 
 /*
  * Implementation of data transmission.
@@ -55,7 +37,6 @@ public:
 		msg.type = type;
 
 		LOG(INFO) << "Sending " << msg.len << " bytes: ";
-//		hexdump((unsigned char *)msg.data, msg.len, 16);
 		__port_write(port, &msg);
 
 		return 0;
@@ -66,7 +47,58 @@ private:
 	ubx_type_t* type;
 };
 
+/**
+ * Triggers block b whenever a addRemoteRootNode event is detected.
+ */
+class RemoteRootNodeAdditionTrigger : public brics_3d::rsg::ISceneGraphUpdateObserver {
+public:
 
+	/**
+	 * Construrctor with block to be triggereg.
+	 */
+	RemoteRootNodeAdditionTrigger(SceneGraphFacade* observedScene, ubx_block_t *b) : observedScene(observedScene), b(b){};
+	virtual ~RemoteRootNodeAdditionTrigger(){};
+
+	/* implemetntations of observer interface */
+	bool addNode(Id parentId, Id& assignedId, vector<Attribute> attributes, bool forcedId = false){return true;};
+	bool addGroup(Id parentId, Id& assignedId, vector<Attribute> attributes, bool forcedId = false){return true;};
+	bool addTransformNode(Id parentId, Id& assignedId, vector<Attribute> attributes, IHomogeneousMatrix44::IHomogeneousMatrix44Ptr transform, TimeStamp timeStamp, bool forcedId = false){return true;};
+    bool addUncertainTransformNode(Id parentId, Id& assignedId, vector<Attribute> attributes, IHomogeneousMatrix44::IHomogeneousMatrix44Ptr transform, ITransformUncertainty::ITransformUncertaintyPtr uncertainty, TimeStamp timeStamp, bool forcedId = false){return true;};
+	bool addGeometricNode(Id parentId, Id& assignedId, vector<Attribute> attributes, Shape::ShapePtr shape, TimeStamp timeStamp, bool forcedId = false){return true;};
+	bool addRemoteRootNode(Id rootId, vector<Attribute> attributes){
+		LOG(DEBUG) << "RemoteRootNodeAdditionTrigger: addRemoteRootNode detected";
+
+		/*
+		 * Only repond to _other_ World Model Agnets that advertise their root nodes.
+		 * So we have to filter out the "own" root node. Other wise a loop is created,
+		 * because part of the triggering could (and typicall will) inclide yet another
+		 * addRemoteRootNode().
+		 */
+		if(rootId != observedScene->getRootId()) {
+			LOG(DEBUG) << "RemoteRootNodeAdditionTrigger: tiggering now.";
+			b->step(b); // A single step.
+		} else {
+			LOG(DEBUG) << "RemoteRootNodeAdditionTrigger: Skipping addRemoteRootNode from local graph.";
+		}
+
+		return true;
+	};
+	bool addConnection(Id parentId, Id& assignedId, vector<Attribute> attributes, vector<Id> sourceIds, vector<Id> targetIds, TimeStamp start, TimeStamp end, bool forcedId = false){return true;};
+	bool setNodeAttributes(Id id, vector<Attribute> newAttributes){return true;};
+	bool setTransform(Id id, IHomogeneousMatrix44::IHomogeneousMatrix44Ptr transform, TimeStamp timeStamp){return true;};
+    bool setUncertainTransform(Id id, IHomogeneousMatrix44::IHomogeneousMatrix44Ptr transform, ITransformUncertainty::ITransformUncertaintyPtr uncertainty, TimeStamp timeStamp){return true;};
+	bool deleteNode(Id id){return true;};
+	bool addParent(Id id, Id parentId){return true;};
+    bool removeParent(Id id, Id parentId){return true;};
+
+private:
+
+    // For potentaion queries to the graph
+    SceneGraphFacade* observedScene;
+
+    // Block that gets triggerd on an addRemoteRootNode event;
+    ubx_block_t *b;
+};
 
 /* define a structure for holding the block local state. By assigning an
  * instance of this struct to the block private_data pointer (see init), this
@@ -79,6 +111,7 @@ struct rsg_sender_info
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::SceneGraphToUpdatesTraverser* wm_resender;
 		brics_3d::rsg::FrequencyAwareUpdateFilter* frequency_filter;
+		RemoteRootNodeAdditionTrigger* remote_root_trigger;
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -157,7 +190,6 @@ int rsg_sender_init(ubx_block_t *b)
     	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
     	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
     	brics_3d::rsg::HDF5UpdateSerializer* wmUpdatesToHdf5Serializer = new brics_3d::rsg::HDF5UpdateSerializer(wmUpdatesUbxPort);
-//    	inf->wm->scene.attachUpdateObserver(wmUpdatesToHdf5Serializer);
     	inf->wm->scene.attachUpdateObserver(inf->frequency_filter);
     	inf->frequency_filter->attachUpdateObserver(wmUpdatesToHdf5Serializer);
 
@@ -167,6 +199,10 @@ int rsg_sender_init(ubx_block_t *b)
 
     	/* Initialize resender that resends the complete graph, if necessary */
     	inf->wm_resender = new brics_3d::rsg::SceneGraphToUpdatesTraverser(wmUpdatesToHdf5Serializer);
+
+    	/* Setup auto mount reply policy for incoming addRemoteNodes  */
+    	inf->remote_root_trigger = new RemoteRootNodeAdditionTrigger(&inf->wm->scene, b);
+    	inf->wm->scene.attachUpdateObserver(inf->remote_root_trigger);
 
         return 0;
 }
@@ -201,6 +237,10 @@ void rsg_sender_cleanup(ubx_block_t *b)
         	delete inf->frequency_filter;
         	inf->frequency_filter = 0;
         }
+        if(inf->remote_root_trigger){
+        	delete inf->remote_root_trigger;
+        	inf->remote_root_trigger = 0;
+        }
         free(b->private_data);
 }
 
@@ -210,14 +250,6 @@ void rsg_sender_step(ubx_block_t *b)
 
         struct rsg_sender_info *inf = (struct rsg_sender_info*) b->private_data;
         brics_3d::WorldModel* wm = inf->wm;
-
-    	/* Add group nodes */
-//    	std::vector<brics_3d::rsg::Attribute> attributes;
-//    	attributes.clear();
-//    	attributes.push_back(rsg::Attribute("taskType", "scene_objecs"));
-//    	rsg::Id sceneObjectsId;
-//    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
-//    	wm->scene.addGroup(wm->getRootNodeId(), sceneObjectsId, attributes);
 
         /* Resend the complete scene graph */
         LOG(INFO) << "Resending the complete RSG now.";
