@@ -55,6 +55,7 @@ return bd.system
       "build/rsgsenderlib.so",
       "build/rsgscenesetuplib.so",
       "blocks/irospublisher.so",
+      "blocks/irossubscriber.so",
       "blocks/fmpcwmlib.so",
       "blocks/fmpcmockuplib.so",
 --      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
@@ -73,6 +74,7 @@ return bd.system
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+      { name="ros_tf_bridge_subscriber", type="rosbridge/subscriber" },
       { name="coodination_subscriber", type="zmq_receiver" },
       { name="fmpc_wm", type="fmpc_world_model" },
       { name="fmpc_dummy", type="fmpc_mockup" },
@@ -89,6 +91,7 @@ return bd.system
       { src="subscriber.zmq_in",     tgt="bytestreambuffer2" },
       { src="subscriber_hmi.zmq_in", tgt="bytestreambuffer2" },
       { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      { src="ros_tf_bridge_subscriber", tgt="rsgreciever.rsg_in" },
            
       { src="subscriber.zmq_in", tgt="visualization_publisher" },
       { src="rsgsender.rsg_out", tgt="visualization_publisher" },
@@ -130,6 +133,9 @@ return bd.system
       } 
     },	
     { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
+    { name="ros_tf_bridge_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" , 
+      trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } }   
+    },
     { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },
     
     { name="motion_coordinator1", 
