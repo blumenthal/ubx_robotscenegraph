@@ -212,7 +212,9 @@ return bd.system
       -- Real driver:
       "types/kdl_types.so",
       "blocks/youbot_driver.so",
-      "blocks/fmpc.so"
+      "blocks/fmpc.so",
+      
+      "blocks/osmloader.so"
    },
 
    blocks = {
@@ -238,7 +240,9 @@ return bd.system
       { name="fifo2",type="lfds_buffers/cyclic_raw" },
       { name="fifo3",type="lfds_buffers/cyclic_raw" },
       { name = "youbot1", type="youbot/youbot_driver" }, 
-      { name = "fmpc1", type="fmpc/fmpc" }
+      { name = "fmpc1", type="fmpc/fmpc" },
+      
+      { name = "osm", type="osmloader/osmloader" }
    },
    
    connections = {
@@ -369,6 +373,8 @@ return bd.system
       } 
      }   
  		},
+ 		
+ 		{ name="osm", config =  { wm_handle={wm = wm:getHandle().wm} } }
  		
    },
 }
