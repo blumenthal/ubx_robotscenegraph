@@ -1,0 +1,133 @@
+-- This system coposition relizes a SHERPA World Model for a
+-- single robot. Each robot deploys one such SHERPA World Model 
+-- (potentially in slightly varing compositons).
+-- 
+-- This system uses ZMQ bridges to communicate with multiple
+-- SHERPA World Models. Though, the communiation layer can be replaced
+-- by adopting this composition file.
+-- 
+-- Overview:
+--           +-----------+           +-----------+
+--   ROS <-> | SHERPA WM | <- ZMQ -> | SHERPA WM | <-> ROS
+--           +-----------+           +-----------+
+--
+-- To some extend the SHERPA World Model can be seem as a proxy of
+-- the application wide world model.
+--
+-- The SHERPA World Model can be accessd by 
+-- (a) embedding a World Model Agent (C++ library) into the comontent of ineterest or
+-- (b) by use of approprite bridges. En example of a bridge that transforms
+--     to ROS TF frames can be foind in [1].
+--
+-- [1] https://github.com/blumenthal/sherpa_world_model_tf_bridge 
+
+local rsg = require("rsg")
+
+-- create an inctance of the RSG to serve as World Model Agent for the robot 
+wm = rsg.WorldModel()
+
+-- convenience functions to start the system in on shot
+function start_wm() -- no particular order assumed here
+    ni:b("rsgsender"):do_start()
+    ni:b("rsgreciever"):do_start()
+    ni:b("zmq_publisher"):do_start()
+    ni:b("zmq_subscriber"):do_start()
+    ni:b("bytestreambuffer1"):do_start()
+    ni:b("bytestreambuffer2"):do_start()
+    ni:b("cyclic_io_trigger"):do_start()    
+end
+
+function start_viz()
+      ni:b("visualization_publisher"):do_start()
+end
+
+function start_all()
+  start_wm()
+end
+
+local tablet_ip = "192.168.1.103" 
+--local tablet_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
+local tablet_out_port = "11411"
+local robot_1_ip = "localhost"   -- this is me
+local robot_1_out_port = "11511" -- this is me
+
+return bd.system
+{
+   imports = {
+      "std_types/stdtypes/stdtypes.so",
+      "std_blocks/ptrig/ptrig.so",
+      "std_blocks/lfds_buffers/lfds_cyclic.so",
+      "std_blocks/lfds_buffers/lfds_cyclic_raw.so",
+      "std_blocks/logging/file_logger.so",
+      "std_blocks/hexdump/hexdump.so",
+      "blocks/zmqreceiverlib.so",
+      "blocks/zmqsenderlib.so",
+      "types/rsg_types.so",  
+      "build/rsgrecieverlib.so",
+      "build/rsgsenderlib.so",
+      "build/rsgscenesetuplib.so",
+      "blocks/irospublisher.so",
+      "blocks/fmpcwmlib.so",
+      "blocks/fmpcmockuplib.so",
+      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
+      "blocks/motioncoordinatorlib.so",
+      
+      -- Real driver:
+      "types/kdl_types.so",
+      "blocks/youbot_driver.so",
+      "blocks/fmpc.so",
+      
+      "blocks/osmloader.so"
+   },
+
+   blocks = {
+      { name="rsgsender", type="rsg_sender" }, 
+      { name="rsgreciever", type="rsg_reciever" },
+      { name="zmq_publisher", type="zmq_sender" },
+      { name="zmq_subscriber", type="zmq_receiver" },
+      { name="scenesetup", type="rsg_scene_setup" },
+      -- we have to explicitly configure the buffers for large message sized (cf. config setion)
+      { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+      { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+
+      { name = "osm", type="osmloader/osmloader" }
+   },
+   
+   connections = {
+      { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
+      { src="bytestreambuffer1", tgt="zmq_publisher.zmq_out" },
+                  
+      { src="zmq_subscriber.zmq_in", tgt="bytestreambuffer2" },
+      { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      
+      { src="zmq_subscriber.zmq_in", tgt="visualization_publisher" },
+      { src="rsgsender.rsg_out", tgt="visualization_publisher" },
+       
+   },
+   
+   configurations = {
+	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
+	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+	  { name="zmq_publisher", config = { connection_spec="tcp://*:" .. robot_1_out_port  } },
+    { name="zmq_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" .. tablet_out_port  } }, 
+    { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
+    { name="bytestreambuffer1", config = { element_num=50 , element_size=20000 } },
+    { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
+    { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
+      config = { 
+      period = {sec=0, usec=100000 }, 
+        trig_blocks={ 
+          { b="#rsgreciever", num_steps=1, measure=0 },
+          { b="#zmq_publisher", num_steps=1, measure=0 },
+          --{ b="#rsgsender", num_steps=1, measure=0 },     
+        } 
+      } 
+    },	
+    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
+    
+ 		{ name="osm", config =  { wm_handle={wm = wm:getHandle().wm} } }
+ 		
+   },
+}
