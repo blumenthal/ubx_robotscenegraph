@@ -55,6 +55,10 @@ ADD_DEFINITIONS(-DEIGEN3)
 #
 # for version 1.8.12 or higher please define the following flag : HDF_1_8_12_OR_HIGHER
 # due to incompatible API changes in the HDF5 library.
+OPTION(HDF5_1_8_12_OR_HIGHER "Enable HDF5 Support for version 1.8.12 or higher. This is rquired due to HDF5 API changes." OFF)
+IF(HDF5_1_8_12_OR_HIGHER)
+    ADD_DEFINITIONS(-DHDF_1_8_12_OR_HIGHER)  
+ENDIF(HDF5_1_8_12_OR_HIGHER)
 
 # only newer versions of FindHDF5.cmake exctract the HDF5_ROOT from the environment variable
 # - so we do it manually here
