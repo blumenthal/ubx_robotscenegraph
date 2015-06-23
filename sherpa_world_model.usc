@@ -28,32 +28,40 @@ wm = rsg.WorldModel()
 
 -- convenience functions to start the system in on shot
 function start_wm() -- no particular order assumed here
-    ni:b("rsgsender"):do_start()
-    ni:b("rsgreciever"):do_start()
-    ni:b("zmq_publisher"):do_start()
-    ni:b("zmq_subscriber"):do_start()
-    ni:b("bytestreambuffer1"):do_start()
-    ni:b("bytestreambuffer2"):do_start()
-    ni:b("cyclic_io_trigger"):do_start()    
+  ni:b("rsgsender"):do_start()
+  ni:b("rsgreciever"):do_start()
+  ni:b("zmq_publisher"):do_start()
+  ni:b("zmq_subscriber"):do_start()
+  ni:b("ros_publisher"):do_start()
+  ni:b("ros_subscriber"):do_start()
+  ni:b("bytestreambuffer1"):do_start()
+  ni:b("bytestreambuffer2"):do_start()
+  ni:b("bytestreambuffer3"):do_start()
+  ni:b("bytestreambuffer4"):do_start()
+  ni:b("cyclic_io_trigger"):do_start()    
 end
 
 function start_viz()
-      ni:b("visualization_publisher"):do_start()
+  ni:b("visualization_publisher"):do_start()
 end
 
 function start_all()
   start_wm()
 end
 
-local tablet_ip = "192.168.1.103" 
---local tablet_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
-local tablet_out_port = "11411"
-local robot_1_ip = "localhost"   -- this is me
-local robot_1_out_port = "11511" -- this is me
+-- Communication configuration 
+
+local local_ip = "localhost"   
+local local_out_port = "11411" 
+--local remote_ip = "192.168.1.103" 
+--local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
+local remote_ip = "192.168.1.81" 
+local remote_out_port = "11411"
+
 
 return bd.system
-{
-   imports = {
+  {
+    imports = {
       "std_types/stdtypes/stdtypes.so",
       "std_blocks/ptrig/ptrig.so",
       "std_blocks/lfds_buffers/lfds_cyclic.so",
@@ -66,68 +74,86 @@ return bd.system
       "build/rsgrecieverlib.so",
       "build/rsgsenderlib.so",
       "build/rsgscenesetuplib.so",
-      "blocks/irospublisher.so",
-      "blocks/fmpcwmlib.so",
-      "blocks/fmpcmockuplib.so",
-      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
-      "blocks/motioncoordinatorlib.so",
-      
-      -- Real driver:
-      "types/kdl_types.so",
-      "blocks/youbot_driver.so",
-      "blocks/fmpc.so",
-      
-      "blocks/osmloader.so"
-   },
 
-   blocks = {
+      -- iblock based ROS bridge
+      "blocks/irospublisher.so",
+
+      -- cblock based ROS bridge
+      "blocks/rossenderlib.so",
+      "blocks/rosreceiverlib.so"
+
+ --     "blocks/osmloader.so"
+    },
+
+    blocks = {
       { name="rsgsender", type="rsg_sender" }, 
       { name="rsgreciever", type="rsg_reciever" },
       { name="zmq_publisher", type="zmq_sender" },
       { name="zmq_subscriber", type="zmq_receiver" },
+      { name="ros_publisher", type="ros_sender" },
+      { name="ros_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
       -- we have to explicitly configure the buffers for large message sized (cf. config setion)
+      -- ZMQ
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
-      { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
-      { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+      -- ROS
+      { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
 
-      { name = "osm", type="osmloader/osmloader" }
-   },
-   
-   connections = {
+      { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+      { name="visualization_publisher", type="rosbridge/publisher" } -- optional for visualization
+
+--      { name = "osm", type="osmloader/osmloader" }
+    },
+
+    connections = {
+      -- ZMQ
       { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
       { src="bytestreambuffer1", tgt="zmq_publisher.zmq_out" },
-                  
+
       { src="zmq_subscriber.zmq_in", tgt="bytestreambuffer2" },
       { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
-      
+
+      -- ROS (iblock)
       { src="zmq_subscriber.zmq_in", tgt="visualization_publisher" },
       { src="rsgsender.rsg_out", tgt="visualization_publisher" },
-       
-   },
-   
-   configurations = {
-	  { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
-	  { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
-	  { name="zmq_publisher", config = { connection_spec="tcp://*:" .. robot_1_out_port  } },
-    { name="zmq_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" .. tablet_out_port  } }, 
-    { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
-    { name="bytestreambuffer1", config = { element_num=50 , element_size=20000 } },
-    { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
-    { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
-      config = { 
-      period = {sec=0, usec=100000 }, 
-        trig_blocks={ 
-          { b="#rsgreciever", num_steps=1, measure=0 },
-          { b="#zmq_publisher", num_steps=1, measure=0 },
-          --{ b="#rsgsender", num_steps=1, measure=0 },     
+
+      -- ROS (clbock) 
+      { src="rsgsender.rsg_out", tgt="bytestreambuffer3" },
+      { src="bytestreambuffer3", tgt="ros_publisher.ros_out" }, 
+
+      { src="ros_subscriber.ros_in", tgt="bytestreambuffer4" },
+      { src="bytestreambuffer4", tgt="rsgreciever.rsg_in" },
+    },
+
+    configurations = {
+      { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
+      { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+      { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
+      { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
+      { name="ros_publisher", config = { topic_name="world_model/update_stream" } },
+      { name="ros_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
+      --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
+      { name="bytestreambuffer1", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
+      { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
+        config = { 
+          period = {sec=0, usec=100000 }, 
+          trig_blocks={ 
+            { b="#rsgreciever", num_steps=1, measure=0 },
+            { b="#zmq_publisher", num_steps=1, measure=0 },
+            { b="#ros_publisher", num_steps=1, measure=0 },          
+          --{ b="#rsgsender", num_steps=1, measure=0 },              
+          } 
         } 
-      } 
-    },	
-    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
-    
- 		{ name="osm", config =  { wm_handle={wm = wm:getHandle().wm} } }
- 		
-   },
+      },	
+      { name="visualization_publisher", config = { topic_name="world_model/update_stream" } }
+
+--      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm} } }
+
+    },
 }
