@@ -24,7 +24,9 @@
 local rsg = require("rsg")
 
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
-wm = rsg.WorldModel()
+local worldModelAgentId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
+wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+--wm = rsg.WorldModel() -- Defualt with auto generated rootId
 
 -- convenience functions to start the system in on shot
 function start_wm() -- no particular order assumed here
@@ -56,7 +58,7 @@ local local_out_port = "11411"
 --local remote_ip = "192.168.1.103" 
 --local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
 local remote_ip = "192.168.1.81" 
-local remote_out_port = "11411"
+local remote_out_port = "11511"
 
 
 return bd.system
