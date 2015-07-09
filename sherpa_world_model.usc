@@ -25,8 +25,12 @@ local rsg = require("rsg")
 
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
 local worldModelAgentId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
-wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
---wm = rsg.WorldModel() -- Defualt with auto generated rootId
+--wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+wm = rsg.WorldModel() -- Defualt with auto generated rootId
+local rootId = wm:getRootId()
+print("World Model Agent has root Id = " .. rootId)
+wm:addNodeAttribute(rootId, "name", "robot_1");
+wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 
 -- convenience functions to start the system in on shot
 function start_wm() -- no particular order assumed here
