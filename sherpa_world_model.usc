@@ -63,6 +63,8 @@ local local_out_port = "11411"
 --local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
 local remote_ip = "192.168.1.81" 
 local remote_out_port = "11511"
+local local_json_ip = "192.168.1.81"
+local local_json_port = "12911"
 
 
 return bd.system
@@ -78,6 +80,7 @@ return bd.system
       "blocks/zmqsenderlib.so",
       "types/rsg_types.so",  
       "build/rsgrecieverlib.so",
+      "build/rsgjsonrecieverlib.so",
       "build/rsgsenderlib.so",
       "build/rsgscenesetuplib.so",
 
@@ -94,8 +97,10 @@ return bd.system
     blocks = {
       { name="rsgsender", type="rsg_sender" }, 
       { name="rsgreciever", type="rsg_reciever" },
+      { name="rsgjsonreciever", type="rsg_json_reciever" },
       { name="zmq_publisher", type="zmq_sender" },
       { name="zmq_subscriber", type="zmq_receiver" },
+      { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
       { name="ros_publisher", type="ros_sender" },
       { name="ros_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
@@ -106,6 +111,8 @@ return bd.system
       -- ROS
       { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
+      -- ZMQ/Zyre
+      { name="bytestreambuffer5",type="lfds_buffers/cyclic_raw" },
 
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" } -- optional for visualization
@@ -129,6 +136,11 @@ return bd.system
       { src="rsgsender.rsg_out", tgt="bytestreambuffer3" },
       { src="bytestreambuffer3", tgt="ros_publisher.ros_out" }, 
 
+      -- ZMQ/Zyre
+      { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer5" },
+      { src="bytestreambuffer5", tgt="rsgjsonreciever.rsg_in" },
+
+
       { src="ros_subscriber.ros_in", tgt="bytestreambuffer4" },
       { src="bytestreambuffer4", tgt="rsgreciever.rsg_in" },
     },
@@ -136,8 +148,10 @@ return bd.system
     configurations = {
       { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
       { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
+      { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_port  } }, 
       { name="ros_publisher", config = { topic_name="world_model/update_stream" } },
       { name="ros_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
       --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
@@ -146,11 +160,13 @@ return bd.system
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer5", config = { element_num=50 , element_size=20000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100000 }, 
           trig_blocks={ 
             { b="#rsgreciever", num_steps=1, measure=0 },
+            { b="#rsgjsonreciever", num_steps=1, measure=0 },
             { b="#zmq_publisher", num_steps=1, measure=0 },
             { b="#ros_publisher", num_steps=1, measure=0 },          
           --{ b="#rsgsender", num_steps=1, measure=0 },              
