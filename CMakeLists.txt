@@ -81,6 +81,16 @@ IF(USE_HDF5_NON_DEFAULT_PATH) #override results
 ENDIF(USE_HDF5_NON_DEFAULT_PATH)   
 MESSAGE(STATUS "INFO: used HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
 
+# search for LibVariant to parse JSON files
+OPTION(USE_JSON "Enable JSON Support. Requires libvariant to be installed." OFF)
+IF(USE_JSON)  
+    FIND_PACKAGE(LibVariant)
+    IF (LIBVARIANT_FOUND)
+      MESSAGE(STATUS "SUCCESSFUL: LIBVARIANT_FOUND found")  
+    ELSE (LIBVARIANT_FOUND)
+      MESSAGE(SEND_ERROR "WARNING: LIBVARIANT_FOUND not found.")
+    ENDIF (LIBVARIANT_FOUND)
+ENDIF(USE_JSON)
 
 include_directories(
   ${UBX_INCLUDE_DIR}
@@ -111,6 +121,20 @@ target_link_libraries(rsgrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${U
 install(TARGETS rsgrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgrecieverlib-block)
 set_property(TARGET rsgrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
+IF(USE_JSON)
+    INCLUDE_DIRECTORIES({LIBVARIANT_INCLUDE_DIRS})
+
+    # Compile library rsgjsonrecieverlib
+    add_library(rsgjsonrecieverlib SHARED src/rsg_json_reciever.cpp )
+    set_target_properties(rsgjsonrecieverlib PROPERTIES PREFIX "")
+    target_link_libraries(rsgjsonrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    
+    # Install rsgjsonrecieverlib
+    install(TARGETS rsgjsonrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonrecieverlib-block)
+    set_property(TARGET rsgjsonrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+    install(EXPORT rsgjsonrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+ENDIF(USE_JSON)
 
 # Compile library rsgscenesetuplib
 add_library(rsgscenesetuplib SHARED src/rsg_scene_setup.cpp )
