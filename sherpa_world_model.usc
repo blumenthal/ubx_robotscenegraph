@@ -25,25 +25,28 @@ local rsg = require("rsg")
 
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
 local worldModelAgentId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
---wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
-wm = rsg.WorldModel() -- Defualt with auto generated rootId
+wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+--wm = rsg.WorldModel() -- Defualt with auto generated rootId
 local rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
-wm:addNodeAttribute(rootId, "name", "robot_1");
-wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
+--wm:addNodeAttribute(rootId, "name", "robot_1");
+--wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 
 -- convenience functions to start the system in on shot
 function start_wm() -- no particular order assumed here
   ni:b("rsgsender"):do_start()
   ni:b("rsgreciever"):do_start()
+  ni:b("rsgjsonreciever"):do_start()
   ni:b("zmq_publisher"):do_start()
   ni:b("zmq_subscriber"):do_start()
+  ni:b("zmq_json_subscriber"):do_start()
   ni:b("ros_publisher"):do_start()
   ni:b("ros_subscriber"):do_start()
   ni:b("bytestreambuffer1"):do_start()
   ni:b("bytestreambuffer2"):do_start()
   ni:b("bytestreambuffer3"):do_start()
   ni:b("bytestreambuffer4"):do_start()
+  ni:b("bytestreambuffer5"):do_start()
   ni:b("cyclic_io_trigger"):do_start()    
 end
 
@@ -63,7 +66,7 @@ local local_out_port = "11411"
 --local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
 local remote_ip = "192.168.1.81" 
 local remote_out_port = "11511"
-local local_json_ip = "192.168.1.81"
+local local_json_ip = "127.0.0.1"
 local local_json_port = "12911"
 
 
