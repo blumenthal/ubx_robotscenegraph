@@ -190,9 +190,9 @@ int rsg_json_sender_init(ubx_block_t *b)
     	inf->frequency_filter->setMaxTransformUpdateFrequency(0.5); // not more then x Hz;
 
     	/* Attach the UBX port to the world model */
-    	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
-    	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
-    	brics_3d::rsg::JSONSerializer* wmUpdatesToJSONSerializer = new brics_3d::rsg::JSONSerializer(wmUpdatesUbxPort);
+//    	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
+//   	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
+    	brics_3d::rsg::JSONSerializer* wmUpdatesToJSONSerializer = new brics_3d::rsg::JSONSerializer(NULL /*wmUpdatesUbxPort*/);
     	inf->wm->scene.attachUpdateObserver(inf->frequency_filter);
     	inf->frequency_filter->attachUpdateObserver(wmUpdatesToJSONSerializer);
 

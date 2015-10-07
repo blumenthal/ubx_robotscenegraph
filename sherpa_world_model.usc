@@ -36,6 +36,7 @@ print("World Model Agent has root Id = " .. rootId)
 function start_wm() -- no particular order assumed here
   ni:b("rsgsender"):do_start()
   ni:b("rsgreciever"):do_start()
+  ni:b("rsgjsonsender"):do_start()
   ni:b("rsgjsonreciever"):do_start()
   ni:b("zmq_publisher"):do_start()
   ni:b("zmq_subscriber"):do_start()
@@ -47,6 +48,7 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer3"):do_start()
   ni:b("bytestreambuffer4"):do_start()
   ni:b("bytestreambuffer5"):do_start()
+  ni:b("bytestreambuffer6"):do_start()
   ni:b("cyclic_io_trigger"):do_start()    
 end
 
@@ -85,6 +87,7 @@ return bd.system
       "build/rsgrecieverlib.so",
       "build/rsgjsonrecieverlib.so",
       "build/rsgsenderlib.so",
+      "build/rsgjsonsenderlib.so",
       "build/rsgscenesetuplib.so",
 
       -- iblock based ROS bridge
@@ -101,6 +104,7 @@ return bd.system
       { name="rsgsender", type="rsg_sender" }, 
       { name="rsgreciever", type="rsg_reciever" },
       { name="rsgjsonreciever", type="rsg_json_reciever" },
+      { name="rsgjsonsender", type="rsg_json_sender" },
       { name="zmq_publisher", type="zmq_sender" },
       { name="zmq_subscriber", type="zmq_receiver" },
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
@@ -116,6 +120,7 @@ return bd.system
       { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
       -- ZMQ/Zyre
       { name="bytestreambuffer5",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer6",type="lfds_buffers/cyclic_raw" },
 
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" } -- optional for visualization
@@ -152,6 +157,7 @@ return bd.system
       { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
       { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
       { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_port  } }, 
