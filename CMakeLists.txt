@@ -125,6 +125,16 @@ install(EXPORT rsgrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 IF(USE_JSON)
     INCLUDE_DIRECTORIES({LIBVARIANT_INCLUDE_DIRS})
 
+    # Compile library rsgsenderlib
+    add_library(rsgjsonsenderlib SHARED src/rsg_json_sender.cpp )
+    set_target_properties(rsgjsonsenderlib PROPERTIES PREFIX "")
+    target_link_libraries(rsgjsonsenderlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    
+    # Install rsgsenderlib
+    install(TARGETS rsgjsonsenderlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonsenderlib-block)
+    set_property(TARGET rsgjsonsenderlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+    install(EXPORT rsgjsonsenderlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
     # Compile library rsgjsonrecieverlib
     add_library(rsgjsonrecieverlib SHARED src/rsg_json_reciever.cpp )
     set_target_properties(rsgjsonrecieverlib PROPERTIES PREFIX "")
