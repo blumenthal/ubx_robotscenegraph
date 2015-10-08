@@ -40,6 +40,7 @@ function start_wm() -- no particular order assumed here
   ni:b("rsgjsonreciever"):do_start()
   ni:b("zmq_publisher"):do_start()
   ni:b("zmq_subscriber"):do_start()
+  ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
   ni:b("ros_publisher"):do_start()
   ni:b("ros_subscriber"):do_start()
@@ -69,7 +70,8 @@ local local_out_port = "11411"
 local remote_ip = "192.168.1.81" 
 local remote_out_port = "11511"
 local local_json_ip = "127.0.0.1"
-local local_json_port = "12911"
+local local_json_in_port = "12911"
+local local_json_out_port = "12912"
 
 
 return bd.system
@@ -103,10 +105,11 @@ return bd.system
     blocks = {
       { name="rsgsender", type="rsg_sender" }, 
       { name="rsgreciever", type="rsg_reciever" },
-      { name="rsgjsonreciever", type="rsg_json_reciever" },
       { name="rsgjsonsender", type="rsg_json_sender" },
+      { name="rsgjsonreciever", type="rsg_json_reciever" },
       { name="zmq_publisher", type="zmq_sender" },
       { name="zmq_subscriber", type="zmq_receiver" },
+      { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
       { name="ros_publisher", type="ros_sender" },
       { name="ros_subscriber", type="ros_receiver" },
@@ -145,8 +148,11 @@ return bd.system
       { src="bytestreambuffer3", tgt="ros_publisher.ros_out" }, 
 
       -- ZMQ/Zyre
-      { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer5" },
-      { src="bytestreambuffer5", tgt="rsgjsonreciever.rsg_in" },
+      { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer5" },
+      { src="bytestreambuffer5", tgt="zmq_json_publisher.zmq_out" },
+      
+      { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
+      { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
 
 
       { src="ros_subscriber.ros_in", tgt="bytestreambuffer4" },
@@ -160,7 +166,8 @@ return bd.system
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
       { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
-      { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_port  } }, 
+      { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
+      { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } }, 
       { name="ros_publisher", config = { topic_name="world_model/update_stream" } },
       { name="ros_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
       --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
@@ -170,6 +177,7 @@ return bd.system
       { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer5", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100000 }, 
@@ -177,6 +185,7 @@ return bd.system
             { b="#rsgreciever", num_steps=1, measure=0 },
             { b="#rsgjsonreciever", num_steps=1, measure=0 },
             { b="#zmq_publisher", num_steps=1, measure=0 },
+            { b="#zmq_json_publisher", num_steps=1, measure=0 },
             { b="#ros_publisher", num_steps=1, measure=0 },          
           --{ b="#rsgsender", num_steps=1, measure=0 },              
           } 
