@@ -67,7 +67,7 @@ local local_ip = "localhost"
 local local_out_port = "11411" 
 --local remote_ip = "192.168.1.103" 
 --local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
-local remote_ip = "192.168.1.81" 
+local remote_ip = "127.0.0.1" 
 local remote_out_port = "11511"
 local local_json_ip = "127.0.0.1"
 local local_json_in_port = "12911"
@@ -160,7 +160,7 @@ return bd.system
     },
 
     configurations = {
-      { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
+      { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, dot_name_prefix = "sherpa_wm" } },
       { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
