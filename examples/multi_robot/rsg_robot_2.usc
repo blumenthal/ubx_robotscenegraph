@@ -1,0 +1,141 @@
+-- This system works in conjunction with the AndroidRSGDemoZMQ[1] app for 
+-- Android. Both the app and this UBX system have a "World Model Agent (WMA)"
+-- i.e. in this case single instance of the Robot Scene Graph (RSG). Both 
+-- use HDF5 for encoding and decoding. ZMQ is used as network layer.
+-- Each update on the RSG is porpageted to the other WMA and vice versa.
+--
+-- The tablet has GUI elemts to update its WMA, while the UBX system has 
+-- a scene setup block that performs an update whenever the setep function is
+-- triggered.
+--  
+-- [1] https://github.com/blumenthal/brics_3d_jni/tree/master/examples/AndroidRSGDemoZMQ
+
+local rsg = require("rsg")
+
+-- create in inctance of the RSG to serve as world model agent 
+wm = rsg.WorldModel()
+
+function start_all() -- non particular order assumed her
+    ni:b("rsgsender"):do_start()
+    ni:b("rsgreciever"):do_start()
+    ni:b("publisher"):do_start()
+    ni:b("subscriber"):do_start()
+    ni:b("bytestreambuffer1"):do_start()
+    ni:b("bytestreambuffer2"):do_start()
+    ni:b("coodination_subscriber"):do_start()
+    ni:b("motion_coordinator1"):do_start()
+    ni:b("fmpc_wm"):do_start()
+    ni:b("fmpc_dummy"):do_init()
+    ni:b("fmpc_dummy"):do_start()
+    ni:b("cyclic_io_trigger"):do_start()
+end
+
+local tablet_ip = "192.168.1.100"
+local tablet_out_port = "11411"
+local tablet_coordination_port = "22422"
+local robot_1_ip = "localhost"   
+local robot_1_out_port = "11511"
+local robot_2_ip = "localhost"   -- this is me
+local robot_2_out_port = "11611" -- this is me
+
+return bd.system
+{
+   imports = {
+      "std_types/stdtypes/stdtypes.so",
+      "std_blocks/ptrig/ptrig.so",
+      "std_blocks/lfds_buffers/lfds_cyclic.so",
+      "std_blocks/lfds_buffers/lfds_cyclic_raw.so",
+      "std_blocks/logging/file_logger.so",
+      "std_blocks/hexdump/hexdump.so",
+      "blocks/zmqreceiverlib.so",
+      "blocks/zmqsenderlib.so",
+      "types/rsg_types.so",  
+      "blocks/rsgrecieverlib.so",
+      "blocks/rsgsenderlib.so",
+      "blocks/rsgscenesetuplib.so",
+      "blocks/irospublisher.so",
+      "blocks/fmpcwmlib.so",
+      "blocks/fmpcmockuplib.so",
+--      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
+      "blocks/motioncoordinatorlib.so"
+   },
+
+   blocks = {
+      { name="rsgsender", type="rsg_sender" }, 
+      { name="rsgreciever", type="rsg_reciever" },
+      { name="publisher", type="zmq_sender" },
+      { name="subscriber", type="zmq_receiver" },
+      { name="scenesetup", type="rsg_scene_setup" },
+      -- we have to explicitly configure the buffers for large message sized (cf. config setion)
+      { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
+      { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+      { name="coodination_subscriber", type="zmq_receiver" },
+      { name="fmpc_wm", type="fmpc_world_model" },
+      { name="fmpc_dummy", type="fmpc_mockup" },
+      { name="hexdump1", type="hexdump/hexdump" },
+      --{ name = "motion_coordinator", type="lua/lua_coordinator" }
+      { name = "motion_coordinator1", type="motion_coordinator" }
+
+   },
+   
+   connections = {
+      { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
+      { src="bytestreambuffer1", tgt="publisher.zmq_out" },
+                  
+      { src="subscriber.zmq_in", tgt="bytestreambuffer2" },
+      { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      
+      { src="subscriber.zmq_in", tgt="visualization_publisher" },
+      { src="rsgsender.rsg_out", tgt="visualization_publisher" },
+      
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
+      { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc_dummy.fmpc_virtual_fence" },
+      { src="fmpc_wm.fmpc_obstacle", tgt="fmpc_dummy.fmpc_obstacle" },
+      { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc_dummy.fmpc_goal_pose" },
+      { src="fmpc_dummy.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
+      
+      { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },
+
+   },
+   
+   configurations = {
+    { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, dot_name_prefix = "robot_2" } },
+    { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+    { name="publisher", config = { connection_spec="tcp://*:" .. robot_2_out_port } },
+    -- The IP for the subscriber has to come from the Android device. 
+    -- Use the WiFi setting menue to obtain it.
+    -- Per default the tablet will publish to port 11411 (and listen to 11511)
+    { name="subscriber", config = { connection_spec= "tcp://" .. robot_1_ip .. ":" .. robot_1_out_port  } }, 
+    { name="coodination_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" ..tablet_coordination_port  } },  
+    { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
+    { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
+    { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
+    { name="cyclic_io_trigger", 
+      config = { 
+      period = {sec=0, usec=100000 }, 
+        trig_blocks={ 
+          { b="#rsgreciever", num_steps=1, measure=0 },
+          { b="#publisher", num_steps=1, measure=0 },
+          --{ b="#rsgsender", num_steps=1, measure=0 },
+          { b="#motion_coordinator1", num_steps=1, measure=0 },  
+          { b="#fmpc_wm", num_steps=1, measure=0 },
+          { b="#fmpc_dummy", num_steps=1, measure=0 },      
+        } 
+      } 
+    },  
+    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
+    { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },
+    
+    { name="motion_coordinator1", 
+      config = { 
+        trig_blocks={ 
+          { b="#fmpc_wm", num_steps=1, measure=0 },
+          { b="#fmpc_dummy", num_steps=2, measure=0 },  
+        } 
+      }      
+    },    
+        
+   },
+}
