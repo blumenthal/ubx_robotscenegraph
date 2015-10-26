@@ -4,4 +4,4 @@
 source $FBX_MODULES/env.sh
 
 # Start the ubx system
-exec $UBX_ROOT/tools/ubx_launch -webif 8889 -c examples/multi_robot/rsg_robot_2.usc	
+exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model.usc	

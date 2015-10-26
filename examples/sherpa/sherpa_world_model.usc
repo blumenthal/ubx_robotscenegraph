@@ -86,11 +86,11 @@ return bd.system
       "blocks/zmqreceiverlib.so",
       "blocks/zmqsenderlib.so",
       "types/rsg_types.so",  
-      "build/rsgrecieverlib.so",
-      "build/rsgjsonrecieverlib.so",
-      "build/rsgsenderlib.so",
-      "build/rsgjsonsenderlib.so",
-      "build/rsgscenesetuplib.so",
+      "blocks/rsgrecieverlib.so",
+      "blocks/rsgjsonrecieverlib.so",
+      "blocks/rsgsenderlib.so",
+      "blocks/rsgjsonsenderlib.so",
+      "blocks/rsgscenesetuplib.so",
 
       -- iblock based ROS bridge
       "blocks/irospublisher.so",

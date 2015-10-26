@@ -21,8 +21,8 @@ return bd.system
       "blocks/irossubscriber.so",
       get_root().."std_blocks/random/random.so",
       "types/rsg_types.so",  
-      "build/rsgrecieverlib.so",
-	  "build/rsgsenderlib.so",
+      "blocks/rsgrecieverlib.so",
+	    "blocks/rsgsenderlib.so",
    },
 
    blocks = {
