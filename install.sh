@@ -8,7 +8,7 @@
 # Simply call this sript wihtout any parameters: 
 #	./install.sh
 # OR
-#	./install.sh -no-sudo
+#	./install.sh --no-sudo
 # In case the system has no sudo command available.
 #
 # If necessary make adjustments to the individual sections.
@@ -39,7 +39,7 @@
 
 # Toggle this if sudo is not available on the system.
 SUDO="sudo"
-if [ $1 = "-no-sudo" ]; then
+if [ $1 = "--no-sudo" ]; then
         SUDO=""
 fi
 #SUDO=""
@@ -49,6 +49,7 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 # Thie fist one is commented out because is install on most system already. 
 #sudo apt-get install  \
 #        git \
+#	 mercurial \
 #        cmake \
 #        build-essential \
 
@@ -90,6 +91,15 @@ cd ..
 cd ..
 
 echo "Libvariant (JSON)"
+hg clone https://bitbucket.org/gallen/libvariant
+cd libvariant
+mkdir build
+cd build
+cmake ..
+make
+make install
+cd ..
+cd ..
 
 echo ""
 echo "### Compile and install BRICS_3D ###"
