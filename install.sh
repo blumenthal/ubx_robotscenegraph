@@ -44,6 +44,10 @@ if [ $1 = "--no-sudo" ]; then
 fi
 #SUDO=""
 
+# Set parameter for prarallel builds
+J="-j4"
+#J=""
+
 echo "" 
 echo "### Generic system dependencies for compiler, revision control, etc. ###"  
 # Thie fist one is commented out because is install on most system already. 
@@ -85,7 +89,7 @@ cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=tru
 # one allows to use HDF5 in a kind of messaging mode as we do. Furthermore, the CMake
 # scripts of BRICS_3D are searching for shared libraries so we have to activate it in the 
 # build process.  
-make
+make ${J}
 make install
 cd ..
 cd ..
@@ -96,7 +100,7 @@ cd libvariant
 mkdir build
 cd build
 cmake ..
-make
+make ${J}
 make install
 cd ..
 cd ..
@@ -111,7 +115,7 @@ cmake -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DUSE_HDF5=true -DHDF5_1_8_12_OR_H
 # have to provide the path as a flag. HDF5 and JSON support has to be enabled because it is not a default option.
 # Furthermore, as we are using HDF5 1.8.13 we have to enable the HDF5_1_8_12_OR_HIGHER flag to account for 
 # major changes in the HDF5 API.
-make
+make ${J}
 cd ..
 echo "export BRICS_3D_DIR=$PWD" >> ~/.bashrc 
 #The BRICS_3D_DIR environment variable is needed for the other (below) modules to find BRICS_3D properly.
@@ -131,7 +135,7 @@ echo "Luajit 2.0.2:"
 wget luajit.org/download/LuaJIT-2.0.2.tar.gz
 tar -xvf LuaJIT-2.0.2.tar.gz 
 cd LuaJIT-2.0.2
-make
+make ${J}
 ${SUDO} make install
 ${SUDO} ln -s /usr/local/bin/luajit /usr/local/bin/lua
 ${SUDO} ldconfig
@@ -165,8 +169,8 @@ cd brics_3d_function_blocks
 mkdir build
 cd build
 cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/clang++
-make
-make install
+make ${J}
+${SODO} make install
 cd ..
 echo "export FBX_MODULES=$PWD" >> ~/.bashrc
 #The FBX_MODULES environment variable is needed for the other (below) modules to find the BRICS_3D function blocks and typs.
@@ -181,8 +185,8 @@ cd ubx_robotscenegraph
 mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
-make
-make install
+make ${J}
+${SODO} make install
 cd ..
 cd ..
 
