@@ -106,7 +106,11 @@ echo "### Compile and install BRICS_3D ###"
 git clone https://github.com/brics/brics_3d.git
 cd brics_3d
 mkdir build && cd build
-cmake -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DUSE_HDF5=true -DUSE_JSON=true ..
+cmake -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DUSE_HDF5=true -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
+# A note on the used flags: For some reason the CMake find script has problems to find Eigen3 thus we currently
+# have to provide the path as a flag. HDF5 and JSON support has to be enabled because it is not a default option.
+# Furthermore, as we are usin HDF5 1.8.13 we have to enable the HDF5_1_8_12_OR_HIGHER flag to account for 
+# major changes in the HDF5 API.
 make
 cd ..
 cd ..
@@ -125,8 +129,9 @@ wget luajit.org/download/LuaJIT-2.0.2.tar.gz
 tar -xvf LuaJIT-2.0.2.tar.gz 
 cd LuaJIT-2.0.2
 make
-sudo make install
-sudo ldconfig
+${SUDO} make install
+${SUDO} ln -s /usr/local/bin/luajit /usr/local/bin/lua
+${SUDO} ldconfig
 cd ..
 
 echo "## Compile and install UBX. ###"
