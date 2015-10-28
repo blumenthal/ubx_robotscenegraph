@@ -33,6 +33,9 @@
 # * UBX modules for ZMQ including dependencies (CZMQ)
 # * UBX modules for ROS (optional)  
 
+# Toggle this if sudo is not available on the system.
+SUDO="sudo"
+#SUDO=""
 
 echo "### Generic system dependencies for compiler, revision control, etc. ###"  
 # Thie fist one is commented out because is install on most system already. 
@@ -45,18 +48,35 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 ####################### BRICS_3D ##########################
 echo "### Dependencies for the BRICS_3D libraries ###"
 echo "Boost:"
-sudo apt-get libboost-dev \
+${SUDO} apt-get libboost-dev \
         libboost-thread-dev 
 
 echo "Eigen 3:"
-sudo apt-get install libeigen3-dev
+${SUDO} apt-get install libeigen3-dev
 
 echo "Lib Cppunit for unit tests (optional):"
-sudo apt-get install libcppunit-dev
+${SUDO} apt-get install libcppunit-dev
 
 echo "HDF5: "
 # This one is alway a bit tricky since there are many compil time
-# options avialable and version changes have API breaks.
+# options avialable and version changes have API breaks. 
+# So far tested with verisons 1.8.9(minimum), 1.8.12 and 1.8.13.
+# Note the option HDF5_1_8_12_OR_HIGHER must be set if a verison
+# 1.8.12 or higher is used due to API incompatibilities.
+wget www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/hdf5-1.8.13.tar.gz
+tar -xvf hdf5-1.8.13.tar.gz
+cd hdf5-1.8.13/
+mkdir build
+cd build
+cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=true ..
+# A note on the used flags: the C++ API and the High Level (HL) APIs are used. The latter
+# one allows to use HDF5 in kind of messaging mode as we do. Further more the CMake
+# scripts of BRICS_3D are serching for shared libraries so we have to active it in the 
+# build process.  
+make
+make install
+cd ..
+cd ..
 
 echo "Libvariant (JSON)"
 
@@ -73,7 +93,7 @@ cd ..
 echo "### Dependencies for Microblox (UBX) framework. ###"
 
 echo "Clang compiler:"
-sudo apt-get install clang
+${SUDO} apt-get install clang
 
 echo "Luajit 2.0.2:"
 # NOTE Luajit needs to have at least verison 2.0.2  otherwise
