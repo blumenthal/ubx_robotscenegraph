@@ -100,6 +100,8 @@ cd libvariant
 mkdir build
 cd build
 cmake ..
+cmake -DBUILD_SHARED_LIBS=true ..
+# Note that UBX modules need the -fPIC flag, thus we have to enable the shared flag for Libvariant.
 make ${J}
 make install
 cd ..
@@ -168,7 +170,7 @@ git clone https://github.com/blumenthal/brics_3d_function_blocks.git
 cd brics_3d_function_blocks
 mkdir build
 cd build
-cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
 make ${J}
 ${SODO} make install
 cd ..
@@ -184,7 +186,7 @@ git clone https://github.com/blumenthal/ubx_robotscenegraph
 cd ubx_robotscenegraph
 mkdir build
 cd build
-cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
+cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
 make ${J}
 ${SODO} make install
 cd ..
