@@ -57,7 +57,7 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 echo "" 
 echo "### Dependencies for the BRICS_3D libraries ###"
 echo "Boost:"
-${SUDO} apt-get libboost-dev \
+${SUDO} apt-get install libboost-dev \
         libboost-thread-dev 
 
 echo "Eigen 3:"
@@ -75,6 +75,8 @@ echo "HDF5: "
 wget www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/hdf5-1.8.13.tar.gz
 tar -xvf hdf5-1.8.13.tar.gz
 cd hdf5-1.8.13/
+#NOTE: on Ubutnu 12.04 the CMake versions do not match. You can fix this by altering the HDF5 CMake files: 
+grep "2.8.11" -l -r . | xargs sed -i 's/cmake_minimum_required (VERSION 2.8.11)/cmake_minimum_required (VERSION 2.8.7)/g'
 mkdir build
 cd build
 cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=true ..
