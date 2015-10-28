@@ -113,6 +113,8 @@ cmake -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DUSE_HDF5=true -DHDF5_1_8_12_OR_H
 # major changes in the HDF5 API.
 make
 cd ..
+export BRICS_3D_DIR=$PWD" >> ~/.bashrc 
+#The BRICS_3D_DIR environemtn variable is needed for the other (below) modules to find BRICS_3D properly.
 cd ..
 
 ####################### Microblox #########################
