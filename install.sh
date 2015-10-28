@@ -56,7 +56,10 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 #	 mercurial \
 #        cmake \
 #        build-essential \
-
+#	 libtool \
+#	 automake \
+#	 libtool \
+# 	 pkg-config
 
 ####################### BRICS_3D ##########################
 echo "" 
@@ -160,6 +163,52 @@ source ~/.bashrc .
 cd ..
 
 ################ Communication modules #########################
+echo ""
+echo "### ZMQ communication modules  ###"
+
+echo "ZMQ library:"
+
+echo "CZMQ dependencies:"
+git clone git://github.com/jedisct1/libsodium.git
+cd libsodium
+./autogen.sh
+./configure 
+make ${J}
+${SUDO} make install
+${SUDO} ldconfig
+cd ..
+
+git clone git://github.com/zeromq/libzmq.git
+cd libzmq
+./autogen.sh
+./configure
+make ${J}
+${SUDO} make install
+${SUDO} ldconfig
+cd ..
+
+echo "CZMQ library:"
+git clone git://github.com/zeromq/czmq
+cd czmq
+./autogen.sh
+./configure
+make ${J}
+${SUDO} make install
+${SUDO} ldconfig
+
+echo "CZMQ-UBX bridge"
+git clone https://github.com/blumenthal/ubx
+cd ubx/czmq_bridge
+mkdir build
+cd build
+cmake ..
+make ${J}
+${SODO} make install
+cd ..
+cd ..
+cd ..
+
+## ROS (optional)
 
 ######### BRICS_3D integration into the UBX framework ###########
 echo ""
