@@ -7,6 +7,10 @@
 #
 # Simply call this sript wihtout any parameters: 
 #	./install.sh
+# OR
+#	./install.sh -no-sudo
+# In case the system has no sudo command available.
+#
 # If necessary make adjustments to the individual sections.
 #
 #
@@ -35,8 +39,12 @@
 
 # Toggle this if sudo is not available on the system.
 SUDO="sudo"
+if [ $1 = "-no-sudo" ]; then
+        SUDO=""
+fi
 #SUDO=""
 
+echo "" 
 echo "### Generic system dependencies for compiler, revision control, etc. ###"  
 # Thie fist one is commented out because is install on most system already. 
 #sudo apt-get install  \
@@ -46,6 +54,7 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 
 
 ####################### BRICS_3D ##########################
+echo "" 
 echo "### Dependencies for the BRICS_3D libraries ###"
 echo "Boost:"
 ${SUDO} apt-get libboost-dev \
@@ -80,6 +89,7 @@ cd ..
 
 echo "Libvariant (JSON)"
 
+echo ""
 echo "### Compile and install BRICS_3D ###"
 git clone https://github.com/brics/brics_3d.git
 cd brics_3d
@@ -90,6 +100,7 @@ cd ..
 cd ..
 
 ####################### Microblox #########################
+echo ""
 echo "### Dependencies for Microblox (UBX) framework. ###"
 
 echo "Clang compiler:"
