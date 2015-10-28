@@ -195,6 +195,7 @@ cd czmq
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
+cd ..
 
 echo "CZMQ-UBX bridge"
 git clone https://github.com/blumenthal/ubx
