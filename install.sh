@@ -54,14 +54,24 @@
 
 # Toggle this if sudo is not available on the system.
 SUDO="sudo"
-if [ $1 = "--no-sudo" ]; then
+if [ "$1" = "--no-sudo" ] || [ "$2" = "--no-sudo" ]; then
         SUDO=""
 fi
 #SUDO=""
+echo "[Parameter] Sudo command is set to: ${SUDO}"
+
+USE_ROS="TRUE"
+if [ "$1" = "--no-ros" ] || [ "$2" = "--no-ros" ]; then
+        USE_ROS="FALSE"
+fi
+#USE_ROS="FALSE"
+echo "[Parameter] USE_ROS is set to: ${USE_ROS}"
 
 # Set parameter for prarallel builds
 J="-j4"
 #J=""
+echo "[Parameter] Parallel build parameter for make is set to: ${J}"
+
 
 echo "" 
 echo "### Generic system dependencies for compiler, revision control, etc. ###"  
@@ -224,7 +234,31 @@ cd ..
 cd ..
 cd ..
 
-## ROS (optional)
+####################### ROS (optional) #######################
+if [ "$USE_ROS" = "TRUE" ]; then
+  echo "### ROS (Hydro) communication modules  ###"  
+
+  #echo "ROS-Hydro:"
+  #${SUDO} sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list' 
+  #wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | ${SUDO} apt-key add -
+  #${SUDO} apt-get update
+  #${SUDO} apt-get install ros-hydro-ros-base
+  #echo "source /opt/ros/hydro/setup.bash" >> ~/.bashrc
+  #source ~/.bashrc
+
+
+  echo "UBX-ROS bridge:"
+  git clone https://bitbucket.org/blumenthal/microblx_ros_bridge.git
+  cd microblx_ros_bridge
+  git fetch && git checkout blumenthal
+  mkdir build
+  cd build
+  cmake ..
+  make
+  ${SUDO} make install
+  cd ..
+  cd ..
+fi
 
 ######### BRICS_3D integration into the UBX framework ###########
 echo ""
