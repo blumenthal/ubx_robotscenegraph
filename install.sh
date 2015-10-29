@@ -1,17 +1,25 @@
 #!/bin/bash
 #
-# This script (a) documents and (b) installs the SHERPA World Model software components.
+# This script (a) documents the install procces and (b) installs the SHERPA World Model 
+# software components if invokes as stated in the Usage section.
+#
+# NOTE: The software modules are installed _relative_ to the invocation of this script.
 # 
 # Usage
 # ------
 #
-# Simply call this sript wihtout any parameters: 
-#	./install.sh
+# Simply call this script wihtout any parameters:
+# 
+#	source ./install.sh
 # OR
-#	./install.sh --no-sudo
-# In case the system has no sudo command available.
+#	source ./install.sh --no-sudo
 #
-# If necessary make adjustments to the individual sections.
+# In case the system has no sudo command available. 
+#
+# The "source" command is important here because it adds environment variables
+# that are required for the subsequent installation steps.
+#
+# In case the system has no sudo command available.
 #
 #
 # Preface
@@ -21,12 +29,13 @@
 # The RSG is used as a mechanism to represent and exchange world model data.
 #
 # An instance of an RSG is embedded into a "World Model Agent". It is written
-# in C++ and can be queries with its respective API. 
+# in C++ and can be queried with its respective API. 
 #
 # A SHERPA World Model as deployed on a robot has one World Model Agent
 # plus a set of communication componetns like ZMQ or ROS. The components
-# are relalized with the Microblox (UBX) framework that allows to represent
+# are realized with the Microblox (UBX) framework that allows to represent
 # the appliation in a system coposition model (.utc file). 
+#
 # In a nutshell the following dependencies need to be satisfied:
 # 
 # * the BRICS_3D library with all its dependencies including
@@ -36,6 +45,12 @@
 #   and ubx_robotscenegraph)
 # * UBX modules for ZMQ including dependencies (CZMQ)
 # * UBX modules for ROS (optional)  
+#
+# Authors
+# -------
+#  * Sebastian Blumenthal (blumenthal@locomotec.com)
+#
+
 
 # Toggle this if sudo is not available on the system.
 SUDO="sudo"
@@ -242,8 +257,24 @@ ${SODO} make install
 cd ..
 cd ..
 
-
-
+echo ""
 echo "Done."
 
+echo ""
+echo "Installation succeded. You can start the SHERPA World Model by invoking:"
+echo "	cd ./ubx_robotscenegraph"
+echo "	run ./run_sherpa_world_model.sh"
+echo ""
+echo "In case the ROS communication modules are used also start in a seperate terminal:"
+echo "	roscore"
+echo ""
+echo "When the system is launched correcly the following promt appears:"
+echo "JIT: ON CMOV SSE2 SSE3 SSE4.1 fold cse dce fwd dse narrow loop abc sink fuse"
+echo ">" 
+echo ""
+echo "Then enter the following command and hit enter:"
+echo "start_all()"
+echo ""
+echo "The system state can be observed in a browser by entering http://localhost:8888/ as URL."
+echo ""
 
