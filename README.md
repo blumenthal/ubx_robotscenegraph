@@ -4,23 +4,33 @@ RSG integration into Microblox (UBX)
 Overview
 --------
 
-RSG integration into Microblox (UBX)
+RSG integration into Microblox (UBX). Provides system composition
+models for the **SHERPA world model**.
+
+Installation as Docker container
+--------------------------------
+
+This software can be installed as a [Docker](https://www.docker.com/) container.
+Further details can be found in the respective [docker section](docker/README.md).
 
 Dependencies
 ------------
 
  - brics_3d_function_blocks Installation instructions can be found here: https://github.com/blumenthal/brics_3d_function_blocks
  - BRICS_3D library. Installation instructions can be found here: http://www.best-of-robotics.org/brics_3d/installation.html
- - microblx library. See: https://github.com/kmarkus/microblx
+ - microblx library. See: https://github.com/UbxTeam/microblx
 
 Compilation
 -----------
 
+Either use the installation [script](install.sh) or compile this project manually as follows:
+
 ```
  $ mkdir build
  $ cd build 
- $ cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/clang++
- $ make 
+ $ cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
+ $ make
+ $ make install 
 ```
 
 Environment Variables
@@ -53,14 +63,33 @@ Dependencies to BRICS_3D and HDF5:
 Usage
 -----
 
-To start the example do the following:
 
+You can start the SHERPA World Model by invoking:
 ```
-sh start_test2.sh 
+  ./run_sherpa_world_model.sh --no-ros
 ```
 
-The system will be _initialized_. To actually _start_ it go to the web interface at 
-localhost:8888 and click on all dark green _start_ buttons.
+In case the ROS communication modules are used also start roscore:
+```
+  roscore&
+  ./run_sherpa_world_model.sh
+```
+
+When the system is launched correcly the following promt appears:
+```
+JIT: ON CMOV SSE2 SSE3 SSE4.1 fold cse dce fwd dse narrow loop abc sink fuse
+> 
+```
+
+Then enter the following command and hit enter:
+```
+ start_all()
+```
+
+The system state can be observed in a browser by entering http://localhost:8888/ as URL.
+ 
+
+Ather examples can be obtained from the [examples section](examples).
 
 
 Licensing
@@ -76,7 +105,7 @@ Impressum
 ---------
 
 Written by Sebastian Blumenthal (blumenthal@locomotec.com)
-Last update: 09.10.2014
+Last update: 30.10.2015
  
 
 
