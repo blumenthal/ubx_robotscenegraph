@@ -1,20 +1,26 @@
 #!/bin/bash
 #
 # This script (a) documents the install procces and (b) installs the SHERPA World Model 
-# software components if invokes as stated in the Usage section.
+# software components if invoked as stated in the "Usage" section.
 #
 # NOTE: The software modules are installed _relative_ to the invocation of this script.
 # 
 # Usage
 # ------
 #
-# Simply call this script wihtout any parameters:
+# Call this script wihtout any parameters:
 # 
 #	source ./install.sh
+# 
 # OR
 #	source ./install.sh --no-sudo
 #
 # In case the system has no sudo command available. 
+# 
+# OR
+# source ./install.sh --no-ros
+# 
+# In case the system has no ROS (Hydro) installtion. 
 #
 # The "source" command is important here because it adds environment variables
 # that are required for the subsequent installation steps.
@@ -45,6 +51,15 @@
 #   and ubx_robotscenegraph)
 # * UBX modules for ZMQ including dependencies (CZMQ)
 # * UBX modules for ROS (optional)  
+#
+#
+# Compatibility
+# -------------
+# This script has been succesfully tested on the followin systems:
+#
+# * Ubuntu 12.04
+# * Ubuntu 14.04
+#
 #
 # Authors
 # -------
@@ -295,12 +310,14 @@ echo ""
 echo "Done."
 
 echo ""
-echo "Installation succeded. You can start the SHERPA World Model by invoking:"
+echo "You can start the SHERPA World Model by invoking:"
 echo "	cd ./ubx_robotscenegraph"
-echo "	run ./run_sherpa_world_model.sh"
+echo "	./run_sherpa_world_model.sh --no-ros"
 echo ""
-echo "In case the ROS communication modules are used also start in a seperate terminal:"
-echo "	roscore"
+echo "In case the ROS communication modules are used also start roscore:"
+echo "	cd ./ubx_robotscenegraph"
+echo "	roscore& "
+echo "  ./run_sherpa_world_model.sh"
 echo ""
 echo "When the system is launched correcly the following promt appears:"
 echo "JIT: ON CMOV SSE2 SSE3 SSE4.1 fold cse dce fwd dse narrow loop abc sink fuse"
@@ -312,3 +329,4 @@ echo ""
 echo "The system state can be observed in a browser by entering http://localhost:8888/ as URL."
 echo ""
 
+echo "SUCCESS"
