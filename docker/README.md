@@ -8,10 +8,13 @@ This folder contains a **Dockerfile** to create a Docker container with a SHERPA
 1. Install [Docker](https://www.docker.com/).
 
 2. Build an image from this Dockerfile: either by invoking it relative to this folder:
+
 ```
   docker build -t sherpa-wm .
-`` 
+``` 
+
    or by using the Dockerfile form the repository: 
+
 ```
   docker build -t sherpa-wm https://raw.githubusercontent.com/blumenthal/ubx_robotscenegraph/master/docker/Dockerfile
 ```
