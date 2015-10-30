@@ -8,14 +8,18 @@ This folder contains a **Dockerfile** to create a Docker container with a SHERPA
 1. Install [Docker](https://www.docker.com/).
 
 2. Build an image from this Dockerfile: either by invoking it relative to this folder:
-      `docker build -t sherpa-wm-ubuntu-12.04 .` 
+```
+  docker build -t sherpa-wm .
+`` 
    or by using the Dockerfile form the repository: 
-      `docker build -t sherpa-wm-ubuntu-12.04  github.com/blumenthal/ubx_robotscenegraph/docker`
+```
+  docker build -t sherpa-wm https://raw.githubusercontent.com/blumenthal/ubx_robotscenegraph/master/docker/Dockerfile
+```
 
 ### Usage
 
 ```
-  docker run -it -p 8888:8888 -p 11411:11411 -p 12911:12911 sherpa-wm-ubuntu-12.04
+  docker run -it -p 8888:8888 -p 11411:11411 -p 12911:12911 sherpa-wm
   cd ./ubx_robotscenegraph
   ./run_sherpa_world_model.sh --no-ros
   start_all()
