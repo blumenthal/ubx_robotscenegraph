@@ -58,12 +58,12 @@ RUN cd /workspace; /bin/bash -c "source ~/.bashrc"; /bin/bash -c "source ./ubx_r
 # Port definitions depend on the used system model compuition (.usc) file
 #
 # * 8888  for UBX web interface
-# * 11411 for RSG with HDF5 protocol encoding
-# * 12911 for RSG with JSON protocol encoding
+# * 11411 for RSG with HDF5 protocol encoding via ZMQ-PUB
+# * 12912 for RSG with JSON protocol encoding via ZMQ-PUB
 # 
 EXPOSE 8888
 EXPOSE 11411
-EXPOSE 12911
+EXPOSE 12912
 
 CMD /bin/bash
 

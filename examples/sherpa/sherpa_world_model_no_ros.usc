@@ -62,14 +62,17 @@ function start_all()
 end
 
 -- Communication configuration 
+local docker0_ip = "172.17.42.1" -- Default Docker interface to host
 
 local local_ip = "localhost"   
 local local_out_port = "11411" 
 --local remote_ip = "192.168.1.103" 
 --local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
-local remote_ip = "127.0.0.1" 
+--local remote_ip = "127.0.0.1" 
+local remote_ip = docker0_ip 
 local remote_out_port = "11511"
-local local_json_ip = "127.0.0.1"
+--local local_json_ip = "127.0.0.1"
+local local_json_ip = docker0_ip
 local local_json_in_port = "12911"
 local local_json_out_port = "12912"
 
