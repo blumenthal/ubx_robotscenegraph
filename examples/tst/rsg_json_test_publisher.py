@@ -4,15 +4,30 @@ import sys
 import time
 import json
 
-port = "12911"
+# The port is defined by the system composition (sherpa_world_model.usc) file
+# via the ``local_json_in_port`` variable. 
+# e.g.
+# local local_json_in_port = "12911"  
+port = "12911" 
 if len(sys.argv) > 1:
     port =  sys.argv[1]
     int(port)
 
+# Set up the ZMQ PUB-SUB communication layer.
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:%s" % port)
 
+# JSON message to CREATE a new Node. Note that the parentId must
+# exist beforehands, otherwise this operation does not succeed.
+# in this case the "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
+# denotes the root id of the graph. It is set in the respective
+# system composition (.usc) file and initialized the SHERPA
+# world model with exactly that id.
+#
+# A Node can only be created once. Application of multiple 
+# identical CREATE opration will be ignored (and reported via
+# an appropriate warning). 
 msg1 = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "CREATE",
@@ -27,6 +42,8 @@ msg1 = {
   "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
 }
 
+# Same as above but with a complete TST as attribute with 
+# key "tst:envtst". 
 msg2 = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "CREATE",
@@ -134,6 +151,11 @@ msg2 = {
   "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
 }
 
+# JSON message to UPDATE Attributes of an already existing Node.
+# The Node with id ff483c43-4a36-4197-be49-de829cdd66c8 has to 
+# be created beforehands, otherwise the update can not be applied.
+# All existing attributes will be completly overridden by this 
+# update.
 msg3 = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "UPDATE_ATTRIBUTES",
@@ -169,7 +191,8 @@ msg3 = {
     ],
   },
 }
- 
+
+# Same as above but the field "succeeded" is toggled to "1".
 msg4 = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "UPDATE_ATTRIBUTES",
@@ -206,6 +229,7 @@ msg4 = {
   },
 }
 
+# Pump out all the messages.
 while True:
   print ("===")
   print (json.dumps(msg2))
