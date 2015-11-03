@@ -36,7 +36,7 @@ Either use the installation [script](install.sh) or compile this project manuall
 Environment Variables
 ---------------------
 
-Please make sure the following environment variables are set. (The should be ) 
+Please make sure the following environment variables are set. (They should be since the install script is putting them into your `.bashrc`. However, you need to source your `.bashrc` after the installation.)
 
 Default variables for Microblox:
 
