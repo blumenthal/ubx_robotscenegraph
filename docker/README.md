@@ -13,7 +13,7 @@ This folder contains a **Dockerfile** to create a Docker container with a SHERPA
   docker build -t sherpa-wm .
 ``` 
 
-   or by using the Dockerfile form the repository: 
+   or by using the Dockerfile from the repository: 
 
 ```
   docker build -t sherpa-wm https://raw.githubusercontent.com/blumenthal/ubx_robotscenegraph/master/docker/Dockerfile
@@ -30,3 +30,11 @@ This folder contains a **Dockerfile** to create a Docker container with a SHERPA
 
 The UBX web interface is available on port 8888, so it can be opened by any browser
 by typing: `http://localhost:8888/`.
+
+### Troubleshooting
+If you get the following error
+```
+  Post http:///var/run/docker.sock/v1.19/containers/create: dial unix /var/run/docker.sock: permission denied. Are you trying to connect to a TLS-enabled daemon without TLS?
+```
+from the docker commands, run them with sudo.
+
