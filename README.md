@@ -7,23 +7,56 @@ Overview
 RSG integration into Microblox (UBX). Provides system composition
 models for the **SHERPA world model**.
 
-Installation as Docker container
---------------------------------
+Installation
+------------
+
+### Installation as Docker container
+
 
 This software can be installed as a [Docker](https://www.docker.com/) container.
 Further details can be found in the respective [docker section](docker/README.md).
 
-Dependencies
-------------
+### Installation with an install script
+
+__NOTE:__ The software modules are installed __relative__ to the invocation of [install.sh](install.sh) script.
+In the below example we assume that all modules shall be installed in the parent folder, where
+this repository (ubx_robotscenegraph) has been *cloned* to.
+ 
+Call this script wihtout any parameters:
+
+```
+	source ./ubx_robotscenegraph/install.sh
+```
+ OR
+
+```
+	source ./ubx_robotscenegraph/install.sh --no-sudo
+```
+In case the system has no sudo command available. 
+ 
+ OR
+```
+ source ./ubx_robotscenegraph/install.sh --no-ros
+``` 
+In case the system has no ROS (Hydro) installtion. 
+
+The ``source`` command is important because it adds environment variables (cf. [section below](#environment-variables))
+that are required for the subsequent installation steps.
+
+
+### Manual installation
+
+#### Dependencies
+
 
  - brics_3d_function_blocks Installation instructions can be found here: https://github.com/blumenthal/brics_3d_function_blocks
  - BRICS_3D library. Installation instructions can be found here: http://www.best-of-robotics.org/brics_3d/installation.html
  - microblx library. See: https://github.com/UbxTeam/microblx
 
-Compilation
------------
+#### Compilation
 
-Either use the installation [script](install.sh) or compile this project manually as follows:
+
+Compile this project manually as follows:
 
 ```
  $ mkdir build
@@ -33,8 +66,7 @@ Either use the installation [script](install.sh) or compile this project manuall
  $ make install 
 ```
 
-Environment Variables
----------------------
+#### Environment Variables
 
 Please make sure the following environment variables are set. (The should be ) 
 
