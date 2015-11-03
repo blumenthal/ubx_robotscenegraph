@@ -16,9 +16,9 @@ This example requires the [SHERPA World Model](../../README.md)  and Python3 wit
 
 ### Ubuntu 12.04:
 ```
-	apt-get install python3 python3-setuptools
+	sudo apt-get install python3 python3-setuptools python3-dev
 	sudo easy_install3 pip
-	pip install pyzmq	
+	pip3 install cffi pyzmq	
 ```
 
 
