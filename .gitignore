@@ -9,3 +9,12 @@ bin
 *.svg
 *.gv
 *.log
+
+# ignoreing all the build stuff frominstallation script
+Lua*
+brics*
+czmq
+hdf5*
+lib*
+microblx*
+ubx*
