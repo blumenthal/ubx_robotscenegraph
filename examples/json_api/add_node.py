@@ -58,14 +58,14 @@ newNodeMsg = {
 # Defines that this update creates a new node as defined by the
 # below node section. Other possibilities are
 #
-#       "CREATE_REMOTE_ROOT_NODE",
-#	      "CREATE_PARENT",
-#	      "UPDATE_ATTRIBUTES",
-#	      "UPDATE_TRANSFORM",
-#       "UPDATE_START",
-#       "UPDATE_END",
-#	      "DELETE_NODE",
-#	      "DELETE_PARENT"
+# "CREATE_REMOTE_ROOT_NODE",
+# "CREATE_PARENT",
+# "UPDATE_ATTRIBUTES",
+# "UPDATE_TRANSFORM",
+# "UPDATE_START",
+# "UPDATE_END",
+# "DELETE_NODE",
+# "DELETE_PARENT"
 #  
 # Every CREATE operation needs the definition of a new node:
 #  "node": {
@@ -78,7 +78,7 @@ newNodeMsg = {
 # Every node needs a unique ID, that is specified here as: 
 #   "id": "92cf7a8d-4529-4abd-b174-5fabbdd3068f", 
 # These IDs are used as primary keys for the Robot Scene Graph.
-# TODO can be left out.
+# If the id field is not set, then a random ID will be assigned automatically.
 #
 # The attributes field stores a set of attributes via key value pairs. 
 # There might be  
