@@ -64,8 +64,20 @@
 # Authors
 # -------
 #  * Sebastian Blumenthal (blumenthal@locomotec.com)
-#
+#  * Nico Huebel (nico.huebel@kuleuven.be)
 
+#!/bin/bash
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3; echo "ERROR occured. See install_err.log for details."; return 1' ERR SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGTERM
+exec > >(tee -a install.log) 2> >(tee -a install_err.log >&2)
+#exec 1> install.log
+#exec 2> install_err.log
+
+
+rm -f install.log install_err.log
+
+set -e
+# Any subsequent(*) commands which fail will cause the shell script to exit immediately
 
 # Toggle this if sudo is not available on the system.
 SUDO="sudo"

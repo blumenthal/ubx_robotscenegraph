@@ -31,10 +31,12 @@ This folder contains a **Dockerfile** to create a Docker container with a SHERPA
 The UBX web interface is available on port 8888, so it can be opened by any browser
 by typing: `http://localhost:8888/`.
 
+You can kill the program with `ctrl+c` and then exit the docker container by typging `exit`.
+
 ### Troubleshooting
 If you get the following error
 ```
   Post http:///var/run/docker.sock/v1.19/containers/create: dial unix /var/run/docker.sock: permission denied. Are you trying to connect to a TLS-enabled daemon without TLS?
 ```
-from the docker commands, run them with sudo.
+from the docker commands, run them with `sudo`.
 
