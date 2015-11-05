@@ -17,7 +17,7 @@ The World Model Agent is written in **C++** and can be
 [updated](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphUpdate.html) 
 with its respective API. In order to use that C++ API in your own program a dedicated 
 *World Model Agent* has to be spawned, the communication infrastructure (ZMQ or ROS) 
-has to be added manually and it has to be connect it to the other World Model Agent wihtin **SHARPA World Model**.   
+has to be added manually and it has to be connected to the other World Model Agent wihtin **SHERPA World Model**.   
 
 As an alternative, the SHARPA World Model provides a **JSON API** that allows to send graph operatins via ZMQ. 
 Examples for using the JSON API can be found for a [Task Specification Tree](examples/tst/README.md) 
