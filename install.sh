@@ -55,7 +55,7 @@
 #
 # Compatibility
 # -------------
-# This script has been succesfully tested on the followin systems:
+# This script has been succesfully tested on the following systems:
 #
 # * Ubuntu 12.04
 # * Ubuntu 14.04
@@ -65,6 +65,11 @@
 # -------
 #  * Sebastian Blumenthal (blumenthal@locomotec.com)
 #  * Nico Huebel (nico.huebel@kuleuven.be)
+#
+# TODO
+# ----
+# * Make build and install path(s) more configurable
+#
 
 #!/bin/bash
 exec 3>&1 4>&2
@@ -105,13 +110,13 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 # Thie fist one is commented out because is install on most system already. 
 #sudo apt-get install  \
 #        git \
-#	 mercurial \
+#        mercurial \
 #        cmake \
 #        build-essential \
-#	 libtool \
-#	 automake \
-#	 libtool \
-# 	 pkg-config
+#	       libtool \
+#	       automake \
+#	       libtool \
+# 	     pkg-config
 
 ####################### BRICS_3D ##########################
 echo "" 
@@ -127,7 +132,7 @@ echo "Lib Cppunit for unit tests (optional):"
 ${SUDO} apt-get install libcppunit-dev
 
 echo "HDF5: "
-# This one is alway a bit tricky since there are many compil time
+# This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
 # So far tested with verisons 1.8.9(minimum), 1.8.12 and 1.8.13.
 # Note the option HDF5_1_8_12_OR_HIGHER must be set if a verison
@@ -321,6 +326,9 @@ cd brics_3d_function_blocks
 mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
+# In case you retrive a "Could NOT find BRICS_3D" delete the
+# CMake cache and try again. Sometimes the FindBRICS_3D script 
+# keeps the variables BRICS_3D_NOT_FOUND though the system is setup correctly. 
 make ${J}
 # Per default the UBX modules are installed to /usr/local
 # this can be adjusted be setting the CMake variable
@@ -331,7 +339,8 @@ make ${J}
 ${SODO} make install
 cd ..
 echo "export FBX_MODULES=$PWD" >> ~/.bashrc
-#The FBX_MODULES environment variable is needed for the other (below) modules to find the BRICS_3D function blocks and typs.
+# The FBX_MODULES environment variable is needed for the other (below) 
+# modules to find the BRICS_3D function blocks and typs.
 source ~/.bashrc .
 cd ..
 
@@ -348,6 +357,11 @@ cd ubx_robotscenegraph
 mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
+# Please note that we have to apply the same compile time flags 
+# and environemnt variables that have been used to compile the brics_3d library.
+# In case you retrive a "Could NOT find BRICS_3D" delete the
+# CMake cache and try again. Sometimes the FindBRICS_3D script 
+# keeps the variables BRICS_3D_NOT_FOUND though the system is setup correctly. 
 make ${J}
 # Per default the UBX modules are installed to /usr/local
 # this can be adjusted be setting the CMake variable
@@ -362,6 +376,8 @@ cd ..
 echo ""
 echo "Done."
 
+echo ""
+echo "####################################################################"
 echo ""
 echo "You can start the SHERPA World Model by invoking:"
 echo "	cd ./ubx_robotscenegraph"
