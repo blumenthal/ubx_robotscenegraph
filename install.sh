@@ -346,16 +346,23 @@ cd ..
 
 echo "ubx_robotscenegraph"
 # Note we do not need necessarily need to check it out because this script is (currently) contained
-# in ubx_robotscenegraph. Though, for the sake of completness we repeat it here.
+# in ubx_robotscenegraph. Though, for the sake of completness we try to repeat it here.
 #
+if [ -d ubx_robotscenegraph ]; then
+  echo "Folder ubx_robotscenegraph exists already. Pulling updates instead." 
+  cd ubx_robotscenegraph
+  git pull origin master
+else
+  echo "Cloning a fresh copy of ubx_robotscenegraph."
+  git clone https://github.com/blumenthal/ubx_robotscenegraph
+  cd ubx_robotscenegraph
+fi
+mkdir build
+cd build
 # In case the BRICS_3D library is alredy installed
 # in another location you can use the environment
 # variable BRICS_3D_DIR to point to another installation location.
 # The same applies to HDF5 (HDF5_ROOT) as well. 
-git clone https://github.com/blumenthal/ubx_robotscenegraph
-cd ubx_robotscenegraph
-mkdir build
-cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
 # Please note that we have to apply the same compile time flags 
 # and environemnt variables that have been used to compile the brics_3d library.
