@@ -19,7 +19,7 @@ with its respective API. In order to use that C++ API in your own program a dedi
 *World Model Agent* has to be spawned, the communication infrastructure (ZMQ or ROS) 
 has to be added manually and it has to be connected to the other World Model Agent wihtin **SHERPA World Model**.   
 
-As an alternative, the SHARPA World Model provides a **JSON API** that allows to send graph operatins via ZMQ. 
+As an alternative, the SHERPA World Model provides a **JSON API** that allows to send graph operatins via ZMQ. 
 Examples for using the JSON API can be found for a [Task Specification Tree](examples/tst/README.md) 
 and [here](examples/json_api) Currently, the JSON API does not yet contain a query module.
 
@@ -58,14 +58,16 @@ In case the system has no sudo command available.
 ``` 
 In case the system has no ROS (Hydro) installtion. 
 
-The ``source`` command is important because it adds environment variables (cf. [section below](#environment-variables))
+The ``source`` command is important because it adds environment variables (cf. [section](#environment-variables) below)
 that are required for the subsequent installation steps.
 
 
 ### Manual installation
 
-#### Dependencies
+All detailed steps on how to install the dependencies can be cound in the [install.sh](install.sh) script. 
+The relevant environment variables for the installation procedured are listed in the [section](#environment-variables) below. 
 
+#### Dependencies
 
  - brics_3d_function_blocks Installation instructions can be found here: https://github.com/blumenthal/brics_3d_function_blocks
  - BRICS_3D library. Installation instructions can be found here: http://www.best-of-robotics.org/brics_3d/installation.html
@@ -106,7 +108,7 @@ Dependencies to BRICS_3D and HDF5:
 | ------------- | ----------- |
 | BRICS_3D_DIR  | Points to the installation folder of BRICS_3D. Used within the CMake scripts to discover the BRICS_3D library. |
 | FBX_MODULES   | Points to the the root folder of the BRICS_3D function blocks. Used to discover the rsg lua scripts.  |
-| HDF5_ROOT (optional)     | Points to the installation folder of HDF5. Use it in case it is not into installed to the default folders. |
+| HDF5_ROOT     | Points to the installation folder of HDF5. Use it in case it is not into installed to the default folders. |
 
 
 
@@ -150,12 +152,16 @@ License LGPL 2.1 and Modified BSD license. The dual-license implies that
 users of this code may choose which terms they prefer. Please see the files
 called LGPL-2.1 and BSDlicense.
 
+Acknowledgements
+----------------
+
+This work was supported by the European FP7 project SHERPA (FP7-600958).
 
 Impressum
 ---------
 
 Written by Sebastian Blumenthal (blumenthal@locomotec.com)
-Last update: 30.10.2015
+Last update: 09.11.2015
  
 
 
