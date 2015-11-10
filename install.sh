@@ -53,6 +53,36 @@
 # * UBX modules for ROS (optional)  
 #
 #
+#
+# Environment Variables
+# ---------------------
+#
+# Please make sure the following environment variables are set. 
+# For convinecence they are added automatically by this install script to the .bashrc file.
+# You need to source your `.bashrc` afterwards if you install the software manually. 
+# The variables are also discussed in the individual installation step sections.
+# 
+# Variables for Microblox:
+#
+#
+# | Name          | Description |
+# | ------------- | ----------- |
+# | UBX_ROOT      | Points to the installation folder of UBX. Used within the CMake scripts to discover the UBX library. |
+# | UBX_MODULES   | Points to the the place where the UBX types, blocks etc. are installed. Used to load the types and modules at run-time |
+# 
+# Dependencies to BRICS_3D and HDF5:
+# 
+# 
+# | Name          | Description |
+# | ------------- | ----------- |
+# | BRICS_3D_DIR  | Points to the installation folder of BRICS_3D. Used within the CMake scripts to discover the BRICS_3D library. |
+# | FBX_MODULES   | Points to the the root folder of the BRICS_3D function blocks. Used to discover the rsg lua scripts.  |
+# | HDF5_ROOT     | Points to the installation folder of HDF5. Use it in case it is not into installed to the default folders (/usr/local). |
+# 
+# example: 
+#    export HDF5_ROOT=/opt/hdf5-1.8.13 
+#
+#
 # Compatibility
 # -------------
 # This script has been succesfully tested on the following systems:
@@ -351,7 +381,7 @@ echo "ubx_robotscenegraph"
 if [ -d ubx_robotscenegraph ]; then
   echo "Folder ubx_robotscenegraph exists already. Pulling updates instead." 
   cd ubx_robotscenegraph
-  git pull origin master
+  git pull origin master  
 else
   echo "Cloning a fresh copy of ubx_robotscenegraph."
   git clone https://github.com/blumenthal/ubx_robotscenegraph
