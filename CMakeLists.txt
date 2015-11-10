@@ -123,7 +123,7 @@ set_property(TARGET rsgrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
 IF(USE_JSON)
-    INCLUDE_DIRECTORIES({LIBVARIANT_INCLUDE_DIRS})
+    INCLUDE_DIRECTORIES(${LIBVARIANT_INCLUDE_DIRS})
 
     # Compile library rsgsenderlib
     add_library(rsgjsonsenderlib SHARED src/rsg_json_sender.cpp )
