@@ -38,10 +38,12 @@ function start_wm() -- no particular order assumed here
   ni:b("rsgreciever"):do_start()
   ni:b("rsgjsonsender"):do_start()
   ni:b("rsgjsonreciever"):do_start()
+  ni:b("rsgjsonqueryrunner"):do_start()
   ni:b("zmq_publisher"):do_start()
   ni:b("zmq_subscriber"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
+  ni:b("zmq_json_query_server"):do_start()
   ni:b("ros_publisher"):do_start()
   ni:b("ros_subscriber"):do_start()
   ni:b("bytestreambuffer1"):do_start()
@@ -50,6 +52,8 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer4"):do_start()
   ni:b("bytestreambuffer5"):do_start()
   ni:b("bytestreambuffer6"):do_start()
+  ni:b("bytestreambuffer_query_req"):do_start()
+  ni:b("bytestreambuffer_query_rep"):do_start()
   ni:b("cyclic_io_trigger"):do_start()    
 end
 
@@ -85,13 +89,15 @@ return bd.system
       "std_blocks/hexdump/hexdump.so",
       "blocks/zmqreceiverlib.so",
       "blocks/zmqsenderlib.so",
+      "blocks/zmqserverlib.so",
       "types/rsg_types.so",  
       "blocks/rsgrecieverlib.so",
       "blocks/rsgjsonrecieverlib.so",
       "blocks/rsgsenderlib.so",
       "blocks/rsgjsonsenderlib.so",
+      "blocks/rsgjsonquerylib.so",
       "blocks/rsgscenesetuplib.so",
-
+      
       -- iblock based ROS bridge
       "blocks/irospublisher.so",
 
@@ -107,10 +113,12 @@ return bd.system
       { name="rsgreciever", type="rsg_reciever" },
       { name="rsgjsonsender", type="rsg_json_sender" },
       { name="rsgjsonreciever", type="rsg_json_reciever" },
+      { name="rsgjsonqueryrunner", type="rsg_json_query" },
       { name="zmq_publisher", type="zmq_sender" },
       { name="zmq_subscriber", type="zmq_receiver" },
       { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
+      { name="zmq_json_query_server", type="zmq_server" },
       { name="ros_publisher", type="ros_sender" },
       { name="ros_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
@@ -124,6 +132,10 @@ return bd.system
       -- ZMQ/Zyre
       { name="bytestreambuffer5",type="lfds_buffers/cyclic_raw" },
       { name="bytestreambuffer6",type="lfds_buffers/cyclic_raw" },
+
+      -- JSON based queries to WM
+      { name="bytestreambuffer_query_req",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer_query_rep",type="lfds_buffers/cyclic_raw" },
 
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" } -- optional for visualization
@@ -154,6 +166,11 @@ return bd.system
       { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
       { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
 
+      -- ZMQ REQ-REP server and JSON query runner
+      { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
+      { src="bytestreambuffer_query_req", tgt="rsgjsonqueryrunner.rsq_query" },
+      { src="rsgjsonqueryrunner.rsg_result", tgt="bytestreambuffer_query_rep" },
+      { src="bytestreambuffer_query_rep", tgt="zmq_json_query_server.zmq_rep" },
 
       { src="ros_subscriber.ros_in", tgt="bytestreambuffer4" },
       { src="bytestreambuffer4", tgt="rsgreciever.rsg_in" },
@@ -164,10 +181,12 @@ return bd.system
       { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
+      { name="rsgjsonqueryrunner", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
-      { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } }, 
+      { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
+      { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:22422" } }, 
       { name="ros_publisher", config = { topic_name="world_model/update_stream" } },
       { name="ros_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
       --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
@@ -178,6 +197,8 @@ return bd.system
       { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer5", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=20000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100000 }, 
@@ -186,7 +207,9 @@ return bd.system
             { b="#rsgjsonreciever", num_steps=1, measure=0 },
             { b="#zmq_publisher", num_steps=1, measure=0 },
             { b="#zmq_json_publisher", num_steps=1, measure=0 },
-            { b="#ros_publisher", num_steps=1, measure=0 },          
+            { b="#ros_publisher", num_steps=1, measure=0 },   
+            { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
+            { b="#zmq_json_query_server", num_steps=1, measure=0 },        
           --{ b="#rsgsender", num_steps=1, measure=0 },              
           } 
         } 
