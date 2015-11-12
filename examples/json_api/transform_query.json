@@ -1,0 +1,10 @@
+{
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_TRANSFORM",
+  "id": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+  "idReferenceNode": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+  "timeStamp": {
+    "@stamptype": "TimeStampDate",
+    "stamp": "2015-11-09T16:16:44Z",
+  } 
+}
