@@ -153,6 +153,16 @@ IF(USE_JSON)
     install(TARGETS rsgjsonrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonrecieverlib-block)
     set_property(TARGET rsgjsonrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
     install(EXPORT rsgjsonrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+    
+    # Compile library rsgjsonquerylib
+    add_library(rsgjsonquerylib SHARED src/rsg_json_query.cpp )
+    set_target_properties(rsgjsonquerylib PROPERTIES PREFIX "")
+    target_link_libraries(rsgjsonquerylib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    
+    # Install rsgjsonquerylib
+    install(TARGETS rsgjsonrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonquerylib-block)
+    set_property(TARGET rsgjsonrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+    install(EXPORT rsgjsonquerylib-block DESTINATION ${INSTALL_CMAKE_DIR})
 ENDIF(USE_JSON)
 
 # Compile library rsgscenesetuplib
