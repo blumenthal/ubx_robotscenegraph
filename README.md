@@ -21,7 +21,7 @@ has to be added manually and it has to be connected to the other World Model Age
 
 As an alternative, the SHERPA World Model provides a **JSON API** that allows to send graph operatins via ZMQ. 
 Examples for using the JSON API can be found for a [Task Specification Tree](examples/tst/README.md) 
-and [here](examples/json_api) Currently, the JSON API does not yet contain a query module.
+and [here](examples/json_api)
 
 
 
@@ -115,6 +115,7 @@ Dependencies to BRICS_3D and HDF5:
 Usage
 -----
 
+### Launching of a SHERPA World Model
 
 You can start the SHERPA World Model by invoking:
 ```
@@ -143,6 +144,25 @@ The system state can be observed in a browser by entering http://localhost:8888/
 
 Ather examples can be obtained from the [examples section](examples).
 
+### Interaction with a SHERPA World Model
+
+In general there are __three__ possibilities to interact with the *SHERPA World Model*:
+
+1. By embedding a new *World Model Agent* in a process. It allows to [querie]
+   (http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphQuery.html) and 
+   [update](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphUpdate.html) 
+   all data via the C++ API. In order to use it, a dedicated *World Model Agent* has
+   to be spawned, the communication infrastructure (ZMQ) has to be added manually 
+   and it has to be connected to the other *World Model Agent* of the *SHERPA World Model*.
+
+2. By using the [JSON API](examples/json_api/README.md). It allows to send graph operations 
+   encoded as JSON messages via ZMQ. The distribution of the [Task Specification Tree](examples/tst/README.md)
+   makes use of this API.	 
+
+3. By creation of a dedicated *bridge* as done for ROS [TF](https://github.com/blumenthal/sherpa_world_model_tf_bridge) 
+   trees. Please note, that the implementation of the TF bridge embedds a *World 
+   Model Agent* as stated my method 1 and serves as a good reference example.
+
 
 Licensing
 ---------
@@ -161,7 +181,7 @@ Impressum
 ---------
 
 Written by Sebastian Blumenthal (blumenthal@locomotec.com)
-Last update: 09.11.2015
+Last update: 16.11.2015
  
 
 
