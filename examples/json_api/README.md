@@ -337,19 +337,87 @@ time.sleep(1)
 ```
 
 ### World Model Queries 
-Retreive data from the world wodel:
+
+Retreive data from the world wodel by invokation of the following commands:
 
 ```
-  python3 get.py node_attributes_query.json 
-  
+  python3 get.py node_attributes_query.json  
   python3 get.py nodes_query.json 
-  
   python3 get.py root_node_query.json 
-  
   python3 get.py transform_query.json  
-
   python3 get.py geometry_query.json 
 ```
+
+The get.py example send a JSON message as specified by the command line 
+argument. It sends it to the to a ZMQ server that decodes and perfoms the
+query and sends back the result in a single JSON message:
+
+```
+#   Request-reply client in Python
+#   Connects REQ socket to tcp://localhost:22422
+#   Sends JSON Request as specifies by a file and
+#   print the reply
+#
+import zmq
+import sys
+
+# Setup query
+if len(sys.argv) > 1:
+    fileName =  sys.argv[1]
+    with open (fileName, "r") as messagefile:
+      message=messagefile.read()
+else:
+    message="{}"
+
+#  Prepare our context and sockets
+context = zmq.Context()
+socket = context.socket(zmq.REQ)
+socket.connect("tcp://localhost:22422")
+   
+print("Sending query: %s " % (message))
+socket.send_string(message)
+result = socket.recv()
+print("Received reult: %s " % (result))
+``` 
+
+Anatomy of a query message:
+
+```
+{
+	"@worldmodeltype": "RSGQuery",
+```
+Every query must have set ``"@worldmodeltype":`` to ``"RSGQuery"``. While 
+the ``query`` field defines the actual type of query e.g.:
+```	
+	"query": "GET_TRANSFORM",
+```
+Possibilities are ``GET_NODES, GET_NODE_ATTRIBUTES, GET_NODE_PARENTS, GET_GROUP_CHILDREN,
+GET_ROOT_NODE, GET_REMOTE_ROOT_NODES, GET_TRANSFORM`` and ``GET_GEOMETRY``. 
+Depending on this type further fields have to be set. The ``GET_TRANSFORM`` query requires
+an ``id`` and ``idReferenceNode`` to be set. This defines a *Transform* to be calculated between both
+nodes. ``idReferenceNode`` denotes the reference frame. The ``timeStamp`` sets the point 
+in time for this query.
+```	
+	"id": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+	"idReferenceNode": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+	"timeStamp": {
+	    "@stamptype": "TimeStampDate",
+		"stamp": "2015-11-12T16:16:44Z",
+	} 
+}
+``` 
+The following fields are used for the different queries:
+
+| Fields | Description |
+|-------|-------------|
+| ``id`` | Mandatrory except for GET_NODES query. | 
+| ``idReferenceNode`` | Mandatory only for GET_TRANSFORM query. | 
+| ``timeStamp`` | Mandatory only for GET_TRANSFORM query. | 
+| ``attributes`` | Mandatrory for GET_NODES query. | 
+
+
+Further examples for queries can in this folder. 
+
 
 Complete example output from a query:
 
