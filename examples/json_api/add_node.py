@@ -74,7 +74,7 @@ newNodeMsg = {
 #
 # The first element 
 #   "@graphtype": "Node", 
-# with this definition is the of type of node. Other types can be "Group" or "Connection".
+# this definition is the of type of node. Other types can be "Group" or "Connection".
 # Every node needs a unique ID, that is specified here as: 
 #   "id": "92cf7a8d-4529-4abd-b174-5fabbdd3068f", 
 # These IDs are used as primary keys for the Robot Scene Graph.
@@ -87,7 +87,7 @@ newNodeMsg = {
 #          {"key": "comment", "value": "Some human readable comment on the node."}
 #    ],
 #
-# The attributes can be used for queries (TODO) to find relevant nodes.
+# The attributes can be used for queries to find relevant nodes.
 #
 # The field 
 #
@@ -95,7 +95,7 @@ newNodeMsg = {
 #
 # defined where this node is added in the Robot Scene Graph.
 # It can be added to any "Group" node. The root node of
-# a World Model Agent is a Group as well. Kie it is done in 
+# a World Model Agent is a Group as well. Like it is done in 
 # this example.   
 
 # Send message.

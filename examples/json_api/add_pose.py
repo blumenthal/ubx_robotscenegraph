@@ -67,7 +67,84 @@ newTransformMsg = {
   "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
 }
 # Anatomy of the message:
+# The field 
+#   "@worldmodeltype": "RSGUpdate",
+# as seen in the previous example is mandatory and denotes the message is an update of the
+# database for the Robot Scene Graph.
+#
+#   "operation": "CREATE", 
+# Defines that this update creates a new graph primitive, while
+# the two following lines specify to create an actual Transform (= pose)
+#    "@graphtype": "Connection",
+#    "@semanticContext":"Transform",
+#
+# We exlicitly specify a unique ID, that is specified here as: 
+#   "id": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b", 
+# such that we directly know how to adreess the Transform in 
+# order to perform successive updates.
+#
+# The explary attributes are:
+# There might be  
+#     "attributes": [
+#        {"key": "tf:name", "value": "world_to_rescuer"},
+#        {"key": "type", "value": "Transform"},
+#    ],
+#
+# The attributes can be used for queries to find relevant nodes or
+# for debugging purposes.
+#
+# For definition of the the meaning, a single sourceId describes the 
+# frecerence frame as the origin of this node. The second node 
+# denotes where the Trasform "points" to.
+#
+# "sourceIds": [
+#      "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+#    ],
+#    "targetIds": [
+#      "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+#    ],
 # 
+# The actual data is stored in a temporal cache labelled as
+# "history". Is is essantially a list of tuples of time stamps and 
+# data for a rigid transformation as represented by a homogeneous
+# transformation matrix:
+#
+#
+#   "history" : [
+#      {
+#        "stamp": {
+#          "@stamptype": "TimeStampDate",
+#          "stamp": "2015-07-01T16:34:26Z",
+#        },
+#        "transform": {
+#          "type": "HomogeneousMatrix44",
+#          "matrix": [
+#            [1,0,0,1.6],
+#            [0,1,0,1.5],
+#            [0,0,1,0],
+#            [0,0,0,1] 
+#          ],
+#          "unit": "m"
+#        }
+#      }
+#    ], 	    
+#
+# On creation of the Transform it is enough to specify one
+# entry. Though a longer list could be provided. The units
+# of mesurements indiacation "unit" is optional but highly 
+# recommended. Default is [m].
+#
+#
+# The field 
+#
+#   "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+#
+# defined where this node is added in the Robot Scene Graph.
+# It can be added to any "Group" node. The root node of
+# a World Model Agent is a Group as well. Like it is done in 
+# this example.   
+
+
 
 # JSON message to CREATE a new Node. Note, that the parentId must
 # exist beforehands, otherwise this operation does not succeed.
