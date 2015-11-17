@@ -39,6 +39,7 @@ function start_wm() -- no particular order assumed here
   ni:b("rsgjsonsender"):do_start()
   ni:b("rsgjsonreciever"):do_start()
   ni:b("rsgjsonqueryrunner"):do_start()
+  ni:b("rsgdump"):do_start()
   ni:b("zmq_publisher"):do_start()
   ni:b("zmq_subscriber"):do_start()
   ni:b("zmq_json_publisher"):do_start()
@@ -55,6 +56,10 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer_query_req"):do_start()
   ni:b("bytestreambuffer_query_rep"):do_start()
   ni:b("cyclic_io_trigger"):do_start()    
+end
+
+function dump_wm()
+  ni:b("rsgdump"):do_step()
 end
 
 function start_viz()
@@ -103,6 +108,7 @@ return bd.system
       "blocks/rsgjsonsenderlib.so",
       "blocks/rsgjsonquerylib.so",
       "blocks/rsgscenesetuplib.so",
+      "blocks/rsgdumplib.so",
       
       -- iblock based ROS bridge
       "blocks/irospublisher.so",
@@ -128,6 +134,7 @@ return bd.system
       { name="ros_publisher", type="ros_sender" },
       { name="ros_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
+      { name="rsgdump", type="rsg_dump" },
       -- we have to explicitly configure the buffers for large message sized (cf. config setion)
       -- ZMQ
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
@@ -204,6 +211,7 @@ return bd.system
       { name="ros_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
       --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
       { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
+      { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm} } },
       { name="bytestreambuffer1", config = { element_num=5000 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
