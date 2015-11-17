@@ -3,7 +3,7 @@ JSON API examples
 
 These examples demonstrate how to store and retrieve data from 
 the SHERPA World Model via usage of JSON messages. The JSON messages
-allows to perform **C**reate **R**ead **U**pdare and **D**elete *(CRUD)*
+allows to perform **C**reate **R**ead **U**pdate and **D**elete *(CRUD)*
  operations on the primitive elements of the Robot Scene Graph. I.e. it is possible to add new
 objects to the world model by createing a *Group* or *Node*, adding a 
 *Transform* primitive (to represent relative poses between nodes)

@@ -80,7 +80,6 @@ int rsg_json_reciever_init(ubx_block_t *b)
         /* Attach debug graph printer */
         inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
         inf->wm_printer->setFileName("ubx_current_replica_graph");
-        inf->wm->scene.attachUpdateObserver(inf->wm_printer);
 
         /* Use auto mount policy */
     	inf->wm_auto_mounter = new brics_3d::rsg::RemoteRootNodeAutoMounter(&inf->wm->scene, inf->wm->getRootNodeId()); //mount everything relative to root node
@@ -134,7 +133,7 @@ void rsg_json_reciever_step(ubx_block_t *b)
 {
 
         struct rsg_json_reciever_info *inf = (struct rsg_json_reciever_info*) b->private_data;
-        LOG(INFO) << "rsg_json_reciever: Processing an incoming update";
+        LOG(DEBUG) << "rsg_json_reciever: Processing an incoming update";
 
 		/* read data */
 		ubx_port_t* port = inf->ports.rsg_in;
@@ -154,7 +153,7 @@ void rsg_json_reciever_step(ubx_block_t *b)
 		int transferred_bytes;
 		if ((dataBuffer!=0) && (msg.len > 1) && (readBytes > 1)) {
 			inf->wm_deserializer->write(dataBuffer, readBytes, transferred_bytes);
-			LOG(DEBUG) << "rsg_json_reciever: \t transferred_bytes = " << transferred_bytes;
+			LOG(INFO) << "rsg_json_reciever: \t transferred_bytes = " << transferred_bytes;
 		} else if (dataBuffer == 0) {
 			LOG(ERROR) << "Pointer to data buffer is zero. Aborting this update.";
 		} else {
