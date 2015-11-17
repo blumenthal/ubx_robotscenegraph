@@ -61,7 +61,13 @@ function start_viz()
   ni:b("visualization_publisher"):do_start()
 end
 
+function load_map()
+  ni:b("osm"):do_start()
+  ni:b("osm"):do_step()
+end
+
 function start_all()
+  --load_map()
   start_wm()
 end
 
@@ -177,7 +183,14 @@ return bd.system
     },
 
     configurations = {
-      { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, dot_name_prefix = "sherpa_wm" } },
+      { name="rsgsender", 
+        config =  { 
+          wm_handle={wm = wm:getHandle().wm}, 
+          store_dot_files = 0, -- handling of dot files gets bulky for bigger scenes like a complete OSM map. 
+          store_history_as_dot_files = 0, 
+          dot_name_prefix = "sherpa_wm" 
+        } 
+      },
       { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },

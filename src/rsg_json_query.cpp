@@ -121,7 +121,7 @@ void rsg_json_query_step(ubx_block_t *b)
 {
 
         struct rsg_json_query_info *inf = (struct rsg_json_query_info*) b->private_data;
-        LOG(INFO) << "rsg_json_query: Processing an incoming update";
+        LOG(DEBUG) << "rsg_json_query: Processing an incoming update";
 
 		/*
 		 * read data
@@ -143,7 +143,7 @@ void rsg_json_query_step(ubx_block_t *b)
 		if ((dataBuffer!=0) && (msg.len > 1) && (readBytes > 1)) {
 			std::string query(dataBuffer);
 			std::string result;
-			LOG(DEBUG) << "rsg_json_query: Processing query = " << std::endl << query;
+			LOG(INFO) << "rsg_json_query: Processing query = " << std::endl << query;
 
 			/*
 			 * process query
