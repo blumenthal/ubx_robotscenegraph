@@ -69,15 +69,24 @@ ELSE("$ENV{HDF5_ROOT}" STREQUAL "")
     SET(USE_HDF5_NON_DEFAULT_PATH TRUE) 
     MESSAGE(STATUS "INFO: HDF5_ROOT set as: $ENV{HDF5_ROOT}")
 ENDIF("$ENV{HDF5_ROOT}" STREQUAL "")
+OPTION(USE_HDF5_DEBUG_LIBS "If enabled, the debug libraries of HDF5 are used." OFF) 
   
 FIND_PACKAGE(HDF5 REQUIRED COMPONENTS CXX HL)
 IF(USE_HDF5_NON_DEFAULT_PATH) #override results
-    SET(HDF5_CXX_INCLUDE_DIR ${HDF5_ROOT}/include)        
-    SET(HDF5_LIBRARIES 
-        ${HDF5_ROOT}/lib/libhdf5_hl_debug.so
-        ${HDF5_ROOT}/lib/libhdf5_cpp_debug.so
-        ${HDF5_ROOT}/lib/libhdf5_debug.so   
-    )
+    SET(HDF5_CXX_INCLUDE_DIR ${HDF5_ROOT}/include)       
+    IF(USE_HDF5_DEBUG_LIBS) 
+        SET(HDF5_LIBRARIES         
+            ${HDF5_ROOT}/lib/libhdf5_hl_debug.so
+            ${HDF5_ROOT}/lib/libhdf5_cpp_debug.so
+            ${HDF5_ROOT}/lib/libhdf5_debug.so  
+        )
+    ELSE(USE_HDF5_DEBUG_LIBS) 
+        SET(HDF5_LIBRARIES         
+            ${HDF5_ROOT}/lib/libhdf5_hl.so
+            ${HDF5_ROOT}/lib/libhdf5_cpp.so
+            ${HDF5_ROOT}/lib/libhdf5.so    
+        )
+    ENDIF(USE_HDF5_DEBUG_LIBS) 
 ENDIF(USE_HDF5_NON_DEFAULT_PATH)   
 MESSAGE(STATUS "INFO: used HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
 
@@ -123,7 +132,7 @@ set_property(TARGET rsgrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
 IF(USE_JSON)
-    INCLUDE_DIRECTORIES({LIBVARIANT_INCLUDE_DIRS})
+    INCLUDE_DIRECTORIES(${LIBVARIANT_INCLUDE_DIRS})
 
     # Compile library rsgsenderlib
     add_library(rsgjsonsenderlib SHARED src/rsg_json_sender.cpp )
@@ -144,6 +153,16 @@ IF(USE_JSON)
     install(TARGETS rsgjsonrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonrecieverlib-block)
     set_property(TARGET rsgjsonrecieverlib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
     install(EXPORT rsgjsonrecieverlib-block DESTINATION ${INSTALL_CMAKE_DIR})
+    
+    # Compile library rsgjsonquerylib
+    add_library(rsgjsonquerylib SHARED src/rsg_json_query.cpp )
+    set_target_properties(rsgjsonquerylib PROPERTIES PREFIX "")
+    target_link_libraries(rsgjsonquerylib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    
+    # Install rsgjsonquerylib
+    install(TARGETS rsgjsonquerylib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonquerylib-block)
+    set_property(TARGET rsgjsonquerylib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+    install(EXPORT rsgjsonquerylib-block DESTINATION ${INSTALL_CMAKE_DIR})
 ENDIF(USE_JSON)
 
 # Compile library rsgscenesetuplib

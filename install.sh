@@ -53,9 +53,39 @@
 # * UBX modules for ROS (optional)  
 #
 #
+#
+# Environment Variables
+# ---------------------
+#
+# Please make sure the following environment variables are set. 
+# For convinecence they are added automatically by this install script to the .bashrc file.
+# You need to source your `.bashrc` afterwards if you install the software manually. 
+# The variables are also discussed in the individual installation step sections.
+# 
+# Variables for Microblox:
+#
+#
+# | Name          | Description |
+# | ------------- | ----------- |
+# | UBX_ROOT      | Points to the installation folder of UBX. Used within the CMake scripts to discover the UBX library. |
+# | UBX_MODULES   | Points to the the place where the UBX types, blocks etc. are installed. Used to load the types and modules at run-time |
+# 
+# Dependencies to BRICS_3D and HDF5:
+# 
+# 
+# | Name          | Description |
+# | ------------- | ----------- |
+# | BRICS_3D_DIR  | Points to the installation folder of BRICS_3D. Used within the CMake scripts to discover the BRICS_3D library. |
+# | FBX_MODULES   | Points to the the root folder of the BRICS_3D function blocks. Used to discover the rsg lua scripts.  |
+# | HDF5_ROOT     | Points to the installation folder of HDF5. Use it in case it is not into installed to the default folders (/usr/local). |
+# 
+# example: 
+#    export HDF5_ROOT=/opt/hdf5-1.8.13 
+#
+#
 # Compatibility
 # -------------
-# This script has been succesfully tested on the followin systems:
+# This script has been succesfully tested on the following systems:
 #
 # * Ubuntu 12.04
 # * Ubuntu 14.04
@@ -65,6 +95,11 @@
 # -------
 #  * Sebastian Blumenthal (blumenthal@locomotec.com)
 #  * Nico Huebel (nico.huebel@kuleuven.be)
+#
+# TODO
+# ----
+# * Make build and install path(s) more configurable
+#
 
 #!/bin/bash
 exec 3>&1 4>&2
@@ -105,13 +140,13 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 # Thie fist one is commented out because is install on most system already. 
 #sudo apt-get install  \
 #        git \
-#	 mercurial \
+#        mercurial \
 #        cmake \
 #        build-essential \
-#	 libtool \
-#	 automake \
-#	 libtool \
-# 	 pkg-config
+#	       libtool \
+#	       automake \
+#	       libtool \
+# 	     pkg-config
 
 ####################### BRICS_3D ##########################
 echo "" 
@@ -127,7 +162,7 @@ echo "Lib Cppunit for unit tests (optional):"
 ${SUDO} apt-get install libcppunit-dev
 
 echo "HDF5: "
-# This one is alway a bit tricky since there are many compil time
+# This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
 # So far tested with verisons 1.8.9(minimum), 1.8.12 and 1.8.13.
 # Note the option HDF5_1_8_12_OR_HIGHER must be set if a verison
@@ -164,6 +199,9 @@ cd ..
 
 echo ""
 echo "### Compile and install BRICS_3D ###"
+# In case the HDF5 library is alredy pre-installed
+# in another location you can use the environment
+# variables HDF5_ROOT to point to another intallation location
 git clone https://github.com/brics/brics_3d.git
 cd brics_3d
 mkdir build && cd build
@@ -250,16 +288,27 @@ ${SUDO} ldconfig
 cd ..
 
 echo "CZMQ-UBX bridge"
+# In case ZMQ or CZMQ libraries are alredy pre-installed
+# in another location you can use the environment
+# variables ZMQ_ROOT or CZMQ_ROOT to point to other
+# intallation locations  
 git clone https://github.com/blumenthal/ubx
 cd ubx/czmq_bridge
 mkdir build
 cd build
 cmake ..
 make ${J}
+# Per default the UBX modules are installed to /usr/local
+# this can be adjusted be setting the CMake variable
+# CMAKE_INSTALL_PREFIX to another folder. Of course the
+# the UBX_MODULES environment variable has to be adopted 
+# to this new prefix: <my_install_prefix_path>/ubx/lib.
+# Please install all UBX modules into one folder.
 ${SUDO} make install
 cd ..
 cd ..
 cd ..
+
 
 ####################### ROS (optional) #######################
 if [ "$USE_ROS" = "TRUE" ]; then
@@ -282,6 +331,12 @@ if [ "$USE_ROS" = "TRUE" ]; then
   cd build
   cmake ..
   make
+  # Per default the UBX modules are installed to /usr/local
+  # this can be adjusted be setting the CMake variable
+  # CMAKE_INSTALL_PREFIX to another folder. Of course the
+  # the UBX_MODULES environment variable has to be adopted 
+  # to this new prefix: <my_install_prefix_path>/ubx/lib
+  # Please install all UBX modules into one folder.
   ${SUDO} make install
   cd ..
   cd ..
@@ -292,28 +347,65 @@ echo ""
 echo "### BRICS_3D integration into the UBX framework  ###"
 
 echo "brics_3d_function_blocks:"
+# In case the BRICS_3D library is alredy installed
+# in another location you can use the environment
+# variable BRICS_3D_DIR to point to another installation location.
+# The same applies to HDF5 (HDF5_ROOT) as well.
 git clone https://github.com/blumenthal/brics_3d_function_blocks.git
 cd brics_3d_function_blocks
 mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
+# In case you retrive a "Could NOT find BRICS_3D" delete the
+# CMake cache and try again. Sometimes the FindBRICS_3D script 
+# keeps the variables BRICS_3D_NOT_FOUND though the system is setup correctly. 
 make ${J}
+# Per default the UBX modules are installed to /usr/local
+# this can be adjusted be setting the CMake variable
+# CMAKE_INSTALL_PREFIX to another folder. Of course the
+# the UBX_MODULES environment variable has to be adopted 
+# to this new prefix: <my_install_prefix_path>/ubx/lib.
+# Please install all UBX modules into one folder.
 ${SUDO} make install
 cd ..
 echo "export FBX_MODULES=$PWD" >> ~/.bashrc
-#The FBX_MODULES environment variable is needed for the other (below) modules to find the BRICS_3D function blocks and typs.
+# The FBX_MODULES environment variable is needed for the other (below) 
+# modules to find the BRICS_3D function blocks and typs.
 source ~/.bashrc .
 cd ..
 
 echo "ubx_robotscenegraph"
-# Note we do not need neccisarily need to check it out because this script is (currently) contained
-# in ubx_robotscenegraph. Though for the sake of completness we repeat it here.
-git clone https://github.com/blumenthal/ubx_robotscenegraph
-cd ubx_robotscenegraph
+# Note we do not need necessarily need to check it out because this script is (currently) contained
+# in ubx_robotscenegraph. Though, for the sake of completness we try to repeat it here.
+#
+if [ -d ubx_robotscenegraph ]; then
+  echo "Folder ubx_robotscenegraph exists already. Pulling updates instead." 
+  cd ubx_robotscenegraph
+  git pull origin master  
+else
+  echo "Cloning a fresh copy of ubx_robotscenegraph."
+  git clone https://github.com/blumenthal/ubx_robotscenegraph
+  cd ubx_robotscenegraph
+fi
 mkdir build
 cd build
+# In case the BRICS_3D library is alredy installed
+# in another location you can use the environment
+# variable BRICS_3D_DIR to point to another installation location.
+# The same applies to HDF5 (HDF5_ROOT) as well. 
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
+# Please note that we have to apply the same compile time flags 
+# and environemnt variables that have been used to compile the brics_3d library.
+# In case you retrive a "Could NOT find BRICS_3D" delete the
+# CMake cache and try again. Sometimes the FindBRICS_3D script 
+# keeps the variables BRICS_3D_NOT_FOUND though the system is setup correctly. 
 make ${J}
+# Per default the UBX modules are installed to /usr/local
+# this can be adjusted be setting the CMake variable
+# CMAKE_INSTALL_PREFIX to another folder. Of course the
+# the UBX_MODULES environment variable has to be adopted 
+# to this new prefix: <my_install_prefix_path>/ubx/lib.
+# Please install all UBX modules into one folder.
 ${SUDO} make install
 cd ..
 cd ..
@@ -321,6 +413,8 @@ cd ..
 echo ""
 echo "Done."
 
+echo ""
+echo "####################################################################"
 echo ""
 echo "You can start the SHERPA World Model by invoking:"
 echo "	cd ./ubx_robotscenegraph"

@@ -22,7 +22,10 @@ if len(sys.argv) > 2:
     socket.connect ("tcp://localhost:%s" % port1)
 
 topicfilter = ""
-socket.setsockopt_string(zmq.SUBSCRIBE, topicfilter.decode('utf_8'))
+if sys.version_info < (3,):
+  socket.setsockopt_string(zmq.SUBSCRIBE, topicfilter.decode('utf_8')) # Python2
+else:
+  socket.setsockopt_string(zmq.SUBSCRIBE, topicfilter) # Python3
 
 while True:
   string = socket.recv()

@@ -154,6 +154,7 @@ int rsg_sender_init(ubx_block_t *b)
     	dotConfig.abbreviateIds = false;
     	inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
     	inf->wm_printer->setConfig(dotConfig);
+    	inf->wm_printer->setIsActive(false); // toggle visualizer
     	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
     	int* store_history_as_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_history_as_dot_files", &clen));
     	if(clen == 0) {

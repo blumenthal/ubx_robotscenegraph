@@ -60,10 +60,12 @@ RUN cd /workspace; /bin/bash -c "source ~/.bashrc"; /bin/bash -c "source ./ubx_r
 # * 8888  for UBX web interface
 # * 11411 for RSG with HDF5 protocol encoding via ZMQ-PUB
 # * 12912 for RSG with JSON protocol encoding via ZMQ-PUB
+# * 22422 for RSG JSON queries via ZMQ REQ-REP
 # 
 EXPOSE 8888
 EXPOSE 11411
 EXPOSE 12912
+EXPOSE 22422
 
 CMD /bin/bash
 
