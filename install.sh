@@ -145,7 +145,7 @@ cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=tru
 # scripts of BRICS_3D are searching for shared libraries so we have to activate it in the 
 # build process.  
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 
@@ -158,7 +158,7 @@ cmake ..
 cmake -DBUILD_SHARED_LIBS=true ..
 # Note that UBX modules need the -fPIC flag, thus we have to enable the shared flag for Libvariant.
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 
@@ -194,7 +194,7 @@ tar -xvf LuaJIT-2.0.2.tar.gz
 cd LuaJIT-2.0.2
 make ${J}
 ${SUDO} make install
-${SUDO} ln -s /usr/local/bin/luajit /usr/local/bin/lua
+#${SUDO} ln -s /usr/local/bin/luajit /usr/local/bin/lua
 ${SUDO} ldconfig
 cd ..
 
@@ -256,7 +256,7 @@ mkdir build
 cd build
 cmake ..
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 cd ..
@@ -298,7 +298,7 @@ mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 echo "export FBX_MODULES=$PWD" >> ~/.bashrc
 #The FBX_MODULES environment variable is needed for the other (below) modules to find the BRICS_3D function blocks and typs.
@@ -314,7 +314,7 @@ mkdir build
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true ..
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 
