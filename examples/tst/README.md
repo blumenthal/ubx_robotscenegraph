@@ -14,7 +14,7 @@ Installation
 This example requires the [SHERPA World Model](../../README.md)  and Python3 with the ZMQ package to be installed.
 
 
-### Ubuntu 12.04:
+### Ubuntu 12.04 and 14.04:
 ```
 	sudo apt-get install python3 python3-setuptools python3-dev
 	sudo easy_install3 pip
@@ -24,6 +24,7 @@ This example requires the [SHERPA World Model](../../README.md)  and Python3 wit
 
 Usage
 -----
+(Remark: You can run also run it with python 2.7 be replacing `python3` with `python`.)
 
 1. Start the SHERPA World Model (in this example with ROS, though it could be also started without ROS)
 ```	
