@@ -154,16 +154,31 @@ int rsg_json_sender_init(ubx_block_t *b)
     	dotConfig.abbreviateIds = false;
     	inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
     	inf->wm_printer->setConfig(dotConfig);
-//    	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
+    	inf->wm_printer->setGenerateSvgFiles(false);
+    	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
+
+    	int* store_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_dot_files", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_json_sender: No store_dot_files configuation given. Turned off by default.";
+    	} else {
+    		if (*store_dot_files == 1) {
+    			LOG(INFO) << "rsg_json_sender: store_dot_files turned on.";
+    	    	inf->wm_printer->setIsActive(true); // toggle visualizer ON
+    		} else {
+    			LOG(INFO) << "rsg_json_sender: store_dot_files turned off.";
+    	    	inf->wm_printer->setIsActive(false); // toggle visualizer OFF
+    		}
+    	}
+
     	int* store_history_as_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_history_as_dot_files", &clen));
     	if(clen == 0) {
-    		LOG(DEBUG) << "No store_history_as_dot_files configuation given. Turned off by default.";
+    		LOG(INFO) << "rsg_json_sender: No store_history_as_dot_files configuation given. Turned off by default.";
     	} else {
     		if (*store_history_as_dot_files == 1) {
-    			LOG(DEBUG) << "store_history_as_dot_files turned on.";
+    			LOG(INFO) << "rsg_json_sender: store_history_as_dot_files turned on.";
     			inf->wm_printer->setKeepHistory(true);
     		} else {
-    			LOG(DEBUG) << "store_history_as_dot_files turned off.";
+    			LOG(INFO) << "rsg_json_sender: store_history_as_dot_files turned off.";
     			inf->wm_printer->setKeepHistory(false);
     		}
 
@@ -171,13 +186,13 @@ int rsg_json_sender_init(ubx_block_t *b)
     		/* retrive optinal dot file prefix from config */
     		char* chrptr = (char*) ubx_config_get_data_ptr(b, "dot_name_prefix", &clen);
     		if(clen == 0) {
-    			LOG(DEBUG) << "No dot_name_prefix configuation given. Selecting a default name.";
+    			LOG(INFO) << "rsg_json_sender: No dot_name_prefix configuation given. Selecting a default name.";
     		} else {
 				if(strcmp(chrptr, "")==0) {
-					LOG(DEBUG) << "dot_name_prefix is empty. Selecting a default name.";
+					LOG(INFO) << "rsg_json_sender: dot_name_prefix is empty. Selecting a default name.";
 				} else {
 					std::string prefix(chrptr);
-					LOG(DEBUG) << "Using dot_name_prefix = " << prefix;
+					LOG(INFO) << "rsg_json_sender: Using dot_name_prefix = " << prefix;
 					inf->wm_printer->setFileName(prefix);
 				}
     		}
@@ -185,6 +200,7 @@ int rsg_json_sender_init(ubx_block_t *b)
 
     	}
 
+    	/* Attach filter */
     	inf->frequency_filter = new brics_3d::rsg::FrequencyAwareUpdateFilter();
     	inf->frequency_filter->setMaxGeometricNodeUpdateFrequency(0); // everything;
     	inf->frequency_filter->setMaxTransformUpdateFrequency(0.5); // not more then x Hz;
@@ -255,7 +271,7 @@ void rsg_json_sender_step(ubx_block_t *b)
         brics_3d::WorldModel* wm = inf->wm;
 
         /* Resend the complete scene graph */
-        LOG(INFO) << "Resending the complete RSG now.";
+        LOG(INFO) << "rsg_json_sender: Resending the complete RSG now.";
         inf->wm->scene.advertiseRootNode(); // Make shure root node is always send; The graph traverser cannot handle this.
         inf->wm_resender->reset();
         wm->scene.executeGraphTraverser(inf->wm_resender, wm->scene.getRootId()); // Note: addRemoteRoot node is only forwarded once

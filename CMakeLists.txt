@@ -175,6 +175,15 @@ install(TARGETS rsgscenesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rs
 set_property(TARGET rsgscenesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
+# Compile library rsgscenesetuplib
+add_library(rsgdumplib SHARED src/rsg_dump.cpp )
+set_target_properties(rsgdumplib PROPERTIES PREFIX "")
+target_link_libraries(rsgdumplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
+
+# Install rsgscenesetuplib
+install(TARGETS rsgdumplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgdumplib-block)
+set_property(TARGET rsgdumplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(EXPORT rsgdumplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 
 # To compile the rsg_bridge_test_app uncomment this section and update all mudules paths within src/rsg_bridge_test_app.c
 #add_executable(rsg_bridge_test_app src/rsg_bridge_test_app.c)
