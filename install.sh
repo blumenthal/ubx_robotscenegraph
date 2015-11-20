@@ -152,17 +152,17 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 echo "" 
 echo "### Dependencies for the BRICS_3D libraries ###"
 echo "Boost:"
-${SUDO} apt-get install libboost-dev \
+${SUDO} apt-get install -y libboost-dev \
         libboost-thread-dev 
 
 echo "Eigen 3:"
-${SUDO} apt-get install libeigen3-dev
+${SUDO} apt-get install -y libeigen3-dev
 
 echo "Lib Cppunit for unit tests (optional):"
-${SUDO} apt-get install libcppunit-dev
+${SUDO} apt-get install -y libcppunit-dev
 
 echo "Lib Xerces for loading Open Street Maps"
-${SUDO} apt-get install libxerces-c-dev
+${SUDO} apt-get install -y libxerces-c-dev
 
 echo "HDF5: "
 # This one is alway a bit tricky since there are many compile time
