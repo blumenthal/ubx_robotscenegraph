@@ -165,8 +165,9 @@ return bd.system
       { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
 
       -- ROS (iblock)
-      { src="zmq_subscriber.zmq_in", tgt="visualization_publisher" },
-      { src="rsgsender.rsg_out", tgt="visualization_publisher" },
+      --{ src="zmq_subscriber.zmq_in", tgt="visualization_publisher" },
+      --{ src="rsgsender.rsg_out", tgt="visualization_publisher" },
+      { src="rsgjsonsender.rsg_out", tgt="visualization_publisher" },
 
       -- ROS (clbock) 
       { src="rsgsender.rsg_out", tgt="bytestreambuffer3" },
@@ -235,7 +236,7 @@ return bd.system
           } 
         } 
       },	
-      { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
+      { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
       { name="osm", config =  { wm_handle={wm = wm:getHandle().wm} } }
 

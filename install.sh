@@ -161,6 +161,9 @@ ${SUDO} apt-get install libeigen3-dev
 echo "Lib Cppunit for unit tests (optional):"
 ${SUDO} apt-get install libcppunit-dev
 
+echo "Lib Xerces for loading Open Street Maps"
+${SUDO} apt-get install libxerces-c-dev
+
 echo "HDF5: "
 # This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
@@ -355,7 +358,7 @@ git clone https://github.com/blumenthal/brics_3d_function_blocks.git
 cd brics_3d_function_blocks
 mkdir build
 cd build
-cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..
+cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DUSE_FBX=ON ..
 # In case you retrive a "Could NOT find BRICS_3D" delete the
 # CMake cache and try again. Sometimes the FindBRICS_3D script 
 # keeps the variables BRICS_3D_NOT_FOUND though the system is setup correctly. 
