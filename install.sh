@@ -438,4 +438,5 @@ echo ""
 echo "The system state can be observed in a browser by entering http://localhost:8888/ as URL."
 echo ""
 
+set +e
 echo "SUCCESS"
