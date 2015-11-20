@@ -183,7 +183,7 @@ cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=tru
 # scripts of BRICS_3D are searching for shared libraries so we have to activate it in the 
 # build process.  
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 
@@ -196,7 +196,7 @@ cmake ..
 cmake -DBUILD_SHARED_LIBS=true ..
 # Note that UBX modules need the -fPIC flag, thus we have to enable the shared flag for Libvariant.
 make ${J}
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 
@@ -235,7 +235,7 @@ tar -xvf LuaJIT-2.0.2.tar.gz
 cd LuaJIT-2.0.2
 make ${J}
 ${SUDO} make install
-${SUDO} ln -s /usr/local/bin/luajit /usr/local/bin/lua
+#${SUDO} ln -s /usr/local/bin/luajit /usr/local/bin/lua
 ${SUDO} ldconfig
 cd ..
 
@@ -307,7 +307,7 @@ make ${J}
 # the UBX_MODULES environment variable has to be adopted 
 # to this new prefix: <my_install_prefix_path>/ubx/lib.
 # Please install all UBX modules into one folder.
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 cd ..
@@ -369,7 +369,7 @@ make ${J}
 # the UBX_MODULES environment variable has to be adopted 
 # to this new prefix: <my_install_prefix_path>/ubx/lib.
 # Please install all UBX modules into one folder.
-${SODO} make install
+${SUDO} make install
 cd ..
 echo "export FBX_MODULES=$PWD" >> ~/.bashrc
 # The FBX_MODULES environment variable is needed for the other (below) 
@@ -409,7 +409,7 @@ make ${J}
 # the UBX_MODULES environment variable has to be adopted 
 # to this new prefix: <my_install_prefix_path>/ubx/lib.
 # Please install all UBX modules into one folder.
-${SODO} make install
+${SUDO} make install
 cd ..
 cd ..
 
