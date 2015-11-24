@@ -164,6 +164,9 @@ ${SUDO} apt-get install -y libcppunit-dev
 echo "Lib Xerces for loading Open Street Maps"
 ${SUDO} apt-get install -y libxerces-c-dev
 
+echo "Lib yaml" #Reqired for installation on SHERPA Wasp (Odroid U3) 
+${SUDO} apt-get install -y libyaml-dev
+
 echo "HDF5: "
 # This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
