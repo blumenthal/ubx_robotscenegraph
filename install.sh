@@ -262,7 +262,7 @@ echo "### ZMQ communication modules  ###"
 echo "ZMQ library:"
 
 echo "CZMQ dependencies:"
-git clone git://github.com/jedisct1/libsodium.git
+git clone https://github.com/jedisct1/libsodium.git
 cd libsodium
 ./autogen.sh
 ./configure 
@@ -271,7 +271,7 @@ ${SUDO} make install
 ${SUDO} ldconfig
 cd ..
 
-git clone git://github.com/zeromq/libzmq.git
+git clone https://github.com/zeromq/libzmq.git
 cd libzmq
 ./autogen.sh
 ./configure
@@ -281,7 +281,7 @@ ${SUDO} ldconfig
 cd ..
 
 echo "CZMQ library:"
-git clone git://github.com/zeromq/czmq
+git clone https://github.com/zeromq/czmq
 cd czmq
 ./autogen.sh
 ./configure
