@@ -48,8 +48,11 @@ endif()
 
 find_package(Microblx REQUIRED)
 FIND_PACKAGE(Eigen REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS regex)
 find_package(BRICS_3D REQUIRED)
 ADD_DEFINITIONS(-DEIGEN3)
+
+
 
 # search for HDF5 (>= 1.8.9)
 #
@@ -102,6 +105,7 @@ IF(USE_JSON)
 ENDIF(USE_JSON)
 
 include_directories(
+  ${Boost_INCLUDE_DIR}
   ${UBX_INCLUDE_DIR}
   $ENV{FBX_MODULES}
   ${BRICS_3D_INCLUDE_DIRS}
@@ -114,7 +118,7 @@ LINK_DIRECTORIES(${BRICS_3D_LINK_DIRECTORIES})
 # Compile library rsgsenderlib
 add_library(rsgsenderlib SHARED src/rsg_sender.cpp )
 set_target_properties(rsgsenderlib PROPERTIES PREFIX "")
-target_link_libraries(rsgsenderlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
+target_link_libraries(rsgsenderlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${Boost_LIBRARIES})
 
 # Install rsgsenderlib
 install(TARGETS rsgsenderlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgsenderlib-block)
@@ -124,7 +128,7 @@ install(EXPORT rsgsenderlib-block DESTINATION ${INSTALL_CMAKE_DIR})
 # Compile library rsgrecieverlib
 add_library(rsgrecieverlib SHARED src/rsg_reciever.cpp )
 set_target_properties(rsgrecieverlib PROPERTIES PREFIX "")
-target_link_libraries(rsgrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
+target_link_libraries(rsgrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${Boost_LIBRARIES})
 
 # Install rsgrecieverlib
 install(TARGETS rsgrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgrecieverlib-block)
@@ -137,7 +141,7 @@ IF(USE_JSON)
     # Compile library rsgsenderlib
     add_library(rsgjsonsenderlib SHARED src/rsg_json_sender.cpp )
     set_target_properties(rsgjsonsenderlib PROPERTIES PREFIX "")
-    target_link_libraries(rsgjsonsenderlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    target_link_libraries(rsgjsonsenderlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES} ${Boost_LIBRARIES})
     
     # Install rsgsenderlib
     install(TARGETS rsgjsonsenderlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonsenderlib-block)
@@ -147,7 +151,7 @@ IF(USE_JSON)
     # Compile library rsgjsonrecieverlib
     add_library(rsgjsonrecieverlib SHARED src/rsg_json_reciever.cpp )
     set_target_properties(rsgjsonrecieverlib PROPERTIES PREFIX "")
-    target_link_libraries(rsgjsonrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    target_link_libraries(rsgjsonrecieverlib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES} ${Boost_LIBRARIES})
     
     # Install rsgjsonrecieverlib
     install(TARGETS rsgjsonrecieverlib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonrecieverlib-block)
@@ -157,7 +161,7 @@ IF(USE_JSON)
     # Compile library rsgjsonquerylib
     add_library(rsgjsonquerylib SHARED src/rsg_json_query.cpp )
     set_target_properties(rsgjsonquerylib PROPERTIES PREFIX "")
-    target_link_libraries(rsgjsonquerylib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES})
+    target_link_libraries(rsgjsonquerylib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES} ${Boost_LIBRARIES})
     
     # Install rsgjsonquerylib
     install(TARGETS rsgjsonquerylib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonquerylib-block)
@@ -168,7 +172,7 @@ ENDIF(USE_JSON)
 # Compile library rsgscenesetuplib
 add_library(rsgscenesetuplib SHARED src/rsg_scene_setup.cpp )
 set_target_properties(rsgscenesetuplib PROPERTIES PREFIX "")
-target_link_libraries(rsgscenesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
+target_link_libraries(rsgscenesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${Boost_LIBRARIES})
 
 # Install rsgscenesetuplib
 install(TARGETS rsgscenesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgscenesetuplib-block)
@@ -178,7 +182,7 @@ install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 # Compile library rsgscenesetuplib
 add_library(rsgdumplib SHARED src/rsg_dump.cpp )
 set_target_properties(rsgdumplib PROPERTIES PREFIX "")
-target_link_libraries(rsgdumplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
+target_link_libraries(rsgdumplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${Boost_LIBRARIES})
 
 # Install rsgscenesetuplib
 install(TARGETS rsgdumplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgdumplib-block)
