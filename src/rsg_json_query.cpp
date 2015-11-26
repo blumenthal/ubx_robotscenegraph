@@ -157,6 +157,15 @@ void rsg_json_query_step(ubx_block_t *b)
 			ubx_port_t* result_port = inf->ports.rsg_result;
 			assert(result_port != 0);
 
+			if(result.size() > inf->input_buffer_size) {
+				LOG(ERROR) << "Result with = " << result.size() << " bytes is larger than max output buffer lenght = "
+						<< inf->input_buffer_size;
+				/*
+				 * Warning: we actually don't have an output buffer size. Though is mostly has the same as the input one...
+				 */
+				result = "{}";
+			}
+
 			ubx_data_t msg_result;
 			msg_result.data = (void *)result.c_str();
 			msg_result.len = result.size();
