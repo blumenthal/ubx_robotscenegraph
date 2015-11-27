@@ -181,9 +181,9 @@ void rsg_reciever_step(ubx_block_t *b)
 			inf->wm_deserializer->write(dataBuffer, readBytes, transferred_bytes);
 			LOG(INFO) << "rsg_reciever: \t transferred_bytes = " << transferred_bytes;
 		} else if (dataBuffer == 0) {
-			LOG(ERROR) << "Pointer to data buffer is zero. Aborting this update.";
+			LOG(ERROR) << "rsg_reciever: Pointer to data buffer is zero. Aborting this update.";
 		} else {
-			LOG(ERROR) << "Incoming updare has not enough data to be processed. Aborting this update.";
+			LOG(DEBUG) << "rsg_reciever: Incoming updare has not enough data to be processed. Aborting this update.";
 		}
 
 }
