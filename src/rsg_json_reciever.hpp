@@ -20,7 +20,8 @@ char rsg_json_reciever_meta[] =
 ubx_config_t rsg_json_reciever_config[] = {
         { .name="wm_handle", .type_name = "struct rsg_wm_handle", .doc="Handle to the world wodel instance. This parameter is mandatory." },
     	{ .name="buffer_len", .type_name = "uint32_t", .doc="Maximum number of data elements the of the input buffer." },
-        { NULL },
+        { .name="log_level", .type_name = "int", .doc="Set the log level: LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4" },
+    	{ NULL },
 };
 
 /* declaration port block ports */

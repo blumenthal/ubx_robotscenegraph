@@ -19,6 +19,7 @@ char rsg_scene_setup_meta[] =
 /* declaration of block configuration */
 ubx_config_t rsg_scene_setup_config[] = {
         { .name="wm_handle", .type_name = "struct rsg_wm_handle", .doc="Handle to the world wodel instance. This parameter is mandatory." },
+        { .name="log_level", .type_name = "int", .doc="Set the log level: LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4" },
         { NULL },
 };
 

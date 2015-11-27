@@ -196,13 +196,14 @@ return bd.system
           wm_handle={wm = wm:getHandle().wm}, 
           store_dot_files = 0, -- handling of dot files gets bulky for bigger scenes like a complete OSM map. 
           store_history_as_dot_files = 0, 
-          dot_name_prefix = "sherpa_wm" 
+          dot_name_prefix = "sherpa_wm",
+          log_level = 2 
         } 
       },
-      { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
-      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
-      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0 } },
-      { name="rsgjsonqueryrunner", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
+      { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
+      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
+      { name="rsgjsonqueryrunner", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 0  }},
       { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
@@ -238,7 +239,8 @@ return bd.system
       },	
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm} } }
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 2 } }
 
     },
 }

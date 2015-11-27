@@ -135,6 +135,32 @@ int rsg_scene_setup_start(ubx_block_t *b)
 {
         /* struct rsg_scene_setup_info *inf = (struct rsg_scene_setup_info*) b->private_data; */
         int ret = 0;
+
+    	/* Set logger level */
+    	unsigned int clen;
+    	int* log_level =  ((int*) ubx_config_get_data_ptr(b, "log_level", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_scene_setup: No log_level configuation given.";
+    	} else {
+    		if (*log_level == 0) {
+    			LOG(INFO) << "rsg_scene_setup: log_level set to DEBUG level.";
+    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
+    		} else if (*log_level == 1) {
+    			LOG(INFO) << "rsg_scene_setup: log_level set to INFO level.";
+    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::INFO);
+    		} else if (*log_level == 2) {
+    			LOG(INFO) << "rsg_scene_setup: log_level set to WARNING level.";
+    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::WARNING);
+    		} else if (*log_level == 3) {
+    			LOG(INFO) << "rsg_scene_setup: log_level set to LOGERROR level.";
+    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGERROR);
+    		} else if (*log_level == 4) {
+    			LOG(INFO) << "rsg_scene_setup: log_level set to FATAL level.";
+    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::FATAL);
+    		} else {
+    			LOG(INFO) << "rsg_scene_setup: unknown log_level = " << *log_level;		}
+    	}
+
         return ret;
 }
 

@@ -24,6 +24,7 @@ ubx_config_t rsg_sender_config[] = {
         { .name="store_history_as_dot_files", .type_name = "int", .doc="If true every modifcation of the scene graph is stored in a seperate dot file. "
         		"To be used for debugging. Requires store_dot_files to be true." },
         { .name="dot_name_prefix", .type_name = "char" , .doc="Optional prefix for stored dot files." },
+        { .name="log_level", .type_name = "int", .doc="Set the log level: LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4" },
         { NULL },
 };
 
