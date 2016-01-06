@@ -31,6 +31,7 @@ local rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
 --wm:addNodeAttribute(rootId, "name", "robot_1");
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
+wm:setLogLevel(0)
 
 -- convenience functions to start the system in on shot
 function start_wm() -- no particular order assumed here
@@ -214,7 +215,7 @@ return bd.system
       --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
       { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
       { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm} } },
-      { name="bytestreambuffer1", config = { element_num=5000 , element_size=20000 } },
+      { name="bytestreambuffer1", config = { element_num=6000 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
@@ -239,8 +240,9 @@ return bd.system
       },	
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 2 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
 
     },
 }
