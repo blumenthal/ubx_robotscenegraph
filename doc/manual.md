@@ -5,8 +5,9 @@ robots based on the Robot Scene Graph (RSG) data representation.
 
 This manual describes the following aspects of the world model:
 
- 1. Data model
- 2. The query capapilities 
+ 1. The [data model](#data-model)
+ 2. The [update](#updates) capapilities
+ 3. The [query](#queries) capapilities 
 
 ## Data model
 
@@ -56,7 +57,7 @@ information that always has to be present). In the remainder of this manual
 we use the folloing tuple notation for an **Attribute**: (``attribute``,``value``)
 An example of an attribute is a human readable ``name`` for an object: (``name``,``robot_123``).  
 
-The **Attributes** allow to start a search query on all primitives in the Robot Scene Graph
+The **Attributes** allow to start a search queries on all primitives in the Robot Scene Graph
 and identify those nodes specified by the attributes. Further details on how to query the graph
 can be found in section [Queries](#queries).
 
@@ -77,7 +78,6 @@ can be helpful to improve human readability or can be used for debugging purpose
 
 
 
-
 ### Specialized Nodes
 
 #### GeometricNode
@@ -90,24 +90,43 @@ TBD
 
 TBD
 
-### Updates
+## Updates
 
-An update is defined as a **C**reate **R**ead **U**pdate or **D**elete *(CRUD)* 
-operation on the primitive elements of the Robot Scene Graph. I.e. it is possible
- to add new objects to the world model by creating a *Group* or *Node*, adding a 
-*Transform* primitive (to represent relative poses between nodes)
-and by attaching any additional *Attributes* as needed. Geometric data is 
+An update is defined as a **C**reate, **U**pdate or **D**elete operation on the
+primitive elements of the Robot Scene Graph. I.e. it is possible to add new
+objects to the world model by creating a *Group* or *Node*, adding a *Transform*
+primitive (to represent relative poses between nodes) and by attaching any 
+additional [Attributes](#attributes) as needed. 
+
+Different interfaces for interacting with the RSG exist for 
+[C++](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphUpdate.html), 
+[Java](https://github.com/blumenthal/brics_3d_jni/blob/master/java/RobotSceneGraph/src/be/kuleuven/mech/rsg/Rsg.java)
+ (which is not feature complete!), and [JSON](examples/json_api). 
+
+The following table with pseudo code illustrates the update **operations** on the graph primitives:
+
+
+| Operation            	| Pseudo Code                                                                      			| Description                                                                                                                                                                                                                                                                   	|
+|----------------------	|-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| Create Node          	| ``addNode(id, parentId, attributes)``                                         			| ``id`` specifies the UUID. If not set the implementation will generate one. The ``parentId`` denfine the parent note. In cases of doubt use the root node id. ``attributes`` defines a set of initial Attributes. They might be updated in later steps and can be empty as well. 	|
+| Create Group         	| ``addGroup(id, parentId, attributes)``                                        			| Same for id, parentId and attributes as for Create Node operation.                                                                                                                                                                                                                                           	|
+| Create GeometricNode 	| ``addGroup(id, parentId, attributes, geometry, timeStamp)``                   			| Same for id, parentId and attributes as for Create Node operation, but the geometric shape like a box for instance has to be defined. The time stamp denotes the creation time. The geometric data is immutable. Though the GeometricNode might be delete as a whole.                                             |
+| Create Connection    	| ``addConnection(id, parentId, attributes, sourceIds, targetIds, startTime, endTime)`` 	| Same for id, parentId and attributes as for Create Node operation. ``sourceIds`` and ``targetIds`` define sets of source/target nodes reeferred to by its IDs (ingoing/outgoing arcs) that will be set for the connection. Can be empty. ``startTime`` denots since when a connection is valid. Recommended is the time of creation. ``endTime`` denots until when a connection is valid. Recommended is an infitite time stamp. Both time stamps can be updated later. |
+| Create Transform     	| ``addTransform(id, parentId, sourceId, targetId, attributes, transform, timeStamp)`` 		| Same for id, parentId and attributes as for Create Node operation but the initial transform has to be given with an accompanying time stamp. The data can be updated afterwards. The ``sourceId`` and ``targetId`` denote between which nodes the transform holds. Cf. Transform section.                    	|
+| Create Parent-Child   | ``addParent(id, parentId)`` 																| Adds an **additional** parent-child relation beween ``id`` and ``parentId``. (There is alwasy at least one during creation of a node.)             	|
+| Update Attributes 	| ``updateAttributes(id, newAttributes)`` 													| ``id`` defines the node to be updated. ``newAttributes`` defines the new set of attributes that replaces the old one.  	|
+| Update Transform	 	| ``updateTransform(id, transform, timeStamp)`` 											| ``id`` defines the Transform to be updated. ``transform``	holds the transform data that will be inserted in to the temporal cache as the given time ``timeStamp``.   	|
+| Delete Node		 	| ``deleteNode(id)``							 											| The ``id`` the defines the node to be deleted.	|
+| Delete Parent		 	| ``deleteNode(id, parentID)``							 									| Remove an existing parent-child relation between two nodes specifies by ``id`` and ``parentId`. If the last perent is deleten, then it is treated as ``deleteNode(id)`` 	|
 
 
 
 ## Queries
 
+An query is regarded as a **R**ead operation on the graph. Depending on the type of 
+query this can involve a traversal of the primitives in the graph.
 
-Examples for using the JSON API can be found for a [Task Specification Tree](examples/tst/README.md) 
-and [here](examples/json_api)
-
-TBD
-
-## Distribution
+Examples for using the JSON API can be found for [here](examples/json_api)
 
 TBD
+
