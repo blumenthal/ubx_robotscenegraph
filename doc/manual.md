@@ -82,9 +82,23 @@ can be helpful to improve human readability or can be used for debugging purpose
 
 #### GeometricNode
 
-TBD
+A GeometricNode to stores geometric shape data as a leaves node in the RSG. 
+The geometric node is a rather general container for any kind of 3D data.
+Possible data ranges from rather primitive shapes like a box or a cylinder to
+unconstrained geometries like point clouds or meshes. A GeometricNode can
+be used to store measurements from sensors.
 
 ### Specialized Edges
+
+So far nodes can be related via *contaiment* relations, which are modled as parent-child
+edges. However, a robotic environemnt representaion exhibits much more relations
+including topoligic relations (on, near) pose information and others. A generic 
+relation between nodes is labelled as **Connection** while pose information
+is modeled with **Transforms**.   
+
+#### Connection
+
+TBD
 
 #### Transform
 
@@ -101,7 +115,7 @@ additional [Attributes](#attributes) as needed.
 Different interfaces for interacting with the RSG exist for 
 [C++](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphUpdate.html), 
 [Java](https://github.com/blumenthal/brics_3d_jni/blob/master/java/RobotSceneGraph/src/be/kuleuven/mech/rsg/Rsg.java)
- (which is not feature complete!), and [JSON](examples/json_api). 
+ (which is not feature complete!), and [JSON](../examples/json_api). 
 
 The following table with pseudo code illustrates the update **operations** on the graph primitives:
 
@@ -119,14 +133,28 @@ The following table with pseudo code illustrates the update **operations** on th
 | Delete Node		 	| ``deleteNode(id)``							 											| The ``id`` the defines the node to be deleted.	|
 | Delete Parent		 	| ``deleteParent(id, parentID)``							 								| Remove an existing parent-child relation between two nodes specified by ``id`` and ``parentId``. If the last perent is deleted, then it is treated as ``deleteNode(id)`` 	|
 
-
+Examples for using the JSON API to update the graph can be found for [here](../examples/json_api)
 
 ## Queries
 
 An query is regarded as a **R**ead operation on the graph. Depending on the type of 
 query this can involve a traversal of the primitives in the graph.
 
-Examples for using the JSON API can be found for [here](examples/json_api)
+The below table with pseudo code illustrates the **queries** on the graph **primitives**:
 
-TBD
+
+| Operation            	         | Pseudo Code                                                                      	     | Description                                                                                                                                                                                                                                                                   	|
+|--------------------------------|-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| Search nodes by Attributes     | ``findNodes(attributes, resultIds)``                                         			 | Find all nodes that have at least the specified ``attributes``. Regular exressions (POSIX) are possible as well. Returns ``resultIds`` which is a set of ids. 	|
+| Search transform between nodes | ``getTransformForNode (id, idReferenceNode, timeStamp, transform)``                       | Calculates a rigid transform between nodes specified by ``id` and ``referecnceId`` in the graph. ``referecnceId`` denotes the *origin* of the transform. Depending on how the graph looks like there is not always a solution. |
+| Read Attributes                | ``getAttributes (id, attributes)``                                         		         | Get the attributes of node with id ``id``. Returns all Attributes in output parameter ``attributes``.	|
+| Read Parents                   | ``getParents (id, perentIds)``                                         		             | Get the parenbts ids of node with id ``id``. Returns all parents in output parameter ``parentIds``.	|
+| Read Children                  | ``getChildren (id, childIds)``                                         		             | Get the child ids of node with id ``id``. Returns all childs in output parameter ``childIds``.	|
+| Read Transform                 | ``getTransform (id, timeStamp, transform)``                                         		 | Get the data of a Transform with id ``id`` at time ``time stamp``. Returns entry that best matches the to the given time stamp.	|
+| Read Geometry                  | ``getGeometry (id, geometry, timeStamp)``                                         		 | Get the data of a GeometryNode with id ``id``. Returns the geometric shape and the accompanying time stamp.	|
+
+
+Examples for using the JSON API to query the graph can be found for [here](../examples/json_api)
+
+
 
