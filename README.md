@@ -142,7 +142,7 @@ Then enter the following command and hit enter:
 The system state can be observed in a browser by entering http://localhost:8888/ as URL.
  
 
-Ather examples can be obtained from the [examples section](examples).
+Other examples can be obtained from the [examples section](examples).
 
 ### Interaction with a SHERPA World Model
 
