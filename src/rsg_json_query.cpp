@@ -167,7 +167,11 @@ void rsg_json_query_step(ubx_block_t *b)
 
 		const char *dataBuffer = (char *)msg.data;
 		if ((dataBuffer!=0) && (msg.len > 1) && (readBytes > 1)) {
-			std::string query(dataBuffer);
+			LOG(INFO) << "rsg_json_query: Port returned " << readBytes <<
+	                      " bytes, while data message length is " << msg.len <<
+	                      " bytes. Resulting size = " << data_size(&msg);
+
+			std::string query(dataBuffer, readBytes);
 			std::string result;
 			LOG(INFO) << "rsg_json_query: Processing query = " << std::endl << query;
 
