@@ -7,6 +7,7 @@ import zmq
 import random
 import sys
 import time
+import datetime
 import json
 
 # The port is defined by the system composition (sherpa_world_model.usc) file
@@ -22,6 +23,14 @@ if len(sys.argv) > 1:
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:%s" % port)
+
+# Of course we want to update a with fresh information generated _now_.
+currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+# New position to update the pose.
+x = 34.97
+y = 39.23
+z = 0.0999
 
 # JSON message to update an existing Transform. Note that the Transform
 # (and thus the id)  must
@@ -39,14 +48,14 @@ transforUpdateMsg = {
       {
         "stamp": {
           "@stamptype": "TimeStampDate",
-          "stamp": "2015-07-01T16:35:87Z",
+          "stamp": currentTimeStamp,
         },
         "transform": {
           "type": "HomogeneousMatrix44",
           "matrix": [
-            [1,0,0,34.97],
-            [0,1,0,39.23],
-            [0,0,1,0.0999],
+            [1,0,0, x],
+            [0,1,0, y],
+            [0,0,1, z],
             [0,0,0,1] 
           ],
           "unit": "m"
