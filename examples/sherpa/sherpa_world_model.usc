@@ -204,7 +204,7 @@ return bd.system
       { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
       { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
-      { name="rsgjsonqueryrunner", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 0  }},
+      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
       { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
@@ -221,8 +221,8 @@ return bd.system
       { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer5", config = { element_num=5000 , element_size=20000 } },
       { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
-      { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=20000 } },
-      { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=90000 } },
+      { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100 }, 
