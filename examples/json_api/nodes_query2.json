@@ -1,0 +1,7 @@
+{
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_NODES",
+  "attributes": [
+    {"key": "highway", "value": "traffic_signals"},
+  ]
+}
