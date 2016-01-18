@@ -167,24 +167,26 @@ IF(USE_JSON)
     install(TARGETS rsgjsonquerylib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgjsonquerylib-block)
     set_property(TARGET rsgjsonquerylib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
     install(EXPORT rsgjsonquerylib-block DESTINATION ${INSTALL_CMAKE_DIR})
+
+    # Compile library rsgscenesetuplib
+    add_library(rsgscenesetuplib SHARED src/rsg_scene_setup.cpp )
+    set_target_properties(rsgscenesetuplib PROPERTIES PREFIX "")
+    target_link_libraries(rsgscenesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${LIBVARIANT_LIBRARIES} ${Boost_LIBRARIES})
+    
+    # Install rsgscenesetuplib
+    install(TARGETS rsgscenesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgscenesetuplib-block)
+    set_property(TARGET rsgscenesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+    install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
+    
+        
 ENDIF(USE_JSON)
 
-# Compile library rsgscenesetuplib
-add_library(rsgscenesetuplib SHARED src/rsg_scene_setup.cpp )
-set_target_properties(rsgscenesetuplib PROPERTIES PREFIX "")
-target_link_libraries(rsgscenesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${Boost_LIBRARIES})
-
-# Install rsgscenesetuplib
-install(TARGETS rsgscenesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgscenesetuplib-block)
-set_property(TARGET rsgscenesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
-install(EXPORT rsgscenesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})
-
-# Compile library rsgscenesetuplib
+# Compile library rsgdumplib
 add_library(rsgdumplib SHARED src/rsg_dump.cpp )
 set_target_properties(rsgdumplib PROPERTIES PREFIX "")
 target_link_libraries(rsgdumplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES} ${Boost_LIBRARIES})
 
-# Install rsgscenesetuplib
+# Install rsgdumplib
 install(TARGETS rsgdumplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT rsgdumplib-block)
 set_property(TARGET rsgdumplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(EXPORT rsgdumplib-block DESTINATION ${INSTALL_CMAKE_DIR})
@@ -194,12 +196,3 @@ install(EXPORT rsgdumplib-block DESTINATION ${INSTALL_CMAKE_DIR})
 #target_link_libraries(rsg_bridge_test_app ${UBX_LIBRARIES})
 #add_dependencies(rsg_bridge_test_app gen_hexarr)
 
-# Compile library tstnodesetuplib
-#add_library(tstnodesetuplib SHARED src/tst_node_setup.cpp )
-#set_target_properties(tstnodesetuplib PROPERTIES PREFIX "")
-#target_link_libraries(tstnodesetuplib ${BRICS_3D_LIBRARIES} ${HDF5_LIBRARIES} ${UBX_LIBRARIES})
-
-# Install rsgscenesetuplib
-#install(TARGETS tstnodesetuplib DESTINATION ${INSTALL_LIB_BLOCKS_DIR} EXPORT tstnodesetuplib-block)
-#set_property(TARGET tstnodesetuplib PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
-#install(EXPORT tstnodesetuplib-block DESTINATION ${INSTALL_CMAKE_DIR})

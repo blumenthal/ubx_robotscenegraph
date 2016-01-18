@@ -8,7 +8,7 @@
 #include <brics_3d/core/HomogeneousMatrix44.h>
 #include <brics_3d/worldModel/WorldModel.h>
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
-#include <brics_3d/worldModel/sceneGraph/HDF5UpdateSerializer.h>
+#include <brics_3d/worldModel/sceneGraph/JSONDeserializer.h>
 
 //#define GENERATED_SCENE_SETUP
 
@@ -21,24 +21,6 @@ using brics_3d::Logger;
 
 
 UBX_MODULE_LICENSE_SPDX(BSD-3-Clause)
-
-/* hexdump a buffer */
-//static void hexdump(unsigned char *buf, unsigned long index, unsigned long width)
-//{
-//	unsigned long i, fill;
-//
-//	for (i=0;i<index;i++) { printf("%02x ", buf[i]); } /* dump data */
-//	for (fill=index; fill<width; fill++) printf(" ");  /* pad on right */
-//
-//	printf(": ");
-//
-//	/* add ascii repesentation */
-//	for (i=0; i<index; i++) {
-//		if (buf[i] < 32) printf(".");
-//		else printf("%c", buf[i]);
-//	}
-//	printf("\n");
-//}
 
 
 /*
@@ -120,12 +102,6 @@ int rsg_scene_setup_init(ubx_block_t *b)
     	inf->wm_printer->setKeepHistory(false);
 //    	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
 
-    	/* Attach the UBX port to the world model */
-//    	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
-//    	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
-//    	brics_3d::rsg::HDF5UpdateSerializer* wmUpdatesToHdf5Serializer = new brics_3d::rsg::HDF5UpdateSerializer(wmUpdatesUbxPort);
-//    	inf->wm->scene.attachUpdateObserver(wmUpdatesToHdf5Serializer);
-
     	inf->wm->scene.setCallObserversEvenIfErrorsOccurred(false);
         return 0;
 }
@@ -182,6 +158,48 @@ void rsg_scene_setup_step(ubx_block_t *b)
 
         struct rsg_scene_setup_info *inf = (struct rsg_scene_setup_info*) b->private_data;
         brics_3d::WorldModel* wm = inf->wm;
+
+        /*
+         * Load scene based on JSON file.
+         */
+    	/* retrive optional dot file prefix from config */
+    	string* fileName = new std::string("");
+    	unsigned int clen;
+    	char* chrptr = (char*) ubx_config_get_data_ptr(b, "rsg_file", &clen);
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_scene_setup: No rsg_file configuation given. Selecting a default.";
+    	} else {
+    		if(strcmp(chrptr, "")==0) {
+    			LOG(INFO) << "rsg_scene_setup: rsg_file is empty. Selecting a default.";
+    		} else {
+    			std::string map_file(chrptr);
+    			*fileName = map_file;
+    		}
+    	}
+    	LOG(INFO) << "rsg_scene_setup: file name = " << *fileName;
+
+    	if(fileName->compare("") != 0) {
+    		LOG(INFO) << "rsg_scene_setup: Loading JSON model.";
+
+    		/* Read file */
+    		std::ifstream inputFile;
+    		inputFile.open (fileName->c_str(), std::ifstream::in);
+    		std::stringstream serializedModel;
+    		serializedModel << inputFile.rdbuf();
+
+    		/* Do the actual JSON parsing. */
+    		LOG(INFO) << serializedModel.str();
+    		brics_3d::rsg::JSONDeserializer deserializer(wm);
+    		deserializer.setMapUnknownParentIdsToRootId(true);
+    		deserializer.write(serializedModel.str());
+
+    		return;
+
+    	}
+
+        /*
+         * Hard coded CPP version below as fall back:
+         */
 
     	/* Add group nodes */
 //    	std::vector<brics_3d::rsg::Attribute> attributes;
