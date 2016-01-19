@@ -187,6 +187,7 @@ cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=tru
 # build process.  
 make ${J}
 ${SUDO} make install
+echo "export HDF5_ROOT=/usr/local" >> ~/.bashrc 
 cd ..
 cd ..
 
