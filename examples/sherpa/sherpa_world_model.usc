@@ -35,19 +35,19 @@ wm:setLogLevel(0)
 
 -- convenience functions to start the system in on shot
 function start_wm() -- no particular order assumed here
-  ni:b("rsgsender"):do_start()
-  ni:b("rsgreciever"):do_start()
+  ni:b("rsghdf5sender"):do_start()
+  ni:b("rsghdf5receiver"):do_start()
   ni:b("rsgjsonsender"):do_start()
   ni:b("rsgjsonreciever"):do_start()
   ni:b("rsgjsonqueryrunner"):do_start()
   ni:b("rsgdump"):do_start()
-  ni:b("zmq_publisher"):do_start()
-  ni:b("zmq_subscriber"):do_start()
+  ni:b("zmq_hdf5_publisher"):do_start()
+  ni:b("zmq_hdf5_publisher"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
   ni:b("zmq_json_query_server"):do_start()
-  ni:b("ros_publisher"):do_start()
-  ni:b("ros_subscriber"):do_start()
+  ni:b("ros_hdf5_publisher"):do_start()
+  ni:b("ros_hdf5_subscriber"):do_start()
   ni:b("bytestreambuffer1"):do_start()
   ni:b("bytestreambuffer2"):do_start()
   ni:b("bytestreambuffer3"):do_start()
@@ -122,18 +122,18 @@ return bd.system
     },
 
     blocks = {
-      { name="rsgsender", type="rsg_sender" }, 
-      { name="rsgreciever", type="rsg_reciever" },
+      { name="rsghdf5sender", type="rsg_sender" }, 
+      { name="rsghdf5receiver", type="rsg_reciever" },
       { name="rsgjsonsender", type="rsg_json_sender" },
       { name="rsgjsonreciever", type="rsg_json_reciever" },
       { name="rsgjsonqueryrunner", type="rsg_json_query" },
-      { name="zmq_publisher", type="zmq_sender" },
-      { name="zmq_subscriber", type="zmq_receiver" },
+      { name="zmq_hdf5_publisher", type="zmq_sender" },
+      { name="zmq_hdf5_subscriber", type="zmq_receiver" },
       { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
       { name="zmq_json_query_server", type="zmq_server" },
-      { name="ros_publisher", type="ros_sender" },
-      { name="ros_subscriber", type="ros_receiver" },
+      { name="ros_hdf5_publisher", type="ros_sender" },
+      { name="ros_hdf5_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
       { name="rsgdump", type="rsg_dump" },
       -- we have to explicitly configure the buffers for large message sized (cf. config setion)
@@ -154,25 +154,28 @@ return bd.system
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
 
-      { name = "osm", type="osmloader/osmloader" }
+      { name = "osm", type="osmloader/osmloader" },
+      
+      -- Debug
+      { name = "dbg_hexdump", type="hexdump/hexdump" }
     },
 
     connections = {
       -- ZMQ
-      { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
-      { src="bytestreambuffer1", tgt="zmq_publisher.zmq_out" },
+      { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer1" },
+      { src="bytestreambuffer1", tgt="zmq_hdf5_publisher.zmq_out" },
 
-      { src="zmq_subscriber.zmq_in", tgt="bytestreambuffer2" },
-      { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      { src="zmq_hdf5_subscriber.zmq_in", tgt="bytestreambuffer2" },
+      { src="bytestreambuffer2", tgt="rsghdf5receiver.rsg_in" },
 
       -- ROS (iblock)
-      --{ src="zmq_subscriber.zmq_in", tgt="visualization_publisher" },
-      --{ src="rsgsender.rsg_out", tgt="visualization_publisher" },
+      --{ src="zmq_hdf5_publisher.zmq_in", tgt="visualization_publisher" },
+      --{ src="rsghdf5sender.rsg_out", tgt="visualization_publisher" },
       { src="rsgjsonsender.rsg_out", tgt="visualization_publisher" },
 
       -- ROS (clbock) 
-      { src="rsgsender.rsg_out", tgt="bytestreambuffer3" },
-      { src="bytestreambuffer3", tgt="ros_publisher.ros_out" }, 
+      { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer3" },
+      { src="bytestreambuffer3", tgt="ros_hdf5_publisher.ros_out" }, 
 
       -- ZMQ/Zyre
       { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer5" },
@@ -183,16 +186,17 @@ return bd.system
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
+      { src="zmq_json_query_server.zmq_req", tgt="dbg_hexdump" }, --DBG
       { src="bytestreambuffer_query_req", tgt="rsgjsonqueryrunner.rsq_query" },
       { src="rsgjsonqueryrunner.rsg_result", tgt="bytestreambuffer_query_rep" },
       { src="bytestreambuffer_query_rep", tgt="zmq_json_query_server.zmq_rep" },
 
-      { src="ros_subscriber.ros_in", tgt="bytestreambuffer4" },
-      { src="bytestreambuffer4", tgt="rsgreciever.rsg_in" },
+      { src="ros_hdf5_subscriber.ros_in", tgt="bytestreambuffer4" },
+      { src="bytestreambuffer4", tgt="rsghdf5receiver.rsg_in" },
     },
 
     configurations = {
-      { name="rsgsender", 
+      { name="rsghdf5sender", 
         config =  { 
           wm_handle={wm = wm:getHandle().wm}, 
           store_dot_files = 0, -- handling of dot files gets bulky for bigger scenes like a complete OSM map. 
@@ -201,19 +205,19 @@ return bd.system
           log_level = 2 
         } 
       },
-      { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
+      { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
       { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
-      { name="zmq_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
-      { name="zmq_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
+      { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
+      { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:22422" } }, 
-      { name="ros_publisher", config = { topic_name="world_model/update_stream" } },
-      { name="ros_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
-      --  trig_blocks={ { b="#rsgreciever", num_steps=1, measure=0 } } } },            
-      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
+      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
+      { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
+      --  trig_blocks={ { b="#rsghdf5receiver", num_steps=1, measure=0 } } } },            
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="/home/sblume/my_documents/robotics/sherpa/src/json/rsg_json/examples/cesena_lab.json" } },
       { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm} } },
       { name="bytestreambuffer1", config = { element_num=6000 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
@@ -227,21 +231,22 @@ return bd.system
         config = { 
           period = {sec=0, usec=100 }, 
           trig_blocks={ 
-            { b="#rsgreciever", num_steps=1, measure=0 }, 
+            { b="#rsghdf5receiver", num_steps=1, measure=0 }, 
             { b="#rsgjsonreciever", num_steps=1, measure=0 },
-            { b="#zmq_publisher", num_steps=1, measure=0 },
+            { b="#zmq_hdf5_publisher", num_steps=1, measure=0 },
             { b="#zmq_json_publisher", num_steps=1, measure=0 },
-            { b="#ros_publisher", num_steps=1, measure=0 },   
+            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },   
             { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
             { b="#zmq_json_query_server", num_steps=1, measure=0 },        
-          --{ b="#rsgsender", num_steps=1, measure=0 },              
+          --{ b="#rsghdf5sender", num_steps=1, measure=0 },              
           } 
         } 
       },	
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
 
     },
