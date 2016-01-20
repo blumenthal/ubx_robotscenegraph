@@ -48,12 +48,16 @@ function start_wm() -- no particular order assumed here
   ni:b("zmq_json_query_server"):do_start()
   ni:b("ros_hdf5_publisher"):do_start()
   ni:b("ros_hdf5_subscriber"):do_start()
+  ni:b("ros_json_publisher"):do_start()
+  ni:b("ros_json_subscriber"):do_start()
   ni:b("bytestreambuffer1"):do_start()
   ni:b("bytestreambuffer2"):do_start()
   ni:b("bytestreambuffer3"):do_start()
   ni:b("bytestreambuffer4"):do_start()
   ni:b("bytestreambuffer5"):do_start()
   ni:b("bytestreambuffer6"):do_start()
+  ni:b("bytestreambuffer7"):do_start()
+  ni:b("bytestreambuffer8"):do_start()
   ni:b("bytestreambuffer_query_req"):do_start()
   ni:b("bytestreambuffer_query_rep"):do_start()
   ni:b("cyclic_io_trigger"):do_start()    
@@ -134,6 +138,8 @@ return bd.system
       { name="zmq_json_query_server", type="zmq_server" },
       { name="ros_hdf5_publisher", type="ros_sender" },
       { name="ros_hdf5_subscriber", type="ros_receiver" },
+      { name="ros_json_publisher", type="ros_sender" },
+      { name="ros_json_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
       { name="rsgdump", type="rsg_dump" },
       -- we have to explicitly configure the buffers for large message sized (cf. config setion)
@@ -143,6 +149,8 @@ return bd.system
       -- ROS
       { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer7",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer8",type="lfds_buffers/cyclic_raw" },
       -- ZMQ/Zyre
       { name="bytestreambuffer5",type="lfds_buffers/cyclic_raw" },
       { name="bytestreambuffer6",type="lfds_buffers/cyclic_raw" },
@@ -176,6 +184,14 @@ return bd.system
       -- ROS (clbock) 
       { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer3" },
       { src="bytestreambuffer3", tgt="ros_hdf5_publisher.ros_out" }, 
+      { src="ros_hdf5_subscriber.ros_in", tgt="bytestreambuffer4" },
+      { src="bytestreambuffer4", tgt="rsghdf5receiver.rsg_in" },
+
+      { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer7" },
+      { src="bytestreambuffer7", tgt="ros_json_publisher.ros_out" }, 
+      { src="ros_json_subscriber.ros_in", tgt="bytestreambuffer8" },
+      { src="bytestreambuffer8", tgt="rsgjsonreciever.rsg_in" },
+
 
       -- ZMQ/Zyre
       { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer5" },
@@ -191,8 +207,7 @@ return bd.system
       { src="rsgjsonqueryrunner.rsg_result", tgt="bytestreambuffer_query_rep" },
       { src="bytestreambuffer_query_rep", tgt="zmq_json_query_server.zmq_rep" },
 
-      { src="ros_hdf5_subscriber.ros_in", tgt="bytestreambuffer4" },
-      { src="bytestreambuffer4", tgt="rsghdf5receiver.rsg_in" },
+
     },
 
     configurations = {
@@ -216,6 +231,8 @@ return bd.system
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:22422" } }, 
       { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
       { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
+      { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
+      { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
       --  trig_blocks={ { b="#rsghdf5receiver", num_steps=1, measure=0 } } } },            
       { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="/home/sblume/my_documents/robotics/sherpa/src/json/rsg_json/examples/cesena_lab.json" } },
       { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm} } },
@@ -225,6 +242,8 @@ return bd.system
       { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer5", config = { element_num=5000 , element_size=20000 } },
       { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer7", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer8", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=90000 } },
       { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
@@ -235,7 +254,8 @@ return bd.system
             { b="#rsgjsonreciever", num_steps=1, measure=0 },
             { b="#zmq_hdf5_publisher", num_steps=1, measure=0 },
             { b="#zmq_json_publisher", num_steps=1, measure=0 },
-            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },   
+            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },  
+            { b="#ros_json_publisher", num_steps=1, measure=0 },   
             { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
             { b="#zmq_json_query_server", num_steps=1, measure=0 },        
           --{ b="#rsghdf5sender", num_steps=1, measure=0 },              
