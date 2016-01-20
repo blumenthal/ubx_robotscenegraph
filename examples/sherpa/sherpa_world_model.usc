@@ -60,7 +60,9 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer8"):do_start()
   ni:b("bytestreambuffer_query_req"):do_start()
   ni:b("bytestreambuffer_query_rep"):do_start()
-  ni:b("cyclic_io_trigger"):do_start()    
+  ni:b("cyclic_io_trigger"):do_start() 
+--  ni:b("dbg_hexdump"):do_init()  
+--  ni:b("dbg_hexdump"):do_start()   
 end
 
 function dump_wm()
@@ -190,6 +192,7 @@ return bd.system
       { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer7" },
       { src="bytestreambuffer7", tgt="ros_json_publisher.ros_out" }, 
       { src="ros_json_subscriber.ros_in", tgt="bytestreambuffer8" },
+      { src="ros_json_subscriber.ros_in", tgt="dbg_hexdump" }, --DBG
       { src="bytestreambuffer8", tgt="rsgjsonreciever.rsg_in" },
 
 
@@ -198,11 +201,11 @@ return bd.system
       { src="bytestreambuffer5", tgt="zmq_json_publisher.zmq_out" },
       
       { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
-      { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
+--    TMP  { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
-      { src="zmq_json_query_server.zmq_req", tgt="dbg_hexdump" }, --DBG
+--      { src="zmq_json_query_server.zmq_req", tgt="dbg_hexdump" }, --DBG
       { src="bytestreambuffer_query_req", tgt="rsgjsonqueryrunner.rsq_query" },
       { src="rsgjsonqueryrunner.rsg_result", tgt="bytestreambuffer_query_rep" },
       { src="bytestreambuffer_query_rep", tgt="zmq_json_query_server.zmq_rep" },
@@ -266,8 +269,8 @@ return bd.system
 
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
-
+     { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
     },
 }

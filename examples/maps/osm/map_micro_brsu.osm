@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Overpass API">
+<note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
+<meta osm_base="2015-01-07T12:43:02Z"/>
+
+  <node id="21101298" lat="50.7776577" lon="7.1853241">
+    <tag k="crossing" v="traffic_signals"/>
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+ 
+  <node id="21101282" lat="50.7756807" lon="7.1849999"/>
+  <node id="360484115" lat="50.7757212" lon="7.1850346"/>
+  <node id="670878819" lat="50.7757637" lon="7.1850434"/>
+  <node id="35876474" lat="50.7757885" lon="7.1850375"/>
+  <node id="360484118" lat="50.7758311" lon="7.1850052"/>
+  <node id="21101272" lat="50.7758740" lon="7.1849105"/>
+  <node id="360484119" lat="50.7758800" lon="7.1848582"/>
+  <node id="35876469" lat="50.7758738" lon="7.1847896"/>
+  <node id="360484120" lat="50.7758500" lon="7.1847238"/>
+  <node id="21101275" lat="50.7758139" lon="7.1846790"/>
+  <node id="35876471" lat="50.7757657" lon="7.1846580"/>
+  <node id="360484121" lat="50.7757166" lon="7.1846691"/>
+  <node id="360484122" lat="50.7756776" lon="7.1847054"/>
+  <node id="21101279" lat="50.7756368" lon="7.1848284"/>
+  <node id="35876473" lat="50.7756380" lon="7.1848860"/>
+  <node id="360484125" lat="50.7756500" lon="7.1849406"/>
+
+  <way id="4012537">
+    <nd ref="21101282"/>
+    <nd ref="360484115"/>
+    <nd ref="670878819"/>
+    <nd ref="35876474"/>
+    <nd ref="360484118"/>
+    <nd ref="21101272"/>
+    <nd ref="360484119"/>
+    <nd ref="35876469"/>
+    <nd ref="360484120"/>
+    <nd ref="21101275"/>
+    <nd ref="35876471"/>
+    <nd ref="360484121"/>
+    <nd ref="360484122"/>
+    <nd ref="21101279"/>
+    <nd ref="35876473"/>
+    <nd ref="360484125"/>
+    <nd ref="21101282"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="junction" v="roundabout"/>
+    <tag k="maxspeed" v="50"/>
+    <tag k="name" v="Rathausallee"/>
+    <tag k="source:maxspeed" v="DE:urban"/>
+  </way>
+
+
+</osm>
