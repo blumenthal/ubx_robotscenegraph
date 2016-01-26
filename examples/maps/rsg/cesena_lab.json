@@ -8,23 +8,24 @@
       {"key": "name", "value": "world_model_agent"},
    ],
     "childs": [
+
       {
         "@childtype": "Child",
         "child": {
           "@graphtype": "Group",
-          "id": "ab651174-3f8c-4077-a42d-351e5552a5da",
+          "id": "9c2518e6-afc1-4730-83e2-698e1975aff8",
           "attributes": [
-            {"key": "name", "value": "objects"},
+            {"key": "name", "value": "swm"},
           ],
           "childs": [
-    
+       
             {
               "@childtype": "Child",
               "child": {
                 "@graphtype": "Group",
-                "id": "c55be717-70da-45c2-b702-071659f1744c",
+                "id": "853cb0f0-e587-4880-affe-90001da1262d",
                 "attributes": [
-                  {"key": "name", "value": "animals"},
+                  {"key": "gis:origin", "value": "wgs84"},
                 ],
                 "childs": [
                   
@@ -32,101 +33,128 @@
                 ]
               },
             },
- 
 
             {
               "@childtype": "Child",
               "child": {
                 "@graphtype": "Group",
-                "id": "c54491a3-0521-4a1d-8d08-3ca3c51a269b",
+                "id": "ab651174-3f8c-4077-a42d-351e5552a5da",
                 "attributes": [
-                  {"key": "name", "value": "environment"},
+                  {"key": "name", "value": "objects"},
                 ],
                 "childs": [
-              
-
+          
                   {
                     "@childtype": "Child",
                     "child": {
                       "@graphtype": "Group",
-                      "id": "74f42888-054a-4438-a546-27fe24dd5c7d",
+                      "id": "c55be717-70da-45c2-b702-071659f1744c",
                       "attributes": [
-                        {"key": "name", "value": "river_1"},
-                        {"key": "sherpa:env_type", "value": "river"},                      
+                        {"key": "name", "value": "animals"},
                       ],
                       "childs": [
                         
-                        {
-                          "@childtype": "Child",
-                          "child": {     
-                              "@graphtype": "Node",
-                              "@semanticContext": "GeometricNode",
-                              "id": "8f3ba6f4-5c70-46ec-83af-0d5434953e5f",
-                              "attributes": [
-                                {"key": "name", "value": "river_geometry"},
-                              ],
-                              "geometry": {
-                                "@geometrytype": "Box",
-                                "sizeX": 0.5,
-                                "sizeY": 5,
-                                "sizeZ": 0  
-                              },
-                              "unit": "m"    	    
-                            }
-                         }  
                                       
                       ]
                     },
                   },
-    
-
+       
 
                   {
                     "@childtype": "Child",
                     "child": {
                       "@graphtype": "Group",
-                      "id": "50d80d45-c5a5-45b9-8beb-a9691e42861c",
+                      "id": "c54491a3-0521-4a1d-8d08-3ca3c51a269b",
                       "attributes": [
-                        {"key": "name", "value": "wood_1"},
-                        {"key": "sherpa:env_type", "value": "wood"},                      
+                        {"key": "name", "value": "environment"},
                       ],
                       "childs": [
-              
-                        {    
+                    
+
+                        {
                           "@childtype": "Child",
-                          "child": {  
-                            "@graphtype": "Node",
-                            "@semanticContext": "GeometricNode",
-                            "id": "264f0987-7550-4629-8a2b-fa24605182d4",
+                          "child": {
+                            "@graphtype": "Group",
+                            "id": "74f42888-054a-4438-a546-27fe24dd5c7d",
                             "attributes": [
-                              {"key": "name", "value": "wood_geometry"}
+                              {"key": "name", "value": "river_1"},
+                              {"key": "sherpa:env_type", "value": "river"},                      
                             ],
-                            "geometry": {
-                              "@geometrytype": "Box",
-                              "sizeX": 1,
-                              "sizeY": 2,
-                              "sizeZ": 1  
-                            },
-                            "unit": "m"    	    
-                          }
-                        }
+                            "childs": [
+                              
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "@semanticContext": "GeometricNode",
+                                    "id": "8f3ba6f4-5c70-46ec-83af-0d5434953e5f",
+                                    "attributes": [
+                                      {"key": "name", "value": "river_geometry"},
+                                    ],
+                                    "geometry": {
+                                      "@geometrytype": "Box",
+                                      "sizeX": 0.5,
+                                      "sizeY": 5,
+                                      "sizeZ": 0  
+                                    },
+                                    "unit": "m"    	    
+                                  }
+                               }  
+                                            
+                            ]
+                          },
+                        },
+          
+
+
+                        {
+                          "@childtype": "Child",
+                          "child": {
+                            "@graphtype": "Group",
+                            "id": "50d80d45-c5a5-45b9-8beb-a9691e42861c",
+                            "attributes": [
+                              {"key": "name", "value": "wood_1"},
+                              {"key": "sherpa:env_type", "value": "wood"},                      
+                            ],
+                            "childs": [
+                    
+                              {    
+                                "@childtype": "Child",
+                                "child": {  
+                                  "@graphtype": "Node",
+                                  "@semanticContext": "GeometricNode",
+                                  "id": "264f0987-7550-4629-8a2b-fa24605182d4",
+                                  "attributes": [
+                                    {"key": "name", "value": "wood_geometry"}
+                                  ],
+                                  "geometry": {
+                                    "@geometrytype": "Box",
+                                    "sizeX": 1,
+                                    "sizeY": 2,
+                                    "sizeZ": 1  
+                                  },
+                                  "unit": "m"    	    
+                                }
+                              }
+                                            
+                            ]
+                          },
+                        },
+
                                       
                       ]
                     },
                   },
-
-
-
+              
                                 
                 ]
               },
             },
-        
-                          
+                               
           ]
         },
       },
- 
+
     ],
  "connections": [
     {    
@@ -134,10 +162,11 @@
       "@semanticContext":"Transform",
       "id": "db3e8c23-5c69-46a3-94cf-2f9ae448e80a",
       "attributes": [
-        {"key": "tf:name", "value": "to_river_1"}
+        {"key": "tf:name", "value": "to_river_1"},
+        {"key": "tf:type", "value": "tf"}
       ],
       "sourceIds": [
-        "c54491a3-0521-4a1d-8d08-3ca3c51a269b",
+        "853cb0f0-e587-4880-affe-90001da1262d",
       ],
       "targetIds": [
         "74f42888-054a-4438-a546-27fe24dd5c7d",
@@ -168,10 +197,11 @@
       "@semanticContext":"Transform",
       "id": "4a725cb6-6066-42f6-b81c-64d457ddccb5",
       "attributes": [
-        {"key": "tf:name", "value": "to_wood_1"}
+        {"key": "tf:name", "value": "to_wood_1"},
+        {"key": "tf:type", "value": "tf"}
       ],
       "sourceIds": [
-        "c54491a3-0521-4a1d-8d08-3ca3c51a269b",
+        "853cb0f0-e587-4880-affe-90001da1262d",
       ],
       "targetIds": [
         "50d80d45-c5a5-45b9-8beb-a9691e42861c",
