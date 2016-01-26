@@ -1,6 +1,19 @@
 RSG integration into Microblox (UBX)
 ==========================================================
 
+## Table of Contents
+
+* [Overview](#overview)
+* [Installation](#installation)
+* [Updates](#updates)
+* [Usage](#usage)
+* [User Manual](doc/manual.md)
+* [Licensing](#licensing)
+
+
+
+
+
 Overview
 --------
 
@@ -112,6 +125,34 @@ Dependencies to BRICS_3D and HDF5:
 
 
 
+Updates
+-------
+
+### Manual updates
+
+In order to update the system go to all relevant module folders. For each perform a ``git pull origin master`` and recompile with ``make clean`` followed by  ``sudo make install``
+
+### Update script
+
+For convenience please use the following [update.sh](update.sh) script:
+```
+	./update.sh
+```
+
+Similar to install script the fowllowing options are available:
+
+```
+	./update.sh --no-sudo
+```
+In case the system has no sudo command available. Usefull for Docker based installations. 
+
+ OR
+```
+	./update.sh --no-git
+```
+In case no git pull sould be invoked. 
+
+
 Usage
 -----
 
@@ -119,14 +160,16 @@ Usage
 
 You can start the SHERPA World Model by invoking:
 ```
-  ./run_sherpa_world_model.sh --no-ros
-```
-
-In case the ROS communication modules are used also start roscore:
-```
   roscore&
   ./run_sherpa_world_model.sh
 ```
+
+
+In case the ROS communication modules are not available use instead:
+```
+  ./run_sherpa_world_model.sh --no-ros
+```
+
 
 When the system is launched correcly the following promt appears:
 ```
@@ -181,7 +224,7 @@ Impressum
 ---------
 
 Written by Sebastian Blumenthal (blumenthal@locomotec.com)
-Last update: 16.11.2015
+Last update: 25.01.2015
  
 
 
