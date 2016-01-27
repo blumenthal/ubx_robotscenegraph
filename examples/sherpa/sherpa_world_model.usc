@@ -9,6 +9,7 @@
 -- Overview:
 --           +-----------+           +-----------+
 --   ROS <-> | SHERPA WM | <- ZMQ -> | SHERPA WM | <-> ROS
+--   ZMQ <-> |           |           |           | <-> ZMQ
 --           +-----------+           +-----------+
 --
 -- To some extend the SHERPA World Model can be seem as a proxy of
@@ -18,6 +19,7 @@
 -- (a) embedding a World Model Agent (C++ library) into the comontent of ineterest or
 -- (b) by use of approprite bridges. En example of a bridge that transforms
 --     to ROS TF frames can be foind in [1].
+-- (c) the JSON API for CRUD operations
 --
 -- [1] https://github.com/blumenthal/sherpa_world_model_tf_bridge 
 
@@ -33,7 +35,11 @@ print("World Model Agent has root Id = " .. rootId)
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
 
--- convenience functions to start the system in on shot
+
+-- Below is a set of functions that can be called at runtime by 
+-- typing them into the command line intetface.
+
+-- Convenience function to start the system in on shot
 function start_wm() -- no particular order assumed here
   ni:b("rsghdf5sender"):do_start()
   ni:b("rsghdf5receiver"):do_start()
@@ -65,20 +71,36 @@ function start_wm() -- no particular order assumed here
 --  ni:b("dbg_hexdump"):do_start()   
 end
 
+-- Created as single dump of the RSG. It is stored on a dot file
+-- and can be converted to e.g. pdf files
 function dump_wm()
   ni:b("rsgdump"):do_step()
 end
 
+-- depricated
 function start_viz()
   ni:b("visualization_publisher"):do_start()
 end
 
+-- Load an Open Street Map based on the osmloader function block.
+-- Cf. "configurations" section below to configure the file that will be loaded.
 function load_map()
   ni:b("osm"):do_start()
   ni:b("osm"):do_step()
 end
 
+-- Loads a scene sceen setup based on a json file.
+-- Cf. "configurations" section below to configure the file that will be loaded.
+function scene_setup()
+  ni:b("scenesetup"):do_start()
+  ni:b("scenesetup"):do_step()
+end
+
+-- This is the entry function that should be called after launch.
+-- This has to be done manually (currently).
+-- Feel free to make further aplication specific adjustments. 
 function start_all()
+--  scene_setup()
   load_map()
   start_wm()
 end
