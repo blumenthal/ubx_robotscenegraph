@@ -153,7 +153,8 @@ echo ""
 echo "### Dependencies for the BRICS_3D libraries ###"
 echo "Boost:"
 ${SUDO} apt-get install -y libboost-dev \
-        libboost-thread-dev 
+        libboost-thread-dev \
+        libboost-regex-dev
 
 echo "Eigen 3:"
 ${SUDO} apt-get install -y libeigen3-dev
