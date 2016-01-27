@@ -201,7 +201,7 @@ return bd.system
       { src="bytestreambuffer5", tgt="zmq_json_publisher.zmq_out" },
       
       { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
---    TMP  { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
+      { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
