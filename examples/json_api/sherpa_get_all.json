@@ -1,0 +1,7 @@
+{
+"@worldmodeltype": "RSGQuery",
+  "query": "GET_NODES",
+  "attributes":[
+	  {"key": "^sherpa:.*", "value": "*"},
+	]
+}
