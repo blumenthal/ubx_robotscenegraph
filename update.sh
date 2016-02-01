@@ -61,6 +61,8 @@ cd ${BRICS_3D_DIR}/build
 if [ "$USE_GIT" = "TRUE" ]; then
   echo "Pulling BRICS_3D from repository:"
   git pull origin master  
+  #to be on the safe side: recall cmake
+  cmake -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DUSE_HDF5=true -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true .. 
 fi
 echo "Recompiling BRICS_3D:"  
 make -j4
@@ -71,6 +73,7 @@ cd ${FBX_MODULES}/build
 if [ "$USE_GIT" = "TRUE" ]; then
   echo "Pulling FBX from repository:"
   git pull origin master  
+  cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DUSE_FBX=ON .. 
 fi
 make clean 
 ${SUDO} make install
@@ -80,6 +83,7 @@ cd ${UBX_RSG_DIR}/build
 if [ "$USE_GIT" = "TRUE" ]; then
   echo "Pulling UBX_RSG from repository:"
   git pull origin master  
+  cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true .. 
 fi
 make clean 
 ${SUDO} make install
