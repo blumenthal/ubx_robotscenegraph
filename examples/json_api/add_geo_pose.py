@@ -38,7 +38,7 @@ newOriginMsg = {
     ],       
 
   },
-  "parentId": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+  "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
 }
 
 
@@ -57,7 +57,7 @@ newNodeMsg = {
           {"key": "name", "value": "rescuer"},
     ],
   },
-  "parentId": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+  "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
 }
 
 # JSON message to CREATE a new Transform. Note that the parentId must
@@ -110,7 +110,7 @@ newTransformMsg = {
 # Send message.
 time.sleep(1)
 print (json.dumps(newOriginMsg))
-socket.send_string(json.dumps(newTransformMsg))  
+socket.send_string(json.dumps(newOriginMsg))  
 time.sleep(1) 
 print (json.dumps(newNodeMsg))
 socket.send_string(json.dumps(newNodeMsg))  
