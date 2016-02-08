@@ -18,7 +18,7 @@ swmQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "SWM"},
+    {"key": "name", "value": "swm"},
   ]
 }
 
@@ -26,7 +26,7 @@ objectsQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "Objects"},
+    {"key": "name", "value": "objects"},
   ]
 }
 
@@ -34,15 +34,15 @@ animalsQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "Animals"},
+    {"key": "name", "value": "animals"},
   ]
 }
 
-bgQueryMsg = {
+geniusQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "Busy Genius"},
+    {"key": "sherpa:agent_name", "value": "genius"},
   ]
 }
 
@@ -50,15 +50,15 @@ donkeyQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "Donkey"},
+    {"key": "sherpa:agent_name", "value": "donkey"},
   ]
 }
 
-bgGeoposeQueryMsg = {
+geniusGeoposeQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "Busy Genius Geopose"},
+    {"key": "name", "value": "genius geopose"},
   ]
 }
 
@@ -66,14 +66,14 @@ donkeyGeoposeQueryMsg = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "name", "value": "Donkey Geopose"},
+    {"key": "name", "value": "donkey geopose"},
   ]
 }
 
 def addGroupNode(nodeName, nodeDescription, nodeParentId):
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
-    socket = context.socket(zmq.PUB)
-    socket.bind("tcp://*:%s" % port)
+#    socket = context.socket(zmq.PUB)
+#    pubSocket.bind("tcp://*:%s" % port)
     nodeMsg = {
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -87,14 +87,35 @@ def addGroupNode(nodeName, nodeDescription, nodeParentId):
       "parentId": nodeParentId,
     }
     time.sleep(1)
-    socket.send_string(json.dumps(nodeMsg))  
+    pubSocket.send_string(json.dumps(nodeMsg))  
+    print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
+    time.sleep(1) 
+
+def addAgentNode(nodeName, nodeDescription, nodeParentId):
+    print "[DCM Interface:] adding the %s node ..." % (nodeName)
+#    socket = context.socket(zmq.PUB)
+#    socket.bind("tcp://*:%s" % port)
+    nodeMsg = {
+      "@worldmodeltype": "RSGUpdate",
+      "operation": "CREATE",
+      "node": {
+        "@graphtype": "Group",
+        "attributes": [
+              {"key": "sherpa:agent_name", "value": nodeName},
+              {"key": "comment", "value": nodeDescription}
+        ],
+      },
+      "parentId": nodeParentId,
+    }
+    time.sleep(1)
+    pubSocket.send_string(json.dumps(nodeMsg))  
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
     time.sleep(1) 
 
 def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
-    print "[DCM Interface:] adding the Geopose node for %s ..." % (nodeName)
-    socket = context.socket(zmq.PUB)
-    socket.bind("tcp://*:%s" % port)
+    print "[DCM Interface:] adding the geopose node for %s ..." % (nodeName)
+#    socket = context.socket(zmq.PUB)
+#    socket.bind("tcp://*:%s" % port)
     nodeMsg = {
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -102,7 +123,7 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
         "@graphtype": "Node",
         "attributes": [
               {"key": "type", "value": "geopose"},
-              {"key": "name", "value": nodeName + " Geopose"},
+              {"key": "name", "value": nodeName + " geopose"},
               {"key": "comment", "value": "This is the node defining the geographic position and attitude of %s." % (nodeName)},
               {"key": "latitude", "value": nodeLat}, # WGS84 latitude in degrees (as in float64)
               {"key": "longitude", "value": nodeLon},# WGS84 longitude in degrees (as in float64)
@@ -117,14 +138,14 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
       "parentId": nodeParentId,
     }
     time.sleep(1)
-    socket.send_string(json.dumps(nodeMsg))  
-    print "[DCM Interface:] the Geopose node for %s was successfully added!" % (nodeName)
+    pubSocket.send_string(json.dumps(nodeMsg))  
+    print "[DCM Interface:] the geopose node for %s was successfully added!" % (nodeName)
     time.sleep(1) 
 
 def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
-    print "[DCM Interface:] updating the Geopose node for %s ..." % (nodeName)
-    socket = context.socket(zmq.PUB)
-    socket.bind("tcp://*:%s" % port)
+    print "[DCM Interface:] updating the geopose node for %s ..." % (nodeName)
+#    socket = context.socket(zmq.PUB)
+#    socket.bind("tcp://*:%s" % port)
     nodeMsg = {
       "@worldmodeltype": "RSGUpdate",
       "operation": "UPDATE_ATTRIBUTES",
@@ -133,7 +154,7 @@ def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, no
         "id": nodeId,
         "attributes": [
               {"key": "type", "value": "geopose"},
-              {"key": "name", "value": nodeName + " Geopose"},
+              {"key": "name", "value": nodeName + " geopose"},
               {"key": "comment", "value": "This is the node defining the geographic position and attitude of %s." % (nodeName)},
               {"key": "latitude", "value": nodeLat}, # WGS84 latitude in degrees (as in float64)
               {"key": "longitude", "value": nodeLon},# WGS84 longitude in degrees (as in float64)
@@ -147,8 +168,8 @@ def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, no
       },
     }
     time.sleep(1)
-    socket.send_string(json.dumps(nodeMsg))  
-    print "[DCM Interface:] the Geopose node for %s was successfully updated!" % (nodeName)
+    pubSocket.send_string(json.dumps(nodeMsg))  
+    print "[DCM Interface:] the geopose node for %s was successfully updated!" % (nodeName)
     time.sleep(1) 
 
 def getNodeId(queryMessage):
@@ -163,20 +184,20 @@ def getNodeId(queryMessage):
 
 
 def initialiseSWM():
-    addGroupNode("SWM", "This is the SHERPA World Model (SWM) of the DCM.", worldModelAgentId)
+    addGroupNode("swm", "This is the SHERPA World Model (SWM) of the DCM.", worldModelAgentId)
     swmId = getNodeId(swmQueryMsg)
-    addGroupNode("Objects", "This is the node of the objects included in the SWM.", swmId)
+    addGroupNode("objects", "This is the node of the objects included in the SWM.", swmId)
     objectsId = getNodeId(objectsQueryMsg)
-    addGroupNode("Animals", "This is the node of the animals, i.e. agents of the SHERPA team.", objectsId)
-    addGroupNode("Environment", "This is the node of the scenario environment objects.", objectsId)
+    addGroupNode("animals", "This is the node of the animals, i.e. agents of the SHERPA team.", objectsId)
+    addGroupNode("environment", "This is the node of the scenario environment objects.", objectsId)
 
-def addBusyGeniusNode():
+def addGeniusNode():
     if not getNodeId(swmQueryMsg):
         print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
         initialiseSWM()
         print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
     animalsId = getNodeId(animalsQueryMsg)
-    addGroupNode("Busy Genius", "This is the node of the Busy Genius (BG), i.e. the human rescuer.", animalsId)
+    addAgentNode("genius", "This is the node of the busy genius, i.e. the human rescuer.", animalsId)
 
 def addDonkeyNode():
     if not getNodeId(swmQueryMsg):
@@ -184,7 +205,7 @@ def addDonkeyNode():
         initialiseSWM()
         print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
     animalsId = getNodeId(animalsQueryMsg)
-    addGroupNode("Donkey", "This is the node of the donkey, i.e. the robotic rover.", animalsId)
+    addAgentNode("donkey", "This is the node of the intelligent donkey, i.e. the robotic rover.", animalsId)
 
 def addWaspNode(waspName):
     if not getNodeId(swmQueryMsg):
@@ -192,39 +213,39 @@ def addWaspNode(waspName):
         initialiseSWM()
         print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
     animalsId = getNodeId(animalsQueryMsg)
-    addGroupNode("Wasp " + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, animalsId)
+    addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, animalsId)
 
-def setBusyGeniusGeopose(bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3):
-    bgGeoposeId = getNodeId(bgGeoposeQueryMsg)
+def setGeniusGeopose(bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3):
+    bgGeoposeId = getNodeId(geniusGeoposeQueryMsg)
     if not bgGeoposeId:
-        if not getNodeId(bgQueryMsg):
-            print "[DCM Interface:] the Busy Genius node is not currently available: starting its creation ..."
-            addBusyGeniusNode()
-        bgId = getNodeId(bgQueryMsg)
-        addGeoposeNode("Busy Genius", bgId, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
+        if not getNodeId(geniusQueryMsg):
+            print "[DCM Interface:] the genius node is not currently available: starting its creation ..."
+            addGeniusNode()
+        bgId = getNodeId(geniusQueryMsg)
+        addGeoposeNode("genius", bgId, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
     else:
-        print "[DCM Interface:] the Busy Genius Geopose node was already created: updating the geopose attributes ..."
-        updateGeoposeNode("Busy Genius", bgGeoposeId, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
+        print "[DCM Interface:] the genius geopose node was already created: updating the geopose attributes ..."
+        updateGeoposeNode("genius", bgGeoposeId, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
 
 def setDonkeyGeopose(donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3):
     donkeyGeoposeId = getNodeId(donkeyGeoposeQueryMsg)
     if not donkeyGeoposeId:
         if not getNodeId(donkeyQueryMsg):
-            print "[DCM Interface:] the Donkey node is not currently available: starting its creation ..."
+            print "[DCM Interface:] the donkey node is not currently available: starting its creation ..."
             addDonkeyNode()
         donkeyId = getNodeId(donkeyQueryMsg)
-        addGeoposeNode("Donkey", donkeyId, donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3)
+        addGeoposeNode("donkey", donkeyId, donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3)
     else:
-        print "[DCM Interface:] the Donkey Geopose node was already created: updating the geopose attributes ..."
-        updateGeoposeNode("Donkey", donkeyGeoposeId, donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3)
+        print "[DCM Interface:] the donkey geopose node was already created: updating the geopose attributes ..."
+        updateGeoposeNode("donkey", donkeyGeoposeId, donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3)
 
 def setWaspGeopose(waspName, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, waspQuat2, waspQuat3):
-    nodeName = "Wasp " + waspName
+    nodeName = "wasp_" + waspName
     waspGeoposeId = getNodeId({
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
       "attributes": [
-        {"key": "name", "value": nodeName + " Geopose"},
+        {"key": "name", "value": nodeName + " geopose"},
       ]
     })
     if not waspGeoposeId:    
@@ -232,7 +253,7 @@ def setWaspGeopose(waspName, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, wa
           "@worldmodeltype": "RSGQuery",
           "query": "GET_NODES",
           "attributes": [
-            {"key": "name", "value": nodeName},
+            {"key": "sherpa:agent_name", "value": nodeName},
           ]
         }
         waspId = getNodeId(waspQueryMsg)
@@ -242,12 +263,11 @@ def setWaspGeopose(waspName, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, wa
         waspId = getNodeId(waspQueryMsg)
         addGeoposeNode(nodeName, waspId, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, waspQuat2, waspQuat3)
     else:
-        print "[DCM Interface:] the Wasp Geopose node was already created: updating the geopose attributes ..."
+        print "[DCM Interface:] the %s geopose node was already created: updating the geopose attributes ..." %(nodeName)
         updateGeoposeNode(nodeName, waspGeoposeId, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, waspQuat2, waspQuat3)
 
 def run(inputCommand):
-    global port, worldModelAgentId, context
-#    print "I'm running the run function! :-D"
+    global port, worldModelAgentId, context, pubSocket
     # Create the configuration file if it is not available
     configFileName = 'dcm_config.cfg'
     if not os.path.isfile(configFileName):
@@ -266,6 +286,11 @@ def run(inputCommand):
     port = config.getint('Communication','port')
     worldModelAgentId = config.get('Communication','worldModelAgentId')
     context = zmq.Context()
+    pubSocket = context.socket(zmq.PUB)
+    pubSocket.bind("tcp://*:%s" % port)
+#    reqSocket = context.socket(zmq.REQ)
+#    reqSocket.connect("tcp://localhost:22422")
+
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "initialise" or sys.argv[1] == "initialize":
@@ -276,63 +301,109 @@ def run(inputCommand):
                 initialiseSWM()
                 print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
         elif sys.argv[1] == "add":
-            if sys.argv[2] == "bg":
-                if getNodeId(bgQueryMsg):
-                    print "[DCM Interface:] Busy Genius node already added!"            
+            if len(sys.argv) > 2:
+                if sys.argv[2] == "genius":
+                    if getNodeId(geniusQueryMsg):
+                        print "[DCM Interface:] genius node already added!"            
+                    else:
+                        addGeniusNode()
+                elif sys.argv[2] == "donkey":
+                    if getNodeId(donkeyQueryMsg):
+                        print "[DCM Interface:] donkey node already added!"            
+                    else:
+                        addDonkeyNode()
+                elif sys.argv[2] == "wasp":
+                    if len(sys.argv) > 3:
+                        addWaspNode(sys.argv[3])
+                    else:
+                        print "[DCM Interface:] ERROR: please specify a name for the wasp to be added."
                 else:
-                    addBusyGeniusNode()
-            elif sys.argv[2] == "donkey":
-                if getNodeId(donkeyQueryMsg):
-                    print "[DCM Interface:] Donkey node already added!"            
-                else:
-                    addDonkeyNode()
-            elif sys.argv[2] == "wasp":
-                addWaspNode(sys.argv[3])
+                    print "[DCM Interface:] ERROR: the object you specified isn't included in the SHERPA agents database. Please check it!"
             else:
-                print "[DCM Interface:] the object you specified isn't included in the SHERPA database. Please check it!"
+                print "[DCM Interface:] ERROR: please specify the SHERPA agent to be added."
         elif sys.argv[1] == "set":
-            if sys.argv[2] == "bg" and sys.argv[3] == "position":
-                setBusyGeniusGeopose(sys.argv[4], sys.argv[5], sys.argv[6], 0, 0, 0, 0)
-            elif sys.argv[2] == "donkey":
-                setDonkeyGeopose(sys.argv[4], sys.argv[5], sys.argv[6], 0, 0, 0, 0)
-            elif sys.argv[2] == "wasp":
-                setWaspGeopose(sys.argv[3], sys.argv[5], sys.argv[6], sys.argv[7], 0, 0, 0, 0)
+            if len(sys.argv) > 3:
+                if sys.argv[2] == "genius" and sys.argv[3] == "geopose":
+                    if len(sys.argv) > 10:
+                        setGeniusGeopose(sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10])
+                    else:
+                        print "[DCM Interface:] ERROR: please specify the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."
+                elif sys.argv[2] == "donkey" and sys.argv[3] == "geopose":
+                    if len(sys.argv) > 10:
+                        setDonkeyGeopose(sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10])
+                    else:
+                        print "[DCM Interface:] ERROR: please specify the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."
+                elif sys.argv[2] == "wasp":
+                    if len(sys.argv) > 11 and sys.argv[4] == "geopose":
+                        setWaspGeopose(sys.argv[3], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10], sys.argv[11])
+                    else:
+                        print "[DCM Interface:] ERROR: please specify the wasp name to be modified followed by the word ''geopose'' and the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."
+                else:
+                    print "[DCM Interface:] ERROR: the object you specified isn't included in the SHERPA agents database. Please check it!"
+            else:
+                print "[DCM Interface:] ERROR: to set the geopose of a SHERPA agent specify the SHERPA agent geopose to be modified followed by the word ''geopose'' and the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."  
         else:
-            print "[DCM Interface:] the sequence of arguments used is incorrect. Please check it!"  
+            print "[DCM Interface:] ERROR: the sequence of arguments used is incorrect. Please check it!"  
     else:
-        words = inputCommand.split(' ')
-        if words[0] == "initialise" or words[0] == "initialize":
-            if getNodeId(swmQueryMsg):
-                print "[DCM Interface:] SWM already initialised!"            
-            else:
-                print "[DCM Interface:] starting the initialisation procedure for SWM ..."
-                initialiseSWM()
-                print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
-        elif words[0] == "add":
-            if words[1] == "bg":
-                if getNodeId(bgQueryMsg):
-                    print "[DCM Interface:] Busy Genius node already added!"            
+        if inputCommand:
+            words = inputCommand.split(' ')
+            if words[0] == "initialise" or words[0] == "initialize":
+                if getNodeId(swmQueryMsg):
+                    print "[DCM Interface:] SWM already initialised!"            
                 else:
-                    addBusyGeniusNode()
-            elif words[1] == "donkey":
-                if getNodeId(donkeyQueryMsg):
-                    print "[DCM Interface:] Donkey node already added!"            
+                    print "[DCM Interface:] starting the initialisation procedure for SWM ..."
+                    initialiseSWM()
+                    print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
+            elif words[0] == "add":
+                if len(words) > 1:
+                    if words[1] == "genius":
+                        if getNodeId(geniusQueryMsg):
+                            print "[DCM Interface:] genius node already added!"            
+                        else:
+                            addBusyGeniusNode()
+                    elif words[1] == "donkey":
+                        if getNodeId(donkeyQueryMsg):
+                            print "[DCM Interface:] donkey node already added!"            
+                        else:
+                            addDonkeyNode()
+                    elif words[1] == "wasp":
+                        if len(words) > 2:
+                            addWaspNode(words[2])
+                        else:
+                            print "[DCM Interface:] ERROR: please specify a name for the wasp to be added."
+                    else:
+                        print "[DCM Interface:] ERROR: the object you specified isn't included in the SHERPA database. Please check it!"
                 else:
-                    addDonkeyNode()
-            elif words[1] == "wasp":
-                addWaspNode(words[2])
+                    print "[DCM Interface:] ERROR: please specify the SHERPA agent to be added."
+            elif words[0] == "set":
+                if len(words) > 2:
+                    if words[1] == "genius" and words[2] == "geopose":
+                        if len(words) > 9:
+                            setGeniusGeopose(words[3], words[4], words[5], words[6], words[7], words[8], words[9])
+                        else:
+                            print "[DCM Interface:] ERROR: please specify the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."
+                    elif words[1] == "donkey" and words[2] == "geopose":
+                        if len(words) > 9:
+                            setDonkeyGeopose(words[3], words[4], words[5], words[6], words[7], words[8], words[9])
+                        else:
+                            print "[DCM Interface:] ERROR: please specify the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."
+                    elif words[1] == "wasp":
+                        if len(words) > 10 and words[3] == "geopose":
+                            setWaspGeopose(words[2], words[4], words[5], words[6], words[7], words[8], words[9], words[10])
+                        else:
+                            print "[DCM Interface:] ERROR: please specify the wasp name to be modified followed by the word ''geopose'' and the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."
+                    else:
+                        print "[DCM Interface:] ERROR: the object you specified isn't included in the SHERPA agents database. Please check it!"
+                else:
+                    print "[DCM Interface:] ERROR: to set the geopose of a SHERPA agent specify the SHERPA agent geopose to be modified followed by the word ''geopose'' and the latitude [DEG], longitude [DEG], altitude [m] and the quaternion elements to be set."  
             else:
-                print "[DCM Interface:] the object you specified isn't included in the SHERPA database. Please check it!"
-        elif words[0] == "set" and words[2] == "geopose":
-#            if sys.argv[2] == "bg":
-#                setBusyGeniusGeopose(sys.argv[4], sys.argv[5], sys.argv[6])
-            if words[1] == "donkey":
-                setDonkeyGeopose(words[3], words[4], words[5],words[6], words[7], words[8], words[9])
-#            elif sys.argv[2] == "wasp":
-#                setWaspGeopose(sys.argv[3], sys.argv[5], sys.argv[6], sys.argv[7])
+                print "[DCM Interface:] ERROR: the sequence of arguments used is incorrect. Please check it!"  
         else:
-            print "[DCM Interface:] the sequence of arguments used is incorrect. Please check it!"  
+            print "[DCM Interface:] ERROR: the sequence of arguments used is incorrect. Please check it!"  
 
 
 if __name__ == '__main__':
-    run('')
+    if len(sys.argv) > 1:
+        run('')
+    else:
+        print "[DCM Interface:] ERROR: No command given to SWM: please check the available commands on the user guide."
