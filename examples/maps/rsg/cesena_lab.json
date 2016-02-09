@@ -161,7 +161,31 @@
                                       {"key": "osm:node_id", "value": "101"},
                                     ],   	    
                                   }
-                               }   
+                               },
+
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                    "attributes": [
+                                      {"key": "name", "value": "bbx_river_point_min"},
+                                      {"key": "comment", "value": "This nodes serves as a min value for a geo bounding box."},
+                                    ],   	    
+                                  }
+                               },   
+
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                    "attributes": [
+                                      {"key": "name", "value": "bbx_river_point_max"},
+                                      {"key": "comment", "value": "This nodes serves as a max value for a geo bounding box."},
+                                    ],   	    
+                                  }
+                               }  
                                             
                             ],
     
@@ -180,6 +204,24 @@
                                 "targetIds": [
                                   "62b701e8-1368-458f-9afd-e796f86bfc7a",
                                   "32b85833-2ff5-49d3-af12-185203b501be",
+                                ],
+                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "id": "2c57c271-6a77-49f4-9449-50fc074b5b1f",
+                                "attributes": [
+                                  {"key": "osm:way_ref_id", "value": "200"},
+                                  {"key": "geo:boundary", "value": "has_gis_bbx"},
+                                  {"key": "comment", "value": "This Connection defines two points (min max) that belong to the geo bounding of river01."},
+                                ],
+                                "sourceIds": [
+                                  "74f42888-054a-4438-a546-27fe24dd5c7d"
+                                ],
+                                "targetIds": [
+                                  "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                  "9bf1327d-de09-4816-bc05-344d8b4258d7",
                                 ],
                                 "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
                                 "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
@@ -229,6 +271,72 @@
                                 ],
                                 "targetIds": [
                                   "32b85833-2ff5-49d3-af12-185203b501be",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.353278],
+                                        [0,1,0,12.441426],
+                                        [0,0,1,41.100000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "22e4fee8-3749-4650-8395-69f0317205ff",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.353278],
+                                        [0,1,0,12.441426],
+                                        [0,0,1,41.100000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "6c860ba3-37ee-49bd-bf5c-c3ee71d797f7",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "9bf1327d-de09-4816-bc05-344d8b4258d7",
                                 ],
                                 "history" : [
                                   {
