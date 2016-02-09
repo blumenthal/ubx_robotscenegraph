@@ -94,8 +94,52 @@ maxId = ids[1];
 print("minId = %s " % minId)
 print("maxId = %s " % maxId)
 
-
 # Of course we want to get the _latest_ information.
 currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+### Get pose for min
+getPoseMin = {
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_TRANSFORM",
+  "id": minId,
+  "idReferenceNode": referenceId,
+  "timeStamp": {
+    "@stamptype": "TimeStampDate",
+    "stamp": currentTimeStamp,
+  } 
+}
+
+print("Sending query for min : %s " % json.dumps(getPoseMin))
+socket = context.socket(zmq.REQ)
+socket.connect(swmServer)
+socket.send_string(json.dumps(getPoseMin))
+result = socket.recv()
+socket.close()
+print("Received reply for min: %s " % result)
+
+msg = json.loads(result.decode('utf8'))
+
+
+### Get pose for max
+getPoseMax = {
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_TRANSFORM",
+  "id": maxId,
+  "idReferenceNode": referenceId,
+  "timeStamp": {
+    "@stamptype": "TimeStampDate",
+    "stamp": currentTimeStamp,
+  } 
+}
+
+print("Sending query for max : %s " % json.dumps(getPoseMax))
+socket = context.socket(zmq.REQ)
+socket.connect(swmServer)
+socket.send_string(json.dumps(getPoseMax))
+result = socket.recv()
+socket.close()
+print("Received reply for max: %s " % result)
+
+msg = json.loads(result.decode('utf8'))
 
 
