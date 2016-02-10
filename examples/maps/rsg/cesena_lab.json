@@ -54,7 +54,7 @@
                       "id": "c55be717-70da-45c2-b702-071659f1744c",
                       "attributes": [
                         {"key": "name", "value": "animals"},
-                        {"key": "comment", "value": "This Group contains all Sherapa animals"}
+                        {"key": "comment", "value": "This Group contains all Sherpa animals"}
                       ],
                       "childs": [
                         {
@@ -63,9 +63,8 @@
                               "@graphtype": "Group",
                               "id": "e8015bd0-2eca-4764-8298-acf81eb987b5",
                               "attributes": [
-                                {"key": "sherpa:agent_name", "value": "BusyGenius01"},
-                                {"key": "sherpa:agent_name", "value": "bg"},
-                                {"key": "comment", "value": "Both agent names are used as alias here, but we better decide on one way of naming them."},
+                                {"key": "sherpa:agent_name", "value": "genius"},
+                                {"key": "comment", "value": "This is the node of the busy genius, i.e. the human rescuer."},
                               ],   	    
                             }
                           }   
@@ -77,7 +76,7 @@
                           "@semanticContext":"Transform",
                           "id": "5786dfa2-6e29-40ae-b90b-c81e8d33aa69",
                           "attributes": [
-                            {"key": "tf:name", "value": "bg_geopose"},
+                            {"key": "tf:name", "value": "genius_geopose"},
                             {"key": "tf:type", "value": "wgs84"}
                           ],
                           "sourceIds": [
@@ -114,7 +113,18 @@
 
                     },
                   },
-       
+
+                 {
+                    "@childtype": "Child",
+                    "child": {
+                      "@graphtype": "Group",
+#                      "id": "c55be717-70da-45c2-b702-071659f1744c",
+                      "attributes": [
+                        {"key": "name", "value": "observations"},
+                        {"key": "comment", "value": "This Group contains all Sherpa observations"}
+                      ],
+                    }, 
+                  },       
 
                   {
                     "@childtype": "Child",
@@ -146,7 +156,7 @@
                                     "id": "62b701e8-1368-458f-9afd-e796f86bfc7a",
                                     "attributes": [
                                       {"key": "name", "value": "river_point01"},
-                                      {"key": "osm:node_id", "value": "100"},
+                                      {"key": "osm:node_id", "value": "1100"},
                                     ],   	    
                                   }
                                },
@@ -158,7 +168,19 @@
                                     "id": "32b85833-2ff5-49d3-af12-185203b501be",
                                     "attributes": [
                                       {"key": "name", "value": "river_point02"},
-                                      {"key": "osm:node_id", "value": "101"},
+                                      {"key": "osm:node_id", "value": "1101"},
+                                    ],   	    
+                                  }
+                               },
+                                  
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "46c8ffbe-d62a-4f3c-8006-809404ec5c55",
+                                    "attributes": [
+                                      {"key": "name", "value": "river_point03"},
+                                      {"key": "osm:node_id", "value": "1103"},
                                     ],   	    
                                   }
                                },
@@ -167,26 +189,48 @@
                                 "@childtype": "Child",
                                 "child": {     
                                     "@graphtype": "Node",
-                                    "id": "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                    "id": "ec88a00c-edab-4806-871c-f1d4561b98b6",
                                     "attributes": [
-                                      {"key": "name", "value": "bbx_river_point_min"},
-                                      {"key": "comment", "value": "This nodes serves as a min value for a geo bounding box."},
+                                      {"key": "name", "value": "river_point04"},
+                                      {"key": "osm:node_id", "value": "1104"},
                                     ],   	    
                                   }
-                               },   
-
-                              {
+                               },
+                               ##########
+                               {
                                 "@childtype": "Child",
                                 "child": {     
                                     "@graphtype": "Node",
-                                    "id": "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                    "id": "00d4120d-c987-454e-bef9-f359e52afa2b",
                                     "attributes": [
-                                      {"key": "name", "value": "bbx_river_point_max"},
-                                      {"key": "comment", "value": "This nodes serves as a max value for a geo bounding box."},
+                                      {"key": "name", "value": "river_bbox01"},
+                                      {"key": "osm:node_id", "value": "1105"},
                                     ],   	    
                                   }
-                               }  
-                                            
+                               },
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                    "attributes": [
+                                      {"key": "name", "value": "river_bbox02"},
+                                      {"key": "osm:node_id", "value": "1106"},
+                                    ],   	    
+                                  }
+                               }, 
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                    "attributes": [
+                                      {"key": "name", "value": "river_center"},
+                                      {"key": "osm:node_id", "value": "1107"},
+                                    ],   	    
+                                  }
+                               },
+                               ################                                             
                             ],
     
                             "connections": [
@@ -195,7 +239,7 @@
                                 "@graphtype": "Connection",
                                 "id": "c1679117-4f0e-4cd5-b6e7-53e46cbaf553",
                                 "attributes": [
-                                  {"key": "osm:way_id", "value": "200"},
+                                  {"key": "osm:way_id", "value": "1200"},
                                   {"key": "osm:waterway", "value": "river"},
                                   {"key": "comment", "value": "This Connection defines all points that belong to the river01"},
                                 ],
@@ -204,24 +248,11 @@
                                 "targetIds": [
                                   "62b701e8-1368-458f-9afd-e796f86bfc7a",
                                   "32b85833-2ff5-49d3-af12-185203b501be",
-                                ],
-                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
-                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
-                              },
-                              {    
-                                "@graphtype": "Connection",
-                                "id": "2c57c271-6a77-49f4-9449-50fc074b5b1f",
-                                "attributes": [
-                                  {"key": "osm:way_ref_id", "value": "200"},
-                                  {"key": "geo:boundary", "value": "has_gis_bbx"},
-                                  {"key": "comment", "value": "This Connection defines two points (min max) that belong to the geo bounding of river01."},
-                                ],
-                                "sourceIds": [
-                                  "74f42888-054a-4438-a546-27fe24dd5c7d"
-                                ],
-                                "targetIds": [
-                                  "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
-                                  "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                  "46c8ffbe-d62a-4f3c-8006-809404ec5c55",
+                                  "ec88a00c-edab-4806-871c-f1d4561b98b6",
+                                  "00d4120d-c987-454e-bef9-f359e52afa2b",
+                                  "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                  "ed32fd38-1f5a-4d80-a899-5080accda322",
                                 ],
                                 "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
                                 "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
@@ -249,8 +280,8 @@
                                     "transform": {
                                       "type": "HomogeneousMatrix44",
                                       "matrix": [
-                                        [1,0,0,44.153278],
-                                        [0,1,0,12.241426],
+                                        [1,0,0,44.153282498895521],
+                                        [0,1,0,12.241472035675391],
                                         [0,0,1,41.000000],
                                         [0,0,0,1] 
                                       ],
@@ -282,9 +313,9 @@
                                     "transform": {
                                       "type": "HomogeneousMatrix44",
                                       "matrix": [
-                                        [1,0,0,44.353278],
-                                        [0,1,0,12.441426],
-                                        [0,0,1,41.100000],
+                                        [1,0,0,44.153282498895521],
+                                        [0,1,0,12.241379964324610],
+                                        [0,0,1,41.000000],
                                         [0,0,0,1] 
                                       ],
                                       "unit": "latlon"
@@ -295,7 +326,7 @@
                               {    
                                 "@graphtype": "Connection",
                                 "@semanticContext":"Transform",
-                                "id": "22e4fee8-3749-4650-8395-69f0317205ff",
+                                "id": "1cb9ce03-d161-49e6-8dfb-d0f115aca1ba",
                                 "attributes": [
                                   {"key": "tf:type", "value": "wgs84"}
                                 ],
@@ -303,7 +334,7 @@
                                   "853cb0f0-e587-4880-affe-90001da1262d",
                                 ],
                                 "targetIds": [
-                                  "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                  "46c8ffbe-d62a-4f3c-8006-809404ec5c55",
                                 ],
                                 "history" : [
                                   {
@@ -315,9 +346,9 @@
                                     "transform": {
                                       "type": "HomogeneousMatrix44",
                                       "matrix": [
-                                        [1,0,0,44.353278],
-                                        [0,1,0,12.441426],
-                                        [0,0,1,41.100000],
+                                        [1,0,0,44.153291496686556],
+                                        [0,1,0,12.241379964324610],
+                                        [0,0,1,41.000000],
                                         [0,0,0,1] 
                                       ],
                                       "unit": "latlon"
@@ -325,10 +356,10 @@
                                   }
                                 ], 	    
                               },
-                              {    
+							  {    
                                 "@graphtype": "Connection",
                                 "@semanticContext":"Transform",
-                                "id": "6c860ba3-37ee-49bd-bf5c-c3ee71d797f7",
+                                "id": "c09860a5-160b-4f7d-93c3-cc29f34abbe1",
                                 "attributes": [
                                   {"key": "tf:type", "value": "wgs84"}
                                 ],
@@ -336,7 +367,7 @@
                                   "853cb0f0-e587-4880-affe-90001da1262d",
                                 ],
                                 "targetIds": [
-                                  "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                  "ec88a00c-edab-4806-871c-f1d4561b98b6",
                                 ],
                                 "history" : [
                                   {
@@ -348,9 +379,41 @@
                                     "transform": {
                                       "type": "HomogeneousMatrix44",
                                       "matrix": [
-                                        [1,0,0,44.353278],
-                                        [0,1,0,12.441426],
-                                        [0,0,1,41.100000],
+                                        [1,0,0,44.153291496686556],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },                              
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "00d4120d-c987-454e-bef9-f359e52afa2b",                                 ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [ 
+                                        [1,0,0,44.153282498895521],
+                                        [0,1,0,12.241379964324610],
+                                        [0,0,1,41.000000],
                                         [0,0,0,1] 
                                       ],
                                       "unit": "latlon"
@@ -358,13 +421,77 @@
                                   }
                                 ], 	    
                               },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
 
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153291496686556],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
 
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [ 
+                                        [1,0,0,44.153286997791035],
+                                        [0,1,0,12.241426000000001],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
 
                             ]  
                           },
                         },
-          
+  
 
 
                         {
@@ -385,7 +512,7 @@
                                   "id": "82a660c7-dfcf-4792-9c7f-aeb73bb3a885",
                                   "attributes": [
                                     {"key": "name", "value": "wood_point01"},
-                                    {"key": "osm:node_id", "value": "150"},
+                                    {"key": "osm:node_id", "value": "2101"},
                                   ],   	    
                                 }
                               },
@@ -396,20 +523,74 @@
                                   "id": "799b98ae-9a7b-4869-84a4-35158aada650",
                                   "attributes": [
                                     {"key": "name", "value": "wood_point02"},
-                                    {"key": "osm:node_id", "value": "151"},
+                                    {"key": "osm:node_id", "value": "2102"},
                                   ],   	    
                                 }
-                              },                          
-                                            
+                              },
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "abd9e173-a901-4796-8d43-3ff125e18f6e",
+                                  "attributes": [
+                                    {"key": "name", "value": "wood_point03"},
+                                    {"key": "osm:node_id", "value": "2103"},
+                                  ],   	    
+                                }
+                              }, 
+                             {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "0665ea5f-fe0b-4d0a-b3cb-c76f67edad01",
+                                  "attributes": [
+                                    {"key": "name", "value": "wood_point04"},
+                                    {"key": "osm:node_id", "value": "2104"},
+                                  ],   	    
+                                }
+                              },                           
+                               ##########
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "478066be-dd0c-4a9d-b213-c56e055f62a4",
+                                    "attributes": [
+                                      {"key": "name", "value": "wood_bbox01"},
+                                      {"key": "osm:node_id", "value": "2105"},
+                                    ],   	    
+                                  }
+                               },
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "753ca8ed-c2c0-4535-ac70-17309851be7c",
+                                    "attributes": [
+                                      {"key": "name", "value": "wood_bbox02"},
+                                      {"key": "osm:node_id", "value": "2106"},
+                                    ],   	    
+                                  }
+                               }, 
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "66fae28d-53bd-49d8-9c0c-c6873f0bda35",
+                                    "attributes": [
+                                      {"key": "name", "value": "wood_center"},
+                                      {"key": "osm:node_id", "value": "2107"},
+                                    ],   	    
+                                  }
+                               },
+                               ################                                              
                             ],
                             "connections": [
-
-
                              {    
                                 "@graphtype": "Connection",
                                 "id": "8f2d7d06-498f-4dcf-ad24-8c094cf7843f",
                                 "attributes": [
-                                  {"key": "osm:way_id", "value": "300"},
+                                  {"key": "osm:way_id", "value": "2200"},
                                   {"key": "osm:natural", "value": "wood"},
                                   {"key": "comment", "value": "This Connection defines all points that belong to the wood01. Cf. targetIds"},
                                 ],
@@ -418,6 +599,11 @@
                                 "targetIds": [
                                   "82a660c7-dfcf-4792-9c7f-aeb73bb3a885",
                                   "799b98ae-9a7b-4869-84a4-35158aada650",
+                                  "abd9e173-a901-4796-8d43-3ff125e18f6e",
+                                  "0665ea5f-fe0b-4d0a-b3cb-c76f67edad01",
+                                  "478066be-dd0c-4a9d-b213-c56e055f62a4",
+                                  "753ca8ed-c2c0-4535-ac70-17309851be7c",
+                                  "66fae28d-53bd-49d8-9c0c-c6873f0bda35",
                                 ],
                                 "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
                                 "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
@@ -445,9 +631,9 @@
                                     "transform": {
                                       "type": "HomogeneousMatrix44",
                                       "matrix": [
-                                        [1,0,0,44.553278],
-                                        [0,1,0,12.641426],
-                                        [0,0,1,41.000000],
+                                        [1,0,0,44.153304993373112],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,43.000000],
                                         [0,0,0,1] 
                                       ],
                                       "unit": "latlon"
@@ -478,9 +664,9 @@
                                     "transform": {
                                       "type": "HomogeneousMatrix44",
                                       "matrix": [
-                                        [1,0,0,44.753278],
-                                        [0,1,0,12.841426],
-                                        [0,0,1,41.100000],
+                                        [1,0,0,44.153304993373112],
+                                        [0,1,0,12.241435207135078],
+                                        [0,0,1,43.000000],
                                         [0,0,0,1] 
                                       ],
                                       "unit": "latlon"
@@ -488,20 +674,831 @@
                                   }
                                 ], 	    
                               },
+							  {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "9e1332a3-97ad-4961-b198-259ec2d98f5b",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "abd9e173-a901-4796-8d43-3ff125e18f6e",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
 
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153322988955182],
+                                        [0,1,0,12.241435207135078],
+                                        [0,0,1,43.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",                                           
+                                "id": "6125ebcb-1411-4132-af8b-6abce670f63a",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "0665ea5f-fe0b-4d0a-b3cb-c76f67edad01",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
 
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153322988955182],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,43.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "478066be-dd0c-4a9d-b213-c56e055f62a4",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
 
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153304993373112],
+                                        [0,1,0,12.241435207135078],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "753ca8ed-c2c0-4535-ac70-17309851be7c",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153322988955182],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,43.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "66fae28d-53bd-49d8-9c0c-c6873f0bda35",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153313991164147],
+                                        [0,1,0,12.241462828540314],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
                             ]
-
-
                           },
                         },
 
+                        {
+                          "@childtype": "Child",
+                          "child": {
+                            "@graphtype": "Group",
+                            "id": "8c7c1ded-5635-4f32-9064-9d7a2c9d5516",
+                            "attributes": [
+                              {"key": "name", "value": "house01"},
+                              {"key": "osm:building", "value": "house"},                      
+                            ],
+                            "childs": [
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "21d01a67-44ea-446b-95b5-aebfafdf097c",
+                                  "attributes": [
+                                    {"key": "name", "value": "house01_point01"},
+                                    {"key": "osm:node_id", "value": "3101"},
+                                  ],   	    
+                                }
+                              },
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "c4d23155-5348-4152-b2db-932315ad69d1",
+                                  "attributes": [
+                                    {"key": "name", "value": "house01_point02"},
+                                    {"key": "osm:node_id", "value": "3102"},
+                                  ],   	    
+                                }
+                              },
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "6f16f95e-72d6-42b0-bbc7-8326217ae754",
+                                  "attributes": [
+                                    {"key": "name", "value": "house01_point03"},
+                                    {"key": "osm:node_id", "value": "3103"},
+                                  ],   	    
+                                }
+                              }, 
+                             {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "5638889a-4c0c-4deb-a36a-d921261e6cb2",
+                                  "attributes": [
+                                    {"key": "name", "value": "house01_point04"},
+                                    {"key": "osm:node_id", "value": "3104"},
+                                  ],   	    
+                                }
+                              },                           
+                               ##########
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "62b137a4-4ad4-40a7-8e43-b1dc4c592805",
+                                    "attributes": [
+                                      {"key": "name", "value": "house01_bbox01"},
+                                      {"key": "osm:node_id", "value": "3105"},
+                                    ],   	    
+                                  }
+                               },
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "89bd6c13-8afe-4b85-975d-a83ed487aab5",
+                                    "attributes": [
+                                      {"key": "name", "value": "house01_bbox02"},
+                                      {"key": "osm:node_id", "value": "3106"},
+                                    ],   	    
+                                  }
+                               }, 
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "aa1f464f-5cc5-49a5-9717-5bbae95c8e08",
+                                    "attributes": [
+                                      {"key": "name", "value": "house01_center"},
+                                      {"key": "osm:node_id", "value": "3107"},
+                                    ],   	    
+                                  }
+                               },
+                               ################                                               
+                            ],
+                            "connections": [
+                             {    
+                                "@graphtype": "Connection",
+                                "id": "e4f51d18-b73c-4223-9e13-660feec7d564",
+                                "attributes": [
+                                  {"key": "osm:way_id", "value": "3200"},
+                                  {"key": "osm:building", "value": "house"},
+                                  {"key": "comment", "value": "This Connection defines all points that belong to the wood01. Cf. targetIds"},
+                                ],
+                                "sourceIds": [
+                                ],
+                                "targetIds": [
+                                        "21d01a67-44ea-446b-95b5-aebfafdf097c",
+                                        "c4d23155-5348-4152-b2db-932315ad69d1",
+                                        "6f16f95e-72d6-42b0-bbc7-8326217ae754",
+                                        "5638889a-4c0c-4deb-a36a-d921261e6cb2",
+                                        "62b137a4-4ad4-40a7-8e43-b1dc4c592805",
+                                        "89bd6c13-8afe-4b85-975d-a83ed487aab5",
+                                        "aa1f464f-5cc5-49a5-9717-5bbae95c8e08",
+                                ],
+                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
+                              },
+                              {
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "e1d24ff5-0515-4f70-a1a8-52230c7aedab",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "21d01a67-44ea-446b-95b5-aebfafdf097c",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153260004417923],
+                                        [0,1,0,12.241416792864923],
+                                        [0,0,1,42.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "077a4456-a96c-40b8-b02f-093b55c3a4b3",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "c4d23155-5348-4152-b2db-932315ad69d1",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153260004417923],
+                                        [0,1,0,12.241398378594766],
+                                        [0,0,1,42.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+							  {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "a79e994b-4599-4e4d-bb40-447dfac2186b",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "6f16f95e-72d6-42b0-bbc7-8326217ae754",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153269002208965],
+                                        [0,1,0,12.241398378594766],
+                                        [0,0,1,42.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",                                           
+                                "id": "53e8923e-2517-452a-8178-7e1d3b9bc1ff",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "5638889a-4c0c-4deb-a36a-d921261e6cb2",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153269002208965],
+                                        [0,1,0,12.241416792864923],
+                                        [0,0,1,43.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "62b137a4-4ad4-40a7-8e43-b1dc4c592805",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153260004417923],
+                                        [0,1,0,12.241398378594766],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "89bd6c13-8afe-4b85-975d-a83ed487aab5",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153269002208965],
+                                        [0,1,0,12.241416792864923],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "aa1f464f-5cc5-49a5-9717-5bbae95c8e08",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153264503313444],
+                                        [0,1,0,12.241407585729844],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                            ]
+                          },
+                        },
                                       
                       ]
                     },
-                  },
-              
+                   },
+   
+                   {
+                          "@childtype": "Child",
+                          "child": {
+                            "@graphtype": "Group",
+#                            "id": "8c7c1ded-5635-4f32-9064-9d7a2c9d5516",
+                            "attributes": [
+                              {"key": "name", "value": "mount01"},
+                              {"key": "osm:natural", "value": "mountain"},                      
+                            ],
+                            "childs": [
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "9d30160f-3f04-44b5-98cb-c6fc3dbc9424",
+                                  "attributes": [
+                                    {"key": "name", "value": "mount01_point01"},
+                                    {"key": "osm:node_id", "value": "4101"},
+                                  ],   	    
+                                }
+                              },
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "7163b6a4-63c3-410b-9189-401c3faa922b",
+                                  "attributes": [
+                                    {"key": "name", "value": "mount01_point02"},
+                                    {"key": "osm:node_id", "value": "4102"},
+                                  ],   	    
+                                }
+                              },
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "daeabf09-86f3-4a38-ba81-17a4bedff244",
+                                  "attributes": [
+                                    {"key": "name", "value": "mount01_point03"},
+                                    {"key": "osm:node_id", "value": "4103"},
+                                  ],   	    
+                                }
+                              }, 
+                               ##########
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                "@graphtype": "Node",
+                                    "id": "130c6b29-af20-4574-898d-1880bf45cf5f",
+                                    "attributes": [
+                                      {"key": "name", "value": "mount01_bbox01"},
+                                      {"key": "osm:node_id", "value": "4105"},
+                                    ],   	    
+                                  }
+                               },
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "716f2cfd-cfdb-4720-b214-750a7517bb4f",
+                                    "attributes": [
+                                      {"key": "name", "value": "mount01_bbox02"},
+                                      {"key": "osm:node_id", "value": "4106"},
+                                    ],   	    
+                                  }
+                               }, 
+                               {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "d038b990-079c-4781-a7c6-f9d44bf21712",
+                                    "attributes": [
+                                      {"key": "name", "value": "mount01_center"},
+                                      {"key": "osm:node_id", "value": "4107"},
+                                    ],   	    
+                                  }
+                               },
+                               ################                       
+                                            
+                            ],
+                            "connections": [
+                             {    
+                                "@graphtype": "Connection",
+#                                "id": "8f2d7d06-498f-4dcf-ad24-8c094cf7843f",
+                                "attributes": [
+                                  {"key": "osm:way_id", "value": "4200"},
+                                  {"key": "osm:natural", "value": "mountain"},
+                                  {"key": "comment", "value": "This Connection defines all points that belong to the wood01. Cf. targetIds"},
+                                ],
+                                "sourceIds": [
+                                ],
+                                "targetIds": [
+                                        "9d30160f-3f04-44b5-98cb-c6fc3dbc9424",
+                                        "7163b6a4-63c3-410b-9189-401c3faa922b",
+                                        "daeabf09-86f3-4a38-ba81-17a4bedff244",
+                                        "130c6b29-af20-4574-898d-1880bf45cf5f",
+                                        "716f2cfd-cfdb-4720-b214-750a7517bb4f",
+                                        "d038b990-079c-4781-a7c6-f9d44bf21712",
+                                ],
+                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
+                              },
+                              {
+    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "e1d24ff5-0515-4f70-a1a8-52230c7aedab",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "9d30160f-3f04-44b5-98cb-c6fc3dbc9424",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153233011044819],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,51.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "077a4456-a96c-40b8-b02f-093b55c3a4b3",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "7163b6a4-63c3-410b-9189-401c3faa922b",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153233011044819],
+                                        [0,1,0,12.241444414270157],
+                                        [0,0,1,51.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+							  {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "a79e994b-4599-4e4d-bb40-447dfac2186b",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "daeabf09-86f3-4a38-ba81-17a4bedff244",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153260004417923],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,51.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                             {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "130c6b29-af20-4574-898d-1880bf45cf5f",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153215015462742],
+                                        [0,1,0,12.241453621405235],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "8746f470-62e0-40cb-a8d0-bcc2549cebbb",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "716f2cfd-cfdb-4720-b214-750a7517bb4f",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153260004417923],
+                                        [0,1,0,12.241472035675391],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+#                                "id": "ed32fd38-1f5a-4d80-a899-5080accda322",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "d038b990-079c-4781-a7c6-f9d44bf21712",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153242008835853],
+                                        [0,1,0,12.241462828540314],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },                              
+                            ]
+                          },
+                        }
                                 
                 ]
               },
@@ -512,12 +1509,7 @@
       },
 
     ],
- "connections": [
-   
-   
-
-  
-
-  ]	       	    
+ #"connections": [
+ #  ]	       	    
   }   	    
 }

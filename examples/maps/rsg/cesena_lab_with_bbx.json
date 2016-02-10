@@ -1,0 +1,523 @@
+{    
+  "metamodel": "rsg-core-schema.json",  
+  "@worldmodeltype": "WorldModelAgent",
+  "rootNode": {
+    "@graphtype": "Group",
+    "id": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+    "attributes": [
+      {"key": "name", "value": "world_model_agent"},
+   ],
+    "childs": [
+
+      {
+        "@childtype": "Child",
+        "child": {
+          "@graphtype": "Group",
+          "id": "9c2518e6-afc1-4730-83e2-698e1975aff8",
+          "attributes": [
+            {"key": "name", "value": "swm"},
+            {"key": "comment", "value": "Valid attributes can be found here: https://github.com/blumenthal/sherpa_world_model_knowrob_bridge/blob/master/doc/codebook.md"},
+          ],
+          "childs": [
+       
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "853cb0f0-e587-4880-affe-90001da1262d",
+                "attributes": [
+                  {"key": "gis:origin", "value": "wgs84"},
+                  {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
+                ],
+                "childs": [
+                  
+                                
+                ]
+              },
+            },
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "ab651174-3f8c-4077-a42d-351e5552a5da",
+                "attributes": [
+                  {"key": "name", "value": "objects"},
+                  {"key": "comment", "value": "This Group contains all task relevant objects"}
+                ],
+                "childs": [
+          
+                  {
+                    "@childtype": "Child",
+                    "child": {
+                      "@graphtype": "Group",
+                      "id": "c55be717-70da-45c2-b702-071659f1744c",
+                      "attributes": [
+                        {"key": "name", "value": "animals"},
+                        {"key": "comment", "value": "This Group contains all Sherapa animals"}
+                      ],
+                      "childs": [
+                        {
+                          "@childtype": "Child",
+                          "child": {     
+                              "@graphtype": "Group",
+                              "id": "e8015bd0-2eca-4764-8298-acf81eb987b5",
+                              "attributes": [
+                                {"key": "sherpa:agent_name", "value": "BusyGenius01"},
+                                {"key": "sherpa:agent_name", "value": "bg"},
+                                {"key": "comment", "value": "Both agent names are used as alias here, but we better decide on one way of naming them."},
+                              ],   	    
+                            }
+                          }   
+                                      
+                      ],
+                      "connections": [
+                        {    
+                          "@graphtype": "Connection",
+                          "@semanticContext":"Transform",
+                          "id": "5786dfa2-6e29-40ae-b90b-c81e8d33aa69",
+                          "attributes": [
+                            {"key": "tf:name", "value": "bg_geopose"},
+                            {"key": "tf:type", "value": "wgs84"}
+                          ],
+                          "sourceIds": [
+                            "853cb0f0-e587-4880-affe-90001da1262d",
+                          ],
+                          "targetIds": [
+                            "e8015bd0-2eca-4764-8298-acf81eb987b5",
+                          ],
+                          "history" : [
+                            {
+                              "stamp": {
+                                "@stamptype": "TimeStampUTCms",
+                                "stamp": "0.0",
+                              },
+
+                              "transform": {
+                                "type": "HomogeneousMatrix44",
+                                "matrix": [
+                                  [1,0,0,44.053278],
+                                  [0,1,0,12.041426],
+                                  [0,0,1,39.000000],
+                                  [0,0,0,1] 
+                                ],
+                                "unit": "latlon"
+                              }
+                            }
+                          ], 	    
+                        },
+
+
+
+                      ]
+
+
+                    },
+                  },
+       
+
+                  {
+                    "@childtype": "Child",
+                    "child": {
+                      "@graphtype": "Group",
+                      "id": "c54491a3-0521-4a1d-8d08-3ca3c51a269b",
+                      "attributes": [
+                        {"key": "name", "value": "environment"},
+                        {"key": "comment", "value": "This Group contains the static environment (map)."}
+                      ],
+                      "childs": [
+                    
+
+                        {
+                          "@childtype": "Child",
+                          "child": {
+                            "@graphtype": "Group",
+                            "id": "74f42888-054a-4438-a546-27fe24dd5c7d",
+                            "attributes": [
+                              {"key": "name", "value": "river01"},
+                              {"key": "comment", "value": "This is a logical grouping of all river01 related enteties"},                      
+                            ],
+                            "childs": [
+                              
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "62b701e8-1368-458f-9afd-e796f86bfc7a",
+                                    "attributes": [
+                                      {"key": "name", "value": "river_point01"},
+                                      {"key": "osm:node_id", "value": "100"},
+                                    ],   	    
+                                  }
+                               },
+
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "32b85833-2ff5-49d3-af12-185203b501be",
+                                    "attributes": [
+                                      {"key": "name", "value": "river_point02"},
+                                      {"key": "osm:node_id", "value": "101"},
+                                    ],   	    
+                                  }
+                               },
+
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                    "attributes": [
+                                      {"key": "name", "value": "bbx_river_point_min"},
+                                      {"key": "comment", "value": "This nodes serves as a min value for a geo bounding box."},
+                                    ],   	    
+                                  }
+                               },   
+
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                    "@graphtype": "Node",
+                                    "id": "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                    "attributes": [
+                                      {"key": "name", "value": "bbx_river_point_max"},
+                                      {"key": "comment", "value": "This nodes serves as a max value for a geo bounding box."},
+                                    ],   	    
+                                  }
+                               }  
+                                            
+                            ],
+    
+                            "connections": [
+
+                              {    
+                                "@graphtype": "Connection",
+                                "id": "c1679117-4f0e-4cd5-b6e7-53e46cbaf553",
+                                "attributes": [
+                                  {"key": "osm:way_id", "value": "200"},
+                                  {"key": "osm:waterway", "value": "river"},
+                                  {"key": "comment", "value": "This Connection defines all points that belong to the river01"},
+                                ],
+                                "sourceIds": [
+                                ],
+                                "targetIds": [
+                                  "62b701e8-1368-458f-9afd-e796f86bfc7a",
+                                  "32b85833-2ff5-49d3-af12-185203b501be",
+                                ],
+                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "id": "2c57c271-6a77-49f4-9449-50fc074b5b1f",
+                                "attributes": [
+                                  {"key": "osm:way_ref_id", "value": "200"},
+                                  {"key": "geo:boundary", "value": "has_gis_bbx"},
+                                  {"key": "comment", "value": "This Connection defines two points (min max) that belong to the geo bounding of river01."},
+                                ],
+                                "sourceIds": [
+                                  "74f42888-054a-4438-a546-27fe24dd5c7d"
+                                ],
+                                "targetIds": [
+                                  "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                  "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                ],
+                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "490591e3-e9c3-401a-b1e8-5974fcddf83a",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "62b701e8-1368-458f-9afd-e796f86bfc7a",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.153278],
+                                        [0,1,0,12.241426],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "ab5a5b2e-07a3-4555-b213-91ab29d460dd",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "32b85833-2ff5-49d3-af12-185203b501be",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.353278],
+                                        [0,1,0,12.441426],
+                                        [0,0,1,41.100000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "22e4fee8-3749-4650-8395-69f0317205ff",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "be6eb68a-c29d-4c20-a5a2-67a5b8f1fcc9",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.353278],
+                                        [0,1,0,12.441426],
+                                        [0,0,1,41.100000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "6c860ba3-37ee-49bd-bf5c-c3ee71d797f7",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "9bf1327d-de09-4816-bc05-344d8b4258d7",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.353278],
+                                        [0,1,0,12.441426],
+                                        [0,0,1,41.100000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+
+
+
+                            ]  
+                          },
+                        },
+          
+
+
+                        {
+                          "@childtype": "Child",
+                          "child": {
+                            "@graphtype": "Group",
+                            "id": "50d80d45-c5a5-45b9-8beb-a9691e42861c",
+                            "attributes": [
+                              {"key": "name", "value": "wood01"},
+                              {"key": "osm:natural", "value": "wood"},                      
+                            ],
+                            "childs": [
+                    
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "82a660c7-dfcf-4792-9c7f-aeb73bb3a885",
+                                  "attributes": [
+                                    {"key": "name", "value": "wood_point01"},
+                                    {"key": "osm:node_id", "value": "150"},
+                                  ],   	    
+                                }
+                              },
+                              {
+                                "@childtype": "Child",
+                                "child": {     
+                                  "@graphtype": "Node",
+                                  "id": "799b98ae-9a7b-4869-84a4-35158aada650",
+                                  "attributes": [
+                                    {"key": "name", "value": "wood_point02"},
+                                    {"key": "osm:node_id", "value": "151"},
+                                  ],   	    
+                                }
+                              },                          
+                                            
+                            ],
+                            "connections": [
+
+
+                             {    
+                                "@graphtype": "Connection",
+                                "id": "8f2d7d06-498f-4dcf-ad24-8c094cf7843f",
+                                "attributes": [
+                                  {"key": "osm:way_id", "value": "300"},
+                                  {"key": "osm:natural", "value": "wood"},
+                                  {"key": "comment", "value": "This Connection defines all points that belong to the wood01. Cf. targetIds"},
+                                ],
+                                "sourceIds": [
+                                ],
+                                "targetIds": [
+                                  "82a660c7-dfcf-4792-9c7f-aeb73bb3a885",
+                                  "799b98ae-9a7b-4869-84a4-35158aada650",
+                                ],
+                                "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+                                "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "df4c2de6-9264-4201-ac73-6a367c7ce57f",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "82a660c7-dfcf-4792-9c7f-aeb73bb3a885",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.553278],
+                                        [0,1,0,12.641426],
+                                        [0,0,1,41.000000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+                              {    
+                                "@graphtype": "Connection",
+                                "@semanticContext":"Transform",
+                                "id": "b414ba89-4115-4614-9533-8915a155ee30",
+                                "attributes": [
+                                  {"key": "tf:type", "value": "wgs84"}
+                                ],
+                                "sourceIds": [
+                                  "853cb0f0-e587-4880-affe-90001da1262d",
+                                ],
+                                "targetIds": [
+                                  "799b98ae-9a7b-4869-84a4-35158aada650",
+                                ],
+                                "history" : [
+                                  {
+                                    "stamp": {
+                                      "@stamptype": "TimeStampUTCms",
+                                      "stamp": "0.0",
+                                    },
+
+                                    "transform": {
+                                      "type": "HomogeneousMatrix44",
+                                      "matrix": [
+                                        [1,0,0,44.753278],
+                                        [0,1,0,12.841426],
+                                        [0,0,1,41.100000],
+                                        [0,0,0,1] 
+                                      ],
+                                      "unit": "latlon"
+                                    }
+                                  }
+                                ], 	    
+                              },
+
+
+
+                            ]
+
+
+                          },
+                        },
+
+                                      
+                      ]
+                    },
+                  },
+              
+                                
+                ]
+              },
+            },
+                               
+          ]
+        },
+      },
+
+    ],
+ "connections": [
+   
+   
+
+  
+
+  ]	       	    
+  }   	    
+}
