@@ -48,7 +48,7 @@ function start_wm() -- no particular order assumed here
   ni:b("rsgjsonqueryrunner"):do_start()
   ni:b("rsgdump"):do_start()
   ni:b("zmq_hdf5_publisher"):do_start()
-  ni:b("zmq_hdf5_publisher"):do_start()
+  ni:b("zmq_hdf5_subscriber"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
   ni:b("zmq_json_query_server"):do_start()
