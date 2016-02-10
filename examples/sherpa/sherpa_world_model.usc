@@ -96,6 +96,12 @@ function scene_setup()
   ni:b("scenesetup"):do_step()
 end
 
+-- Trigger full syncronisation. 
+function sync()
+  ni:b("rsghdf5sender"):do_step() -- Robot to Robot
+  ni:b("rsgjsonsender"):do_step() -- Internal Robot (Bridges)
+end
+
 -- This is the entry function that should be called after launch.
 -- This has to be done manually (currently).
 -- Feel free to make further aplication specific adjustments. 
