@@ -3,6 +3,18 @@
 # set up some environtment scripts
 source $FBX_MODULES/env.sh
 
+
+# Retrive software version information to ease debugging.
+echo "Version of BRICS_3D:"
+git --git-dir=${BRICS_3D_DIR}/.git --work-tree=${BRICS_3D_DIR} describe --abbrev=8 --always --dirty
+
+echo "Version of FBX:"
+git --git-dir=${FBX_MODULES}/.git --work-tree=${FBX_MODULES} describe --abbrev=8 --always --dirty
+
+echo "Version of UBX_RSG:"
+git describe --abbrev=8 --always --dirty 
+
+
 # Start the ubx system
 if [ "$1" = "--no-ros" ]; then
   # Version without ROS bridge
