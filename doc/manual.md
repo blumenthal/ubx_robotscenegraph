@@ -170,6 +170,8 @@ Dump the SWM by using the ``dump_wm()`` command then call on another shell:
  ``./latest_rsg_dump_to_pdf.sh``. This will generate a pdf file that can be further
 inspected. All Nodes, Attributes and Connection will be visualized. The ``Transforms``
 only depict the latest translation value (to get a rough idea).  
+
+<img src="rsg_dump_example.png" alt="Example of a World Model Dump."" width="700px">
  
 Check if:
  * Nodes, Connections or Attributes are missing. If yes, definitely check the [status](#status-of-modules) 
