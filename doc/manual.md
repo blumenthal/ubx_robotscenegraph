@@ -1,6 +1,6 @@
 # SHERPA World Model User Manual
 
-The **SHERPA World Model** is a distributed envionment representation for
+The **SHERPA World Model** (SWM) is a distributed envionment representation for
 robots based on the Robot Scene Graph (RSG) data representation.  
 
 This manual describes the following aspects of the world model:
@@ -8,7 +8,8 @@ This manual describes the following aspects of the world model:
  1. The [data model](#data-model)
  2. The [update](#updates) capapilities
  3. The [query](#queries) capapilities 
-
+ 4. World model [debugging](#debugging) techiques
+ 
 ## Data model
 
 The underlying data model is a graph. Nodes can represent physical and virtual 
@@ -156,5 +157,78 @@ The below table with pseudo code illustrates the **queries** on the graph **prim
 
 Examples for using the JSON API to query the graph can be found for [here](../examples/json_api)
 
+## Debugging
 
+This section presents methods to understand if the SWM is working properly.
+It involves to qickly asses *what* is exactly stored and if some particular 
+data is missing *why* is it not stored although it is expected to be there. 
+
+
+### Dump of data model
+
+Dump the SWM by using the ``dump_wm()`` command then call on another shell:
+ ``./latest_rsg_dump_to_pdf.sh``. This will generate a pdf file that can be further
+insepected. All Nodes, Attributes and Connection will be vizualized. The ``Transforms``
+only depict the lates translation value (to get a rough idea).  
+ 
+Check if:
+ * Nodes, Connections or Attributes are missing. If yes, defenetly check the [status](#status-of-modules) 
+   of the modules and the [log](#log-messages) messages. If you are expecting data
+   from another World Model Agent check the connectivity of the network.
+ * Parent-child relations are as expected. 
+ * Connections relation are as expected (source and targed nodes could be swithes). 
+ * Attributes contain typos, are missing or have a wrong namespace prefix. 
+
+### Status of modules
+
+Check if on localahost:8888 the relavant modules are active (green font). Please
+note, the status changes based on the used [terminal](#terminal-commands) commands. When all module 
+are inactive - did you forgot to call ``start_all()``? 
+
+
+### Terminal commands
+
+The typical workflow is to start the SWM and then call ``start_all()`` by typing it into the interactive console and hittin enter.
+There are also other commands available that allow to go step by step. Here the ``start_all()`` is a conveninece function.
+
+| Command        | Description                                                |
+|----------------|------------------------------------------------------------|
+| ``start_wm()`` | Starts all core and communication modules for the SWM.      |
+| ``scene_setup()`` | Loads an RSG-JSON file as specified in the configuration. |
+| ``load_map()`` | Loads an OpenSteedMap based in a file as specified in the configuration. |
+| ``sync()``     | Manually trigger to send the full RSG to all other World Model Agents. |
+| ``start_all()``| Conveninece function that calls per default ``start_wm()`` and ``load_map()`` |
+
+
+### Log messages
+Look for ``[ERROR]`` and ``[WARNING]`` messages printed into the intercative terminal. ``[DEBUG]`` can be mostly ignored. 
+
+
+The debug levels can be configured in the ``sherpa_world_model.usc`` file for 
+most modules by specifying the ``log_level`` variable e.g.
+
+```
+{ name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
+```
+
+Only messages with his level or a higher level are displayed. The possible Log levels are ``DEBUG`` = 0, 
+``INFO`` = 1, ``WARNING`` = 2, ``LOGERROR`` = 3 and ``FATAL`` = 4. The default is ``INFO``. Be aware that 
+the ``DEBUG`` level is very verbose and can cause significant load on a system (in particular on embedded
+ systems like used the SHERPA Wasps).  
+
+
+A rather common WARNING is ``Forced ID`` <some_uuid> ``cannot be assigend``. It
+means there is already a graph primitive with exaxcly that ID so it will be ignored. 
+
+```
+> zmq_receiver: data available.
+D: 16-02-12 10:19:19 [310] {"node": {"attributes": [{"value": "myNode", "key": "name"}, {"value":...
+[WARNING] Forced ID 92cf7a8d-4529-4abd-b174-5fabbdd3068f cannot be assigend. Probably another object with that ID exists already!
+```
+
+This warning is fine when data is received more than once form another Worl Model Agent 
+or if a RSG-JSON or an OpenStreetMap file is (accidentaly) loaded multiple times.
+However, if you are missing a primitive that shpould e.g. loaded from a RSG-JSON
+file it inidcates that there is a mistake in the file. Check if it contains 
+multiple entrys with the same ``id``.
 
