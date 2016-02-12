@@ -170,10 +170,10 @@ robots over a potentially unreliable network.
 The SWM has a mechism that sends the full graph to all other SWMs. It is triggered
 when a new SWM comes "up". An *advertisement* message is send when a new SWM joins.
 It is  also possible to trigger it in case of missing data (but this is not yet implemented).
-For debugging purposes it can be teriggerd manually as well via the ``sync()`` 
+For debugging purposes it can be triggered manually as well via the ``sync()`` 
 [terminal commnad](#terminal-commands).
 
-In all distribution scenarios the World Model Agent must have UUIDs and a communication framework with or 
+In all distribution scenarios all World Model Agents must have UUIDs and a communication framework with or 
 without a Mediator (recommeded) has to be selected.
 
 ### World Model Agent UUIDs
@@ -213,7 +213,7 @@ This is used the default setup:
  +-----------+           +-----------+
 ```
 
-Please note, that the ports ``11411`` and ``11511`` could be indentical as well. Still it is sugested to seperated them
+Please note, that the ports ``11411`` and ``11511`` could be indentical as well. Still it is sugested to seperate them
 because typically tests or deggugging session are carried out on single machine. 
 
 
