@@ -7,8 +7,9 @@ This manual describes the following aspects of the world model:
 
  1. The [data model](#data-model)
  2. The [update](#updates) capapilities
- 3. The [query](#queries) capapilities 
- 4. World model [debugging](#debugging) techiques
+ 3. The [query](#queries) capapilities
+ 4. The [distribution](#distribution) capapilities  
+ 5. World model [debugging](#debugging) techiques
  
 ## Data model
 
@@ -156,6 +157,85 @@ The below table with pseudo code illustrates the **queries** on the graph **prim
 
 
 Examples for using the JSON API to query the graph can be found for [here](../examples/json_api)
+
+## Distribution
+
+The distribution capabilities strive for all SWMs having a **local copy** of the 
+(more or less) same Robot Scene Graph. Technically speaking, every update of
+the SWM, that is the creation of new nodes or an update will be send to all
+other listening SWMs. It can be seen as broadcasting diffs of the world model.
+Here, the *Mediator* is in charge to properly broadcast the data to the other 
+robots over a potentially unreliable network.
+
+The SWM has a mechism that sends the full graph to all other SWMs. It is triggered
+when a new SWM comes "up". An *advertisement* message is send when a new SWM joins.
+It is  also possible to trigger it in case of missing data (but this is not yet implemented).
+For debugging purposes it can be teriggerd manually as well via the ``sync()`` 
+[terminal commnad](#terminal-commands).
+
+In all distribution scenarios the World Model Agent must have UUIDs and a communication framework with or 
+without a Mediator (recommeded) has to be selected.
+
+### World Model Agent UUIDs
+
+Before launching a distributed scenario it has to be ensured that every World Model Agent, thus every SWM 
+has a unique UUID! It can set in the respective section in the ``sherpa_world_mode.usc`` file. 
+
+```
+local worldModelAgentId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
+```
+
+It is also possible to ommit that step and let the World Model Agent automatically generate one.
+Instead of this line:
+```
+wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+```
+use that line:
+```
+wm = rsg.WorldModel() -- Default with auto generated rootId 
+```
+
+TBD: Environment variable. 
+
+### Without Mediator
+
+Each SWM has a ZMQ publisher and a ZMQ subscriber, while the publisher binds/owns the port. 
+I.e. the subscriber has to know where to connect to.
+In order to connect two SWMs each subscriber of a SMW has to connect to the publisher of the other SWM(s).
+
+This is used the default setup:
+
+```
+  SHERPA WM 1 with IP#1   SHERPA WM 2 with IP#2
+ +-----------+           +-----------+
+ | PUB(11411)| -- ZMQ -> | SUB       |
+ | SUB       | <- ZMQ -- | PUB(11511)|
+ +-----------+           +-----------+
+```
+
+Please note, that the ports ``11411`` and ``11511`` could be indentical as well. Still it is sugested to seperated them
+because typically tests or deggugging session are carried out on single machine. 
+
+
+Configuration of SHERPA WM 1
+```
+ local local_ip = "localhost"
+ local local_out_port = "11411"
+ local remote_ip = "IP#2"
+ local remote_out_port = "11511"
+```
+
+Configuration of SHERPA WM 2
+```
+ local local_ip = "localhost"
+ local local_out_port = "11511"
+ local remote_ip = IP#1"
+ local remote_out_port = "11411"
+```
+
+### With Mediator
+
+TBD
 
 ## Debugging
 

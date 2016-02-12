@@ -11,6 +11,7 @@ RSG integration into Microblox (UBX)
  * The [data model](doc/manual.md#data-model)
  * The [update](doc/manual.md#updates) capapilities
  * The [query](doc/manual.md#queries) capapilities 
+ * The [distribution](doc/manual.md#distribution) capapilities  
  * World model [debugging](doc/manual.md#debugging) techiques
 * [Licensing](#licensing)
 
