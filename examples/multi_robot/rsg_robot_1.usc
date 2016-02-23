@@ -58,8 +58,8 @@ function start_wm() -- no particular order assumed here
   ni:b("rsgjsonreciever"):do_start()
   ni:b("rsgjsonqueryrunner"):do_start()
   ni:b("rsgdump"):do_start()
---  ni:b("zmq_hdf5_publisher"):do_start()
---  ni:b("zmq_hdf5_subscriber"):do_start()
+  ni:b("zmq_hdf5_publisher"):do_start()
+  ni:b("zmq_hdf5_subscriber"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
   ni:b("zmq_json_query_server"):do_start()
@@ -135,6 +135,7 @@ local local_json_in_port = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT", "12911")
 local local_json_out_port = getEnvWithDefault("SWM_LOCAL_JSON_OUT_PORT", "12912")
 local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22422")
 
+local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
 
 return bd.system
   {
@@ -212,11 +213,11 @@ return bd.system
 
     connections = {
       -- ZMQ
-      { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer1" },
+      { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer1" },
       { src="bytestreambuffer1", tgt="zmq_hdf5_publisher.zmq_out" },
 
       { src="zmq_hdf5_subscriber.zmq_in", tgt="bytestreambuffer2" },
-      { src="bytestreambuffer2", tgt="rsghdf5receiver.rsg_in" },
+      { src="bytestreambuffer2", tgt="rsgjsonreciever.rsg_in" },
 
       -- ROS (iblock)
       --{ src="zmq_hdf5_publisher.zmq_in", tgt="visualization_publisher" },
@@ -264,7 +265,7 @@ return bd.system
         } 
       },
       { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
-      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2, enable_input_filter = 0 } },
+      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2, enable_input_filter = enable_input_filter } },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
@@ -295,7 +296,7 @@ return bd.system
           trig_blocks={ 
 --            { b="#rsghdf5receiver", num_steps=1, measure=0 }, 
             { b="#rsgjsonreciever", num_steps=1, measure=0 },
---            { b="#zmq_hdf5_publisher", num_steps=1, measure=0 },
+            { b="#zmq_hdf5_publisher", num_steps=1, measure=0 },
             { b="#zmq_json_publisher", num_steps=1, measure=0 },
 --            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },  
             { b="#ros_json_publisher", num_steps=1, measure=0 },   
