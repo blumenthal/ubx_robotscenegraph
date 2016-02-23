@@ -1,46 +1,144 @@
--- This system works in conjunction with the AndroidRSGDemoZMQ[1] app for 
--- Android. Both the app and this UBX system have a "World Model Agent (WMA)"
--- i.e. in this case single instance of the Robot Scene Graph (RSG). Both 
--- use HDF5 for encoding and decoding. ZMQ is used as network layer.
--- Each update on the RSG is porpageted to the other WMA and vice versa.
+-- This system coposition relizes a SHERPA World Model for a
+-- single robot. Each robot deploys one such SHERPA World Model 
+-- (potentially in slightly varing compositons).
+-- 
+-- This system uses ZMQ bridges to communicate with multiple
+-- SHERPA World Models. Though, the communiation layer can be replaced
+-- by adopting this composition file.
+-- 
+-- Overview:
+--           +-----------+           +-----------+
+--   ROS <-> | SHERPA WM | <- ZMQ -> | SHERPA WM | <-> ROS
+--   ZMQ <-> |           |           |           | <-> ZMQ
+--           +-----------+           +-----------+
 --
--- The tablet has GUI elemts to update its WMA, while the UBX system has 
--- a scene setup block that performs an update whenever the setep function is
--- triggered.
---  
--- [1] https://github.com/blumenthal/brics_3d_jni/tree/master/examples/AndroidRSGDemoZMQ
+-- To some extend the SHERPA World Model can be seem as a proxy of
+-- the application wide world model.
+--
+-- The SHERPA World Model can be accessd by 
+-- (a) embedding a World Model Agent (C++ library) into the comontent of ineterest or
+-- (b) by use of approprite bridges. En example of a bridge that transforms
+--     to ROS TF frames can be foind in [1].
+-- (c) the JSON API for CRUD operations
+--
+-- [1] https://github.com/blumenthal/sherpa_world_model_tf_bridge 
 
 local rsg = require("rsg")
 
--- create in inctance of the RSG to serve as world model agent 
-wm = rsg.WorldModel()
-
-function start_all() -- non particular order assumed her
-    ni:b("rsgsender"):do_start()
-    ni:b("rsgreciever"):do_start()
-    ni:b("publisher"):do_start()
-    ni:b("subscriber"):do_start()
-    ni:b("bytestreambuffer1"):do_start()
-    ni:b("bytestreambuffer2"):do_start()
-    ni:b("coodination_subscriber"):do_start()
-    ni:b("motion_coordinator1"):do_start()
-    ni:b("fmpc_wm"):do_start()
-    ni:b("fmpc_dummy"):do_init()
-    ni:b("fmpc_dummy"):do_start()
-    ni:b("cyclic_io_trigger"):do_start()
+-- Util funtion to get environment variables with default values incase they are not defined
+function getEnvWithDefault(variableName, defaultValue)
+  local envVariable = os.getenv(variableName)
+  if envVariable == nil then
+    print("ENV variable " .. variableName .. " is not set. Using default value = " .. defaultValue)
+    return defaultValue
+  end
+  print("ENV variable " .. variableName .. " is set = " .. envVariable) 
+  return envVariable    
 end
 
-local tablet_ip = "192.168.1.100"
-local tablet_out_port = "11411"
-local tablet_coordination_port = "22422"
-local robot_1_ip = "localhost"   
-local robot_1_out_port = "11511"
-local robot_2_ip = "localhost"   -- this is me
-local robot_2_out_port = "11611" -- this is me
+-- create an inctance of the RSG to serve as World Model Agent for the robot 
+local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
+wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+--wm = rsg.WorldModel() -- Defualt with auto generated rootId
+local rootId = wm:getRootId()
+print("World Model Agent has root Id = " .. rootId)
+--wm:addNodeAttribute(rootId, "name", "robot_1");
+--wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
+wm:setLogLevel(0)
+
+
+-- Below is a set of functions that can be called at runtime by 
+-- typing them into the command line intetface.
+
+-- Convenience function to start the system in on shot
+function start_wm() -- no particular order assumed here
+--  ni:b("rsghdf5sender"):do_start()
+--  ni:b("rsghdf5receiver"):do_start()
+  ni:b("rsgjsonsender"):do_start()
+  ni:b("rsgjsonreciever"):do_start()
+  ni:b("rsgjsonqueryrunner"):do_start()
+  ni:b("rsgdump"):do_start()
+--  ni:b("zmq_hdf5_publisher"):do_start()
+--  ni:b("zmq_hdf5_subscriber"):do_start()
+  ni:b("zmq_json_publisher"):do_start()
+  ni:b("zmq_json_subscriber"):do_start()
+  ni:b("zmq_json_query_server"):do_start()
+--  ni:b("ros_hdf5_publisher"):do_start()
+--  ni:b("ros_hdf5_subscriber"):do_start()
+  ni:b("ros_json_publisher"):do_start()
+  ni:b("ros_json_subscriber"):do_start()
+  ni:b("bytestreambuffer1"):do_start()
+  ni:b("bytestreambuffer2"):do_start()
+  ni:b("bytestreambuffer3"):do_start()
+  ni:b("bytestreambuffer4"):do_start()
+  ni:b("bytestreambuffer5"):do_start()
+  ni:b("bytestreambuffer6"):do_start()
+  ni:b("bytestreambuffer7"):do_start()
+  ni:b("bytestreambuffer8"):do_start()
+  ni:b("bytestreambuffer_query_req"):do_start()
+  ni:b("bytestreambuffer_query_rep"):do_start()
+  ni:b("cyclic_io_trigger"):do_start() 
+--  ni:b("dbg_hexdump"):do_init()  
+--  ni:b("dbg_hexdump"):do_start()   
+end
+
+-- Created as single dump of the RSG. It is stored on a dot file
+-- and can be converted to e.g. pdf files
+function dump_wm()
+  ni:b("rsgdump"):do_step()
+end
+
+-- depricated
+function start_viz()
+  ni:b("visualization_publisher"):do_start()
+end
+
+-- Load an Open Street Map based on the osmloader function block.
+-- Cf. "configurations" section below to configure the file that will be loaded.
+function load_map()
+  ni:b("osm"):do_start()
+  ni:b("osm"):do_step()
+end
+
+-- Loads a scene sceen setup based on a json file.
+-- Cf. "configurations" section below to configure the file that will be loaded.
+function scene_setup()
+  ni:b("scenesetup"):do_start()
+  ni:b("scenesetup"):do_step()
+end
+
+-- Trigger full syncronisation. 
+function sync()
+  ni:b("rsghdf5sender"):do_step() -- Robot to Robot
+  ni:b("rsgjsonsender"):do_step() -- Internal Robot (Bridges)
+end
+
+-- This is the entry function that should be called after launch.
+-- This has to be done manually (currently).
+-- Feel free to make further aplication specific adjustments. 
+function start_all()
+--  scene_setup()
+  load_map()
+  start_wm()
+end
+
+
+
+-- Communication configuration with reasonable default values. Can be adapted here or 
+-- be setting the respective environment variable.
+local local_ip = getEnvWithDefault("SWM_LOCAL_IP", "localhost")  
+local local_out_port = getEnvWithDefault("SWM_LOCAL_OUT_PORT", "11411") 
+local remote_ip = getEnvWithDefault("SWM_REMOTE_IP", "127.0.0.1") 
+local remote_out_port = getEnvWithDefault("SWM_REMOTE_OUT_PORT", "11511")
+local local_json_ip = getEnvWithDefault("SWM_LOCAL_JSON_IP", "127.0.0.1")
+local local_json_in_port = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT", "12911")
+local local_json_out_port = getEnvWithDefault("SWM_LOCAL_JSON_OUT_PORT", "12912")
+local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22422")
+
 
 return bd.system
-{
-   imports = {
+  {
+    imports = {
       "std_types/stdtypes/stdtypes.so",
       "std_blocks/ptrig/ptrig.so",
       "std_blocks/lfds_buffers/lfds_cyclic.so",
@@ -49,93 +147,170 @@ return bd.system
       "std_blocks/hexdump/hexdump.so",
       "blocks/zmqreceiverlib.so",
       "blocks/zmqsenderlib.so",
+      "blocks/zmqserverlib.so",
       "types/rsg_types.so",  
       "blocks/rsgrecieverlib.so",
+      "blocks/rsgjsonrecieverlib.so",
       "blocks/rsgsenderlib.so",
+      "blocks/rsgjsonsenderlib.so",
+      "blocks/rsgjsonquerylib.so",
       "blocks/rsgscenesetuplib.so",
+      "blocks/rsgdumplib.so",
+      
+      -- iblock based ROS bridge
       "blocks/irospublisher.so",
-      "blocks/fmpcwmlib.so",
-      "blocks/fmpcmockuplib.so",
---      "blocks/luacoordinatorlib.so", -- therea are couple of issues while reading config files; so we ues the one below instaed:
-      "blocks/motioncoordinatorlib.so"
-   },
 
-   blocks = {
-      { name="rsgsender", type="rsg_sender" }, 
-      { name="rsgreciever", type="rsg_reciever" },
-      { name="publisher", type="zmq_sender" },
-      { name="subscriber", type="zmq_receiver" },
+      -- cblock based ROS bridge
+      "blocks/rossenderlib.so",
+      "blocks/rosreceiverlib.so",
+
+      "blocks/osmloader.so"
+    },
+
+    blocks = {
+      { name="rsghdf5sender", type="rsg_sender" }, 
+      { name="rsghdf5receiver", type="rsg_reciever" },
+      { name="rsgjsonsender", type="rsg_json_sender" },
+      { name="rsgjsonreciever", type="rsg_json_reciever" },
+      { name="rsgjsonqueryrunner", type="rsg_json_query" },
+      { name="zmq_hdf5_publisher", type="zmq_sender" },
+      { name="zmq_hdf5_subscriber", type="zmq_receiver" },
+      { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
+      { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
+      { name="zmq_json_query_server", type="zmq_server" },
+      { name="ros_hdf5_publisher", type="ros_sender" },
+      { name="ros_hdf5_subscriber", type="ros_receiver" },
+      { name="ros_json_publisher", type="ros_sender" },
+      { name="ros_json_subscriber", type="ros_receiver" },
       { name="scenesetup", type="rsg_scene_setup" },
+      { name="rsgdump", type="rsg_dump" },
       -- we have to explicitly configure the buffers for large message sized (cf. config setion)
+      -- ZMQ
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      -- ROS
+      { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer7",type="lfds_buffers/cyclic_raw" }, 
+      { name="bytestreambuffer8",type="lfds_buffers/cyclic_raw" },
+      -- ZMQ/Zyre
+      { name="bytestreambuffer5",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer6",type="lfds_buffers/cyclic_raw" },
+
+      -- JSON based queries to WM
+      { name="bytestreambuffer_query_req",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer_query_rep",type="lfds_buffers/cyclic_raw" },
+
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
       { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
-      { name="coodination_subscriber", type="zmq_receiver" },
-      { name="fmpc_wm", type="fmpc_world_model" },
-      { name="fmpc_dummy", type="fmpc_mockup" },
-      { name="hexdump1", type="hexdump/hexdump" },
-      --{ name = "motion_coordinator", type="lua/lua_coordinator" }
-      { name = "motion_coordinator1", type="motion_coordinator" }
 
-   },
-   
-   connections = {
-      { src="rsgsender.rsg_out", tgt="bytestreambuffer1" },
-      { src="bytestreambuffer1", tgt="publisher.zmq_out" },
-                  
-      { src="subscriber.zmq_in", tgt="bytestreambuffer2" },
-      { src="bytestreambuffer2", tgt="rsgreciever.rsg_in" },
+      { name = "osm", type="osmloader/osmloader" },
       
-      { src="subscriber.zmq_in", tgt="visualization_publisher" },
-      { src="rsgsender.rsg_out", tgt="visualization_publisher" },
-      
-      { src="fmpc_wm.fmpc_virtual_fence", tgt="hexdump1" },
-      { src="fmpc_wm.fmpc_virtual_fence", tgt="fmpc_dummy.fmpc_virtual_fence" },
-      { src="fmpc_wm.fmpc_obstacle", tgt="fmpc_dummy.fmpc_obstacle" },
-      { src="fmpc_wm.fmpc_goal_pose", tgt="fmpc_dummy.fmpc_goal_pose" },
-      { src="fmpc_dummy.fmpc_robot_pose", tgt="fmpc_wm.fmpc_robot_pose" }, -- not yet handeled
-      
-      { src="coodination_subscriber.zmq_in", tgt="motion_coordinator1.cmd_in" },
+      -- Debug
+      { name = "dbg_hexdump", type="hexdump/hexdump" }
+    },
 
-   },
-   
-   configurations = {
-    { name="rsgsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, dot_name_prefix = "robot_2" } },
-    { name="rsgreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm} } },
-    { name="publisher", config = { connection_spec="tcp://*:" .. robot_2_out_port } },
-    -- The IP for the subscriber has to come from the Android device. 
-    -- Use the WiFi setting menue to obtain it.
-    -- Per default the tablet will publish to port 11411 (and listen to 11511)
-    { name="subscriber", config = { connection_spec= "tcp://" .. robot_1_ip .. ":" .. robot_1_out_port  } }, 
-    { name="coodination_subscriber", config = { connection_spec= "tcp://" .. tablet_ip .. ":" ..tablet_coordination_port  } },  
-    { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm} } },
-    { name="bytestreambuffer1", config = { element_num=10 , element_size=20000 } },
-    { name="bytestreambuffer2", config = { element_num=10 , element_size=20000 } },
-    { name="cyclic_io_trigger", 
-      config = { 
-      period = {sec=0, usec=100000 }, 
-        trig_blocks={ 
-          { b="#rsgreciever", num_steps=1, measure=0 },
-          { b="#publisher", num_steps=1, measure=0 },
-          --{ b="#rsgsender", num_steps=1, measure=0 },
-          { b="#motion_coordinator1", num_steps=1, measure=0 },  
-          { b="#fmpc_wm", num_steps=1, measure=0 },
-          { b="#fmpc_dummy", num_steps=1, measure=0 },      
+    connections = {
+      -- ZMQ
+      { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer1" },
+      { src="bytestreambuffer1", tgt="zmq_hdf5_publisher.zmq_out" },
+
+      { src="zmq_hdf5_subscriber.zmq_in", tgt="bytestreambuffer2" },
+      { src="bytestreambuffer2", tgt="rsghdf5receiver.rsg_in" },
+
+      -- ROS (iblock)
+      --{ src="zmq_hdf5_publisher.zmq_in", tgt="visualization_publisher" },
+      --{ src="rsghdf5sender.rsg_out", tgt="visualization_publisher" },
+      { src="rsgjsonsender.rsg_out", tgt="visualization_publisher" },
+
+      -- ROS (clbock) 
+      { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer3" },
+      { src="bytestreambuffer3", tgt="ros_hdf5_publisher.ros_out" }, 
+      { src="ros_hdf5_subscriber.ros_in", tgt="bytestreambuffer4" },
+      { src="bytestreambuffer4", tgt="rsghdf5receiver.rsg_in" },
+
+      { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer7" },
+      { src="bytestreambuffer7", tgt="ros_json_publisher.ros_out" }, 
+      { src="ros_json_subscriber.ros_in", tgt="bytestreambuffer8" },
+      { src="ros_json_subscriber.ros_in", tgt="dbg_hexdump" }, --DBG
+      { src="bytestreambuffer8", tgt="rsgjsonreciever.rsg_in" },
+
+
+      -- ZMQ/Zyre
+      { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer5" },
+      { src="bytestreambuffer5", tgt="zmq_json_publisher.zmq_out" },
+      
+      { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
+      { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
+
+      -- ZMQ REQ-REP server and JSON query runner
+      { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
+--      { src="zmq_json_query_server.zmq_req", tgt="dbg_hexdump" }, --DBG
+      { src="bytestreambuffer_query_req", tgt="rsgjsonqueryrunner.rsq_query" },
+      { src="rsgjsonqueryrunner.rsg_result", tgt="bytestreambuffer_query_rep" },
+      { src="bytestreambuffer_query_rep", tgt="zmq_json_query_server.zmq_rep" },
+
+
+    },
+
+    configurations = {
+      { name="rsghdf5sender", 
+        config =  { 
+          wm_handle={wm = wm:getHandle().wm}, 
+          store_dot_files = 0, -- handling of dot files gets bulky for bigger scenes like a complete OSM map. 
+          store_history_as_dot_files = 0, 
+          dot_name_prefix = "sherpa_wm",
+          log_level = 2 
         } 
-      } 
-    },  
-    { name="visualization_publisher", config = { topic_name="world_model/update_stream" } },
-    { name="fmpc_wm", config =  { wm_handle={wm = wm:getHandle().wm} } },
-    
-    { name="motion_coordinator1", 
-      config = { 
-        trig_blocks={ 
-          { b="#fmpc_wm", num_steps=1, measure=0 },
-          { b="#fmpc_dummy", num_steps=2, measure=0 },  
+      },
+      { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
+      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2, enable_input_filter = 1 } },
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
+      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
+      { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
+      { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
+      { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
+      { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
+      { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
+      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
+      { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
+      { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
+      { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
+      --  trig_blocks={ { b="#rsghdf5receiver", num_steps=1, measure=0 } } } },            
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="examples/maps/rsg/cesena_lab.json" } },
+      { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm} } },
+      { name="bytestreambuffer1", config = { element_num=6000 , element_size=20000 } },
+      { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer4", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer5", config = { element_num=5000 , element_size=20000 } },
+      { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer7", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer8", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=90000 } },
+      { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=90000 } },
+      { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
+        config = { 
+          period = {sec=0, usec=100 }, 
+          trig_blocks={ 
+--            { b="#rsghdf5receiver", num_steps=1, measure=0 }, 
+            { b="#rsgjsonreciever", num_steps=1, measure=0 },
+--            { b="#zmq_hdf5_publisher", num_steps=1, measure=0 },
+            { b="#zmq_json_publisher", num_steps=1, measure=0 },
+--            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },  
+            { b="#ros_json_publisher", num_steps=1, measure=0 },   
+            { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
+            { b="#zmq_json_query_server", num_steps=1, measure=0 },        
+          --{ b="#rsghdf5sender", num_steps=1, measure=0 },              
+          } 
         } 
-      }      
-    },    
-        
-   },
+      },  
+      { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
+
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
+     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
+     { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
+    },
 }
