@@ -9,6 +9,8 @@
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/HDF5UpdateDeserializer.h>
 #include <brics_3d/worldModel/sceneGraph/JSONDeserializer.h>
+#include <brics_3d/worldModel/sceneGraph/SemanticContextUpdateFilter.h>
+#include <brics_3d/worldModel/sceneGraph/UpdatesToSceneGraphListener.h>
 #include <brics_3d/worldModel/sceneGraph/RemoteRootNodeAutoMounter.h>
 
 using namespace brics_3d;
@@ -29,6 +31,8 @@ struct rsg_json_reciever_info
 		brics_3d::WorldModel* wm;
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::JSONDeserializer* wm_deserializer;
+		brics_3d::rsg::SemanticContextUpdateFilter* wm_input_filter; // optional
+		brics_3d::rsg::UpdatesToSceneGraphListener* wm_updates_to_wm; // optional
 		brics_3d::rsg::RemoteRootNodeAutoMounter* wm_auto_mounter;
 
         /* this is to have fast access to ports for reading and writing, without
@@ -77,6 +81,22 @@ int rsg_json_reciever_init(ubx_block_t *b)
     		inf->wm = new brics_3d::WorldModel();
         }
 
+        bool inputFilterIsEnabled = false;
+        int* enable_input_filter =  ((int*) ubx_config_get_data_ptr(b, "enable_input_filter", &clen));
+        if(clen == 0) {
+        	LOG(INFO) << "rsg_json_reciever: No enable_input_filter configuation given. Turned off by default.";
+        } else {
+        	if (*enable_input_filter == 1) {
+        		LOG(INFO) << "rsg_json_reciever: enable_input_filter turned on.";
+        		inputFilterIsEnabled = true;
+        	} else {
+        		LOG(INFO) << "rsg_json_reciever: enable_input_filter turned off.";
+        		inputFilterIsEnabled = true;
+        	}
+        }
+        LOG(INFO) << "rsg_json_reciever: enable_input_filter = " << inputFilterIsEnabled;
+
+
         /* Attach debug graph printer */
         inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
         inf->wm_printer->setFileName("ubx_current_replica_graph");
@@ -86,7 +106,20 @@ int rsg_json_reciever_init(ubx_block_t *b)
     	inf->wm->scene.attachUpdateObserver(inf->wm_auto_mounter);
 
         /* Attach deserializer (invoked at step function) */
-        inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm);
+    	if(inputFilterIsEnabled) {
+    		inf->wm_input_filter = new brics_3d::rsg::SemanticContextUpdateFilter (&inf->wm->scene); // handle use for queries
+    		inf->wm_updates_to_wm = new brics_3d::rsg::UpdatesToSceneGraphListener();
+    		inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);
+    		inf->wm_input_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
+    		std::string semanticContextIdentifier = "osm";
+    		inf->wm_input_filter->setNameSpaceIdentifier(semanticContextIdentifier);
+    		LOG(INFO) << "rsg_json_reciever: filter enabled for semantic context identifier = " << semanticContextIdentifier;
+            inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm, inf->wm_input_filter); // Make the deserializer to call update on the filter
+    	} else {
+    		inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm);
+    		inf->wm_input_filter = 0;
+    		inf->wm_updates_to_wm = 0;
+    	}
 
         /* Setup input buffer for JSON messages */
         inf->hdf_5_input_buffer_size = *((uint32_t*) ubx_config_get_data_ptr(b, "buffer_len", &clen));
@@ -149,7 +182,15 @@ void rsg_json_reciever_stop(ubx_block_t *b)
 /* cleanup */
 void rsg_json_reciever_cleanup(ubx_block_t *b)
 {
-        struct rsg_json_reciever_info *inf = (struct rsg_json_reciever_info*) b->private_data;
+		struct rsg_json_reciever_info *inf = (struct rsg_json_reciever_info*) b->private_data;
+		if(inf->wm_input_filter != 0) {
+			delete inf->wm_input_filter;
+			inf->wm_input_filter = 0;
+		}
+		if(inf->wm_updates_to_wm != 0){
+			delete inf->wm_updates_to_wm;
+			inf->wm_updates_to_wm = 0;
+		}
         free(inf->hdf_5_input_buffer);
         free(b->private_data);
 }
