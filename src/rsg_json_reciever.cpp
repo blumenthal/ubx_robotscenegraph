@@ -91,7 +91,7 @@ int rsg_json_reciever_init(ubx_block_t *b)
         		inputFilterIsEnabled = true;
         	} else {
         		LOG(INFO) << "rsg_json_reciever: enable_input_filter turned off.";
-        		inputFilterIsEnabled = true;
+        		inputFilterIsEnabled = false;
         	}
         }
         LOG(INFO) << "rsg_json_reciever: enable_input_filter = " << inputFilterIsEnabled;
