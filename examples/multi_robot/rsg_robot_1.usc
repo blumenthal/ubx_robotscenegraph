@@ -60,6 +60,7 @@ function start_wm() -- no particular order assumed here
   ni:b("rsgdump"):do_start()
   ni:b("zmq_hdf5_publisher"):do_start()
   ni:b("zmq_hdf5_subscriber"):do_start()
+  ni:b("zmq_hdf5_subscriber_secondary"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
   ni:b("zmq_json_query_server"):do_start()
@@ -135,6 +136,10 @@ local local_json_in_port = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT", "12911")
 local local_json_out_port = getEnvWithDefault("SWM_LOCAL_JSON_OUT_PORT", "12912")
 local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22422")
 
+-- this is special for 3 x 3 robot set up
+local remote_ip_secondary = getEnvWithDefault("SWM_REMOTE_IP_SECONDARY", "127.0.0.1") 
+local remote_out_port_secondary = getEnvWithDefault("SWM_REMOTE_OUT_PORT_SECONDARY", "11611")
+
 local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
 
 return bd.system
@@ -176,6 +181,7 @@ return bd.system
       { name="rsgjsonqueryrunner", type="rsg_json_query" },
       { name="zmq_hdf5_publisher", type="zmq_sender" },
       { name="zmq_hdf5_subscriber", type="zmq_receiver" },
+      { name="zmq_hdf5_subscriber_secondary", type="zmq_receiver" },
       { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
       { name="zmq_json_query_server", type="zmq_server" },
@@ -189,6 +195,7 @@ return bd.system
       -- ZMQ
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer9",type="lfds_buffers/cyclic_raw" },
       -- ROS
       { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
@@ -218,6 +225,8 @@ return bd.system
 
       { src="zmq_hdf5_subscriber.zmq_in", tgt="bytestreambuffer2" },
       { src="bytestreambuffer2", tgt="rsgjsonreciever.rsg_in" },
+      { src="zmq_hdf5_subscriber_secondary.zmq_in", tgt="bytestreambuffer9" },
+      { src="bytestreambuffer9", tgt="rsgjsonreciever.rsg_in" },
 
       -- ROS (iblock)
       --{ src="zmq_hdf5_publisher.zmq_in", tgt="visualization_publisher" },
@@ -270,6 +279,7 @@ return bd.system
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
+      { name="zmq_hdf5_subscriber_secondary", config = { connection_spec= "tcp://" .. remote_ip_secondary .. ":" .. remote_out_port_secondary  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
@@ -288,6 +298,7 @@ return bd.system
       { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer7", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer8", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer9", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=90000 } },
       { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
