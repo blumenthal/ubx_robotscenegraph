@@ -3,6 +3,8 @@
 # set up some environtment scripts
 source $FBX_MODULES/env.sh
 
+export SWM_WMA_NAME=hmi
+export SWM_WMA_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1
 
 # configure ports
 # reassign JSON ports 
