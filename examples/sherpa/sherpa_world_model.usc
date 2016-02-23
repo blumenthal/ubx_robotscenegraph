@@ -25,8 +25,19 @@
 
 local rsg = require("rsg")
 
+-- Util funtion to get environment variables with default values incase they are not defined
+function getEnvWithDefault(variableName, defaultValue)
+  local envVariable = os.getenv(variableName)
+  if envVariable == nil then
+    print("ENV variable " .. variableName .. " is not set. Using default value = " .. defaultValue)
+    return defaultValue
+  end
+  print("ENV variable " .. variableName .. " is set = " .. envVariable) 
+  return envVariable    
+end
+
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
-local worldModelAgentId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
+local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
 wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
 --wm = rsg.WorldModel() -- Defualt with auto generated rootId
 local rootId = wm:getRootId()
@@ -111,17 +122,17 @@ function start_all()
   start_wm()
 end
 
--- Communication configuration 
 
-local local_ip = "localhost"   
-local local_out_port = "11411" 
---local remote_ip = "192.168.1.103" 
---local remote_ip = "192.168.10.226 " -- Samsung Tablet @ robolab
-local remote_ip = "127.0.0.1" 
-local remote_out_port = "11511"
-local local_json_ip = "127.0.0.1"
-local local_json_in_port = "12911"
-local local_json_out_port = "12912"
+
+-- Communication configuration with reasonable default values. Can be adapted here or 
+-- be setting the respective environment variable.
+local local_ip = getEnvWithDefault("SWM_LOCAL_IP", "localhost")  
+local local_out_port = getEnvWithDefault("SWM_LOCAL_OUT_PORT", "11411") 
+local remote_ip = getEnvWithDefault("SWM_REMOTE_IP", "127.0.0.1") 
+local remote_out_port = getEnvWithDefault("SWM_REMOTE_OUT_PORT", "11511")
+local local_json_ip = getEnvWithDefault("SWM_LOCAL_JSON_IP", "127.0.0.1")
+local local_json_in_port = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT", "12911")
+local local_json_out_port = getEnvWithDefault("SWM_LOCAL_JSON_OUT_PORT", "12912")
 
 
 return bd.system
