@@ -122,6 +122,7 @@ function start_all()
   scene_setup()
 --  load_map()
   start_wm()
+  dump_wm()
 end
 
 
