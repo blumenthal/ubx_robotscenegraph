@@ -17,6 +17,8 @@ class Sherpa_Actor(Thread):
     def __init__(self, port, root_uuid, name, send_freq, max_vel, curr_pose, goal_pose):
         Thread.__init__(self)
         self.active = True
+        
+        #TODO: make stuff optional
 
         self.port = port #"22422"
         self.root_uuid = root_uuid #"853cb0f0-e587-4880-affe-90001da1262d"
@@ -105,22 +107,36 @@ class Sherpa_Actor(Thread):
  
     def shutdown(self):
         self.active = False
-        print "["+self.rob_name+"]: Received shut down"
+        print "[{}]: Received shut down".format(self.rob_name)
         
     def set_goal(self,new_goal):
         # check of new_goal is a 4x4 matrix
         if (not len(new_goal) == 4) or (not len(new_goal[0]) == 4):
-            print "["+self.rob_name+"]: new goal is not a 4x4 matrix"
+            print "[{}]: new goal is not a 4x4 matrix".format(self.rob_name)
             return
         # should also check if proper matrix
         self.goal_pose = new_goal
-        print "["+self.rob_name+"]: Changed goal pose to"
+        print "[{}]: Changed goal pose to".format(self.rob_name)
         print self.goal_pose
         
     def victim_found(self):
-        print "["+self.rob_name+"]: Found a victim"
+        print "[{}]: Found a victim".format(self.rob_name)
         #TODO: createa apropriate msg
-
+        
+    def set_send_freq(self,freq):
+        if (not isinstance( freq, ( int, long ) ) ):
+            print "[{}]: Frequency is not an integer".format(self.rob_name)
+            return
+        self.send_freq = freq
+        print "[{}]: changed send_frequency to {}".format(self.rob_name, freq)
+        
+    def set_max_vel(self,max_vel):
+        if (not isinstance( max_vel, float ) ):
+            print "[{}]: Max velocity is not a float".format(self.rob_name)
+            return
+        self.max_vel = max_vel
+        print "[{}]: changed max velocity to {}".format(self.rob_name, max_vel)
+        
     def run(self):
         while (self.active):
             # calculate difference between current and goal pos
