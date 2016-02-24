@@ -17,10 +17,11 @@ class Sherpa_Actor(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.active = True
+        self.scene_setup_is_done = False
         self.port = uav_update_port
-        self.root_uuid = "853cb0f0-e587-4880-affe-90001da1262d"
+        self.root_uuid = "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
         self.rob_name = "robot"
-        self.send_freq = 10 #in Hz
+        self.send_freq = 1 #in Hz
         self.max_vel = 0.001 # max velocity factor of robot
         self.current_pose = [
                         [1,0,0,45.84561555807046],
@@ -43,74 +44,76 @@ class Sherpa_Actor(Thread):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
         self.socket.bind("tcp://*:%s" % self.port)
-        
-        # create origin node as subgroup of root
-        newOriginMsg = {
-          "@worldmodeltype": "RSGUpdate",
-          "operation": "CREATE",
-          "node": {
-            "@graphtype": "Node",
-            "id": self.origin_uuid,
-            "attributes": [
-              {"key": "gis:origin", "value": "wgs84"},
-              {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
-            ],
-        
-          },
-          "parentId": self.root_uuid,
-        }
-        self.socket.send_string(json.dumps(newOriginMsg))
-        
-        # create robot node
-        newNodeMsg = {
-          "@worldmodeltype": "RSGUpdate",
-          "operation": "CREATE",
-          "node": {
-            "@graphtype": "Node",
-            "id": self.rob_uuid, 
-            "attributes": [
-                  {"key": "name", "value": self.rob_name},
-            ],
-          },
-          "parentId": self.root_uuid,
-        }
-        self.socket.send_string(json.dumps(newNodeMsg))  
-        
-        # create transform for initial condition of robot
-        newTransformMsg = {
-          "@worldmodeltype": "RSGUpdate",
-          "operation": "CREATE",
-          "node": {
-            "@graphtype": "Connection",
-            "@semanticContext":"Transform",
-            "id": self.tranform_origin_rob_uuid,
-            "attributes": [
-              {"key": "tf:type", "value": "wgs84"}
-            ],
-            "sourceIds": [
-              self.origin_uuid,
-            ],
-            "targetIds": [
-              self.rob_uuid,
-            ],
-            "history" : [
-              {
-                "stamp": {
-                  "@stamptype": "TimeStampDate",
-                  "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-                },
-                "transform": {
-                  "type": "HomogeneousMatrix44",
-                    "matrix": self.current_pose,
-                    "unit": "latlon"
+        time.sleep(1)        
+
+        if(self.scene_setup_is_done == False):
+          # create origin node as subgroup of root
+          newOriginMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "node": {
+              "@graphtype": "Node",
+              "id": self.origin_uuid,
+              "attributes": [
+                {"key": "gis:origin", "value": "wgs84"},
+                {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
+              ],
+          
+            },
+            "parentId": self.root_uuid,
+          }
+          self.socket.send_string(json.dumps(newOriginMsg))
+          
+          # create robot node
+          newNodeMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "node": {
+              "@graphtype": "Node",
+              "id": self.rob_uuid, 
+              "attributes": [
+                    {"key": "name", "value": self.rob_name},
+              ],
+            },
+            "parentId": self.root_uuid,
+          }
+          self.socket.send_string(json.dumps(newNodeMsg))  
+          
+          # create transform for initial condition of robot
+          newTransformMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "node": {
+              "@graphtype": "Connection",
+              "@semanticContext":"Transform",
+              "id": self.tranform_origin_rob_uuid,
+              "attributes": [
+                {"key": "tf:type", "value": "wgs84"}
+              ],
+              "sourceIds": [
+                self.origin_uuid,
+              ],
+              "targetIds": [
+                self.rob_uuid,
+              ],
+              "history" : [
+                {
+                  "stamp": {
+                    "@stamptype": "TimeStampDate",
+                    "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+                  },
+                  "transform": {
+                    "type": "HomogeneousMatrix44",
+                      "matrix": self.current_pose,
+                      "unit": "latlon"
+                  }
                 }
-              }
-            ], 	    
-          },
-          "parentId": self.root_uuid,
-        }
-        self.socket.send_string(json.dumps(newTransformMsg)) 
-        #print (json.dumps(newTransformMsg))
+              ], 	    
+            },
+            "parentId": self.root_uuid,
+          }
+          self.socket.send_string(json.dumps(newTransformMsg)) 
+        print (json.dumps(newTransformMsg))
  
     def shutdown(self):
         self.active = False
