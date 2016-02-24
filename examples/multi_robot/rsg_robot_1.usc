@@ -324,6 +324,6 @@ return bd.system
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
      -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
-     { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
+     { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/champoluc.osm", convert_to_utm = 1, log_level = 1 } }
     },
 }
