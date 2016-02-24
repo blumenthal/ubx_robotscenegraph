@@ -141,7 +141,9 @@ local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22
 local remote_ip_secondary = getEnvWithDefault("SWM_REMOTE_IP_SECONDARY", "127.0.0.1") 
 local remote_out_port_secondary = getEnvWithDefault("SWM_REMOTE_OUT_PORT_SECONDARY", "11611")
 
+-- Filter settings
 local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
+local input_filter_pattern = getEnvWithDefault("SWM_INPUT_FILTER_PATTERN", "os(m|g)")
 
 return bd.system
   {
@@ -275,7 +277,15 @@ return bd.system
         } 
       },
       { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
-      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2, enable_input_filter = enable_input_filter } },
+      { name="rsgjsonreciever", 
+        config =  { 
+          buffer_len=20000, 
+          wm_handle={wm = wm:getHandle().wm}, 
+          log_level = 2, 
+          enable_input_filter = enable_input_filter,
+          input_filter_pattern = input_filter_pattern  
+        } 
+      },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
@@ -320,10 +330,7 @@ return bd.system
       },  
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
-     { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/champoluc.osm", convert_to_utm = 1, log_level = 1 } }
+--      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/champoluc.osm", convert_to_utm = 1, log_level = 1 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
     },
 }
