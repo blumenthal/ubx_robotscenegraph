@@ -12,26 +12,16 @@ import math
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
     
-    def __init__(self):
+    def __init__(self, port, root_uuid, name, send_freq, max_vel, curr_pose, goal_pose):
         Thread.__init__(self)
         self.active = True
-        self.port = "22422"
-        self.root_uuid = "853cb0f0-e587-4880-affe-90001da1262d"
-        self.rob_name = "robot"
-        self.send_freq = 10 #in Hz
-        self.max_vel = 0.001 # max velocity factor of robot
-        self.current_pose = [
-                        [1,0,0,45.84561555807046],
-                      [0,1,0,7.72886713924574],
-                      [0,0,1,3.0],
-                      [0,0,0,1] 
-                    ]
-        self.goal_pose = [
-                      [1,0,0,50.0],
-                      [0,1,0,16.0],
-                      [0,0,1,5.0],
-                      [0,0,0,1] 
-                    ]
+        self.port = port #"22422"
+        self.root_uuid = root_uuid #"853cb0f0-e587-4880-affe-90001da1262d"
+        self.rob_name = name #"robot"
+        self.send_freq = send_freq #10 #in Hz
+        self.max_vel = max_vel # max velocity factor of robot
+        self.current_pose = curr_pose
+        self.goal_pose = goal_pose
         
         self.origin_uuid = str(uuid.uuid4())
         self.rob_uuid = str(uuid.uuid4())
@@ -172,7 +162,7 @@ class Sherpa_Actor(Thread):
                                   }
                                 }
             self.socket.send_string(json.dumps(transforUpdateMsg))
-            print "position"
+            print "[{}]: position".format(self.name)
             print "[{},{},{}]".format(self.current_pose[0][3],self.current_pose[1][3],self.current_pose[2][3])
             print "#####"
             time.sleep(1/self.send_freq)
@@ -180,10 +170,41 @@ class Sherpa_Actor(Thread):
 if __name__ == '__main__':
     
     # create robot in its own thread
-    rob1 = Sherpa_Actor()
-    rob1.setName("rob1")
-    # start its activity
+    #Sherpa_Actor(port,root_uuid, name, send_freq, max_vel, current_pose, goal_pose)
+    current_pose = [
+                [1,0,0,45.84561555807046],
+                [0,1,0,7.72886713924574],
+                [0,0,1,3.0],
+                [0,0,0,1] 
+                ]
+    goal_pose = [
+                [1,0,0,50],
+                [0,1,0,15],
+                [0,0,1,8.0],
+                [0,0,0,1] 
+                ]
+    rob1 = Sherpa_Actor("22422","853cb0f0-e587-4880-affe-90001da1262d","wasp1", 10, 0.001, current_pose, goal_pose)
+    rob1.setName("wasp1")
+    
+    current_pose = [
+                [1,0,0,45.84561555807046],
+                [0,1,0,7.72886713924574],
+                [0,0,1,1.0],
+                [0,0,0,1] 
+                ]
+    goal_pose = [
+                [1,0,0,40],
+                [0,1,0,5],
+                [0,0,1,1.0],
+                [0,0,0,1] 
+                ]
+    rob2 = Sherpa_Actor("22423","853cb0f0-e587-4880-affe-90001da1262d","GR", 10, 0.0001, current_pose, goal_pose)
+    rob2.setName("GR")
+    
+    
+    # start robots activity
     rob1.start()
+    rob2.start()
     
     t0 = time.time()
     while (time.time()-t0 < 5):
@@ -201,9 +222,11 @@ if __name__ == '__main__':
         time.sleep(0.5)
     rob1.victim_found()
     rob1.shutdown()
+    rob2.shutdown()
 
     
     # wait for threads to finish
-    rob1.join()
+    rob1.join(30)
+    rob2.join(30)
     
     print("Shutting down")
