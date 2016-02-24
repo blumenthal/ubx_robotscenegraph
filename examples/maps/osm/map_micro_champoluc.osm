@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Overpass API">
+<note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
+<meta osm_base="2016-01-27T14:30:03Z"/>
+
+  <node id="3486844894" lat="45.8442895" lon="7.7307000"/>
+  <node id="3486844889" lat="45.8441179" lon="7.7309722"/>
+  <node id="3486844892" lat="45.8442775" lon="7.7313525"/>
+  <node id="3486844905" lat="45.8453406" lon="7.7317436"/>
+  <node id="3486844911" lat="45.8459299" lon="7.7318278"/>
+  <node id="3486844913" lat="45.8459721" lon="7.7316463"/>
+  <node id="3486844910" lat="45.8459119" lon="7.7315685"/>
+  <node id="3486844907" lat="45.8454634" lon="7.7312920"/>
+  <node id="3486844903" lat="45.8448102" lon="7.7309420"/>
+  <node id="3486844894" lat="45.8442895" lon="7.7307000"/> 
+
+  <way id="341509519"> 
+    <nd ref="3486844894"/>
+    <nd ref="3486844889"/>
+    <nd ref="3486844892"/>
+    <nd ref="3486844905"/>
+    <nd ref="3486844911"/>
+    <nd ref="3486844913"/>
+    <nd ref="3486844910"/>
+    <nd ref="3486844907"/>
+    <nd ref="3486844903"/>
+    <nd ref="3486844894"/>
+    <tag k="landuse" v="forest"/>
+  </way>
+
+</osm>
+
