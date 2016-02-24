@@ -14,23 +14,49 @@ uav_update_port=12921 # cf. SWM_LOCAL_JSON_IN_PORT for robot #2
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
     
-    def __init__(self, port, root_uuid, name, send_freq, max_vel, curr_pose, goal_pose):
+    def __init__(self, port = "22422", root_uuid = None, name = "robot", send_freq = 10, max_vel = 0.001, curr_pose = None, goal_pose = None, origin_uuid = None , rob_uuid = None, tranform_origin_rob_uuid = None):
         Thread.__init__(self)
         self.active = True
-        
-        #TODO: make stuff optional
 
         self.port = port #"22422"
-        self.root_uuid = root_uuid #"853cb0f0-e587-4880-affe-90001da1262d"
+        if root_uuid:
+            self.root_uuid = root_uuid #"853cb0f0-e587-4880-affe-90001da1262d"
+        else:
+            print "create random root_uuid"
+            self.root_uuid = str(uuid.uuid4())
         self.rob_name = name #"robot"
         self.send_freq = send_freq #10 #in Hz
         self.max_vel = max_vel # max velocity factor of robot
-        self.current_pose = curr_pose
-        self.goal_pose = goal_pose
-        
-        self.origin_uuid = str(uuid.uuid4())
-        self.rob_uuid = str(uuid.uuid4())
-        self.tranform_origin_rob_uuid = str(uuid.uuid4())
+        if curr_pose:
+            self.current_pose = curr_pose
+        else:
+            print "set current pose to review setting"
+            self.current_pose = [
+                [1,0,0,45.84561555807046],
+                [0,1,0,7.72886713924574],
+                [0,0,1,3.0],
+                [0,0,0,1] 
+                ]
+        if goal_pose:
+            self.goal_pose = goal_pose
+        else:
+            print "setting goal_pose to current_pose"
+            self.goal_pose = self.current_pose   
+        if origin_uuid:
+            self.origin_uuid = origin_uuid 
+        else:
+            print "create random origin_uuid"
+            self.origin_uuid = str(uuid.uuid4())
+        if rob_uuid:
+            self.rob_uuid = rob_uuid 
+        else:
+            print "create random rob_uuid"
+            self.rob_uuid = str(uuid.uuid4())
+        if tranform_origin_rob_uuid:
+            self.tranform_origin_rob_uuid = tranform_origin_rob_uuid 
+        else:
+            print "create random tranform_origin_rob_uuid"
+            self.tranform_origin_rob_uuid = str(uuid.uuid4())
         
         # Set up the ZMQ PUB-SUB communication layer.
         self.context = zmq.Context()
