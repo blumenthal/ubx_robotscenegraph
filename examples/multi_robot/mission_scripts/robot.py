@@ -14,31 +14,50 @@ uav_update_port=12921 # cf. SWM_LOCAL_JSON_IN_PORT for robot #2
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
     
-    def __init__(self):
+    def __init__(self, scene_setup_is_done = False, port = "22422", root_uuid = None, name = "robot", send_freq = 10, max_vel = 0.001, curr_pose = None, goal_pose = None, origin_uuid = None , rob_uuid = None, tranform_origin_rob_uuid = None):
         Thread.__init__(self)
         self.active = True
-        self.scene_setup_is_done = False
-        self.port = uav_update_port
-        self.root_uuid = "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
-        self.rob_name = "robot"
-        self.send_freq = 1 #in Hz
-        self.max_vel = 0.001 # max velocity factor of robot
-        self.current_pose = [
-                        [1,0,0,45.84561555807046],
-                      [0,1,0,7.72886713924574],
-                      [0,0,1,3.0],
-                      [0,0,0,1] 
-                    ]
-        self.goal_pose = [
-                      [1,0,0,50.0],
-                      [0,1,0,16.0],
-                      [0,0,1,5.0],
-                      [0,0,0,1] 
-                    ]
-        
-        self.origin_uuid = str(uuid.uuid4())
-        self.rob_uuid = str(uuid.uuid4())
-        self.tranform_origin_rob_uuid = str(uuid.uuid4())
+        self.scene_setup_is_done = scene_setup_is_done
+
+        self.port = port #"22422"
+        if root_uuid:
+            self.root_uuid = root_uuid #"853cb0f0-e587-4880-affe-90001da1262d"
+        else:
+            print "create random root_uuid"
+            self.root_uuid = str(uuid.uuid4())
+        self.rob_name = name #"robot"
+        self.send_freq = send_freq #10 #in Hz
+        self.max_vel = max_vel # max velocity factor of robot
+        if curr_pose:
+            self.current_pose = curr_pose
+        else:
+            print "set current pose to review setting"
+            self.current_pose = [
+                [1,0,0,45.84561555807046],
+                [0,1,0,7.72886713924574],
+                [0,0,1,3.0],
+                [0,0,0,1] 
+                ]
+        if goal_pose:
+            self.goal_pose = goal_pose
+        else:
+            print "setting goal_pose to current_pose"
+            self.goal_pose = self.current_pose   
+        if origin_uuid:
+            self.origin_uuid = origin_uuid 
+        else:
+            print "create random origin_uuid"
+            self.origin_uuid = str(uuid.uuid4())
+        if rob_uuid:
+            self.rob_uuid = rob_uuid 
+        else:
+            print "create random rob_uuid"
+            self.rob_uuid = str(uuid.uuid4())
+        if tranform_origin_rob_uuid:
+            self.tranform_origin_rob_uuid = tranform_origin_rob_uuid 
+        else:
+            print "create random tranform_origin_rob_uuid"
+            self.tranform_origin_rob_uuid = str(uuid.uuid4())
         
         # Set up the ZMQ PUB-SUB communication layer.
         self.context = zmq.Context()
@@ -113,26 +132,78 @@ class Sherpa_Actor(Thread):
             "parentId": self.root_uuid,
           }
           self.socket.send_string(json.dumps(newTransformMsg)) 
-        print (json.dumps(newTransformMsg))
+          print (json.dumps(newTransformMsg))
  
     def shutdown(self):
         self.active = False
-        print "["+self.rob_name+"]: Received shut down"
+        print "[{}]: Received shut down".format(self.rob_name)
         
     def set_goal(self,new_goal):
         # check of new_goal is a 4x4 matrix
         if (not len(new_goal) == 4) or (not len(new_goal[0]) == 4):
-            print "["+self.rob_name+"]: new goal is not a 4x4 matrix"
+            print "[{}]: new goal is not a 4x4 matrix".format(self.rob_name)
             return
         # should also check if proper matrix
         self.goal_pose = new_goal
-        print "["+self.rob_name+"]: Changed goal pose to"
+        print "[{}]: Changed goal pose to".format(self.rob_name)
         print self.goal_pose
         
     def victim_found(self):
-        print "["+self.rob_name+"]: Found a victim"
-        #TODO: createa apropriate msg
-
+        newTransformMsg = {
+          "@worldmodeltype": "RSGUpdate",
+          "operation": "CREATE",
+          "node": {    
+            "@graphtype": "Connection",
+            "@semanticContext":"Transform",
+            "id": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+            "attributes": [
+              {"key": "tf:name", "value": "world_to_rescuer"},
+              {"key": "type", "value": "Transform"},
+            ],
+            "sourceIds": [
+              "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+            ],
+            "targetIds": [
+              "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+            ],
+            "history" : [
+              {
+                "stamp": {
+                  "@stamptype": "TimeStampDate",
+                  "stamp": "2015-07-01T16:34:26Z",
+                },
+                "transform": {
+                  "type": "HomogeneousMatrix44",
+                  "matrix": [
+                    [1,0,0,1.6],
+                    [0,1,0,1.5],
+                    [0,0,1,0],
+                    [0,0,0,1] 
+                  ],
+                  "unit": "m"
+                }
+              }
+            ],         
+          },
+          "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+        }
+        print "[{}]: Found a victim".format(self.rob_name)
+        
+        
+    def set_send_freq(self,freq):
+        if (not isinstance( freq, ( int, long ) ) ):
+            print "[{}]: Frequency is not an integer".format(self.rob_name)
+            return
+        self.send_freq = freq
+        print "[{}]: changed send_frequency to {}".format(self.rob_name, freq)
+        
+    def set_max_vel(self,max_vel):
+        if (not isinstance( max_vel, float ) ):
+            print "[{}]: Max velocity is not a float".format(self.rob_name)
+            return
+        self.max_vel = max_vel
+        print "[{}]: changed max velocity to {}".format(self.rob_name, max_vel)
+        
     def run(self):
         while (self.active):
             # calculate difference between current and goal pos
@@ -177,7 +248,7 @@ class Sherpa_Actor(Thread):
                                   }
                                 }
             self.socket.send_string(json.dumps(transforUpdateMsg))
-            print "position"
+            print "[{}]: position".format(self.name)
             print "[{},{},{}]".format(self.current_pose[0][3],self.current_pose[1][3],self.current_pose[2][3])
             print "#####"
             time.sleep(1/self.send_freq)
@@ -185,10 +256,41 @@ class Sherpa_Actor(Thread):
 if __name__ == '__main__':
     
     # create robot in its own thread
-    rob1 = Sherpa_Actor()
-    rob1.setName("rob1")
-    # start its activity
+    #Sherpa_Actor(port,root_uuid, name, send_freq, max_vel, current_pose, goal_pose)
+    current_pose = [
+                [1,0,0,45.84561555807046],
+                [0,1,0,7.72886713924574],
+                [0,0,1,3.0],
+                [0,0,0,1] 
+                ]
+    goal_pose = [
+                [1,0,0,50],
+                [0,1,0,15],
+                [0,0,1,8.0],
+                [0,0,0,1] 
+                ]
+    rob1 = Sherpa_Actor("22422","853cb0f0-e587-4880-affe-90001da1262d","wasp1", 10, 0.001, current_pose, goal_pose)
+    rob1.setName("wasp1")
+    
+    current_pose = [
+                [1,0,0,45.84561555807046],
+                [0,1,0,7.72886713924574],
+                [0,0,1,1.0],
+                [0,0,0,1] 
+                ]
+    goal_pose = [
+                [1,0,0,40],
+                [0,1,0,5],
+                [0,0,1,1.0],
+                [0,0,0,1] 
+                ]
+    rob2 = Sherpa_Actor("22423","853cb0f0-e587-4880-affe-90001da1262d","GR", 10, 0.0001, current_pose, goal_pose)
+    rob2.setName("GR")
+    
+    
+    # start robots activity
     rob1.start()
+    rob2.start()
     
     t0 = time.time()
     while (time.time()-t0 < 5):
@@ -206,9 +308,11 @@ if __name__ == '__main__':
         time.sleep(0.5)
     rob1.victim_found()
     rob1.shutdown()
+    rob2.shutdown()
 
     
     # wait for threads to finish
-    rob1.join()
+    rob1.join(30)
+    rob2.join(30)
     
     print("Shutting down")
