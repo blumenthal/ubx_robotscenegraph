@@ -330,7 +330,7 @@ return bd.system
       },  
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
---      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/champoluc.osm", convert_to_utm = 1, log_level = 1 } }
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
+--      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/champoluc.osm", convert_to_utm = 0, log_level = 1 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="../maps/osm/map_micro_brsu.osm", convert_to_utm = 0, log_level = 1 } }
     },
 }
