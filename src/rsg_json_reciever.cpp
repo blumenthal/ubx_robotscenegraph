@@ -96,6 +96,24 @@ int rsg_json_reciever_init(ubx_block_t *b)
         }
         LOG(INFO) << "rsg_json_reciever: enable_input_filter = " << inputFilterIsEnabled;
 
+		/* retrive optional input_filter_pattern from config */
+		std::string semanticContextIdentifier = "osm";
+		char* chrptr = (char*) ubx_config_get_data_ptr(b, "input_filter_pattern", &clen);
+		if(clen == 0) {
+			LOG(INFO) << "rsg_json_reciever:  No input_filter_pattern configuation given. Selecting a default name.";
+			semanticContextIdentifier = "osm";
+		} else {
+			if(strcmp(chrptr, "")==0) {
+				LOG(INFO) << "rsg_json_reciever:  input_filter_pattern is empty. Selecting a default name.";
+				semanticContextIdentifier = "osm";
+			} else {
+				std::string pattern(chrptr);
+				LOG(INFO) << "rsg_json_reciever: Using input_filter_pattern = " << pattern;
+				semanticContextIdentifier = pattern;
+
+			}
+		}
+		LOG(INFO) << "rsg_json_reciever:  input_filter_pattern = " << semanticContextIdentifier;
 
         /* Attach debug graph printer */
         inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
@@ -111,7 +129,6 @@ int rsg_json_reciever_init(ubx_block_t *b)
     		inf->wm_updates_to_wm = new brics_3d::rsg::UpdatesToSceneGraphListener();
     		inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);
     		inf->wm_input_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
-    		std::string semanticContextIdentifier = "osm";
     		inf->wm_input_filter->setNameSpaceIdentifier(semanticContextIdentifier);
     		LOG(INFO) << "rsg_json_reciever: filter enabled for semantic context identifier = " << semanticContextIdentifier;
             inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm, inf->wm_input_filter); // Make the deserializer to call update on the filter

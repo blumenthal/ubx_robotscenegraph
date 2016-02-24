@@ -9,12 +9,15 @@ import json
 import uuid
 import math
 
+uav_update_port=12921 # cf. SWM_LOCAL_JSON_IN_PORT for robot #2
+
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
     
     def __init__(self, port, root_uuid, name, send_freq, max_vel, curr_pose, goal_pose):
         Thread.__init__(self)
         self.active = True
+
         self.port = port #"22422"
         self.root_uuid = root_uuid #"853cb0f0-e587-4880-affe-90001da1262d"
         self.rob_name = name #"robot"

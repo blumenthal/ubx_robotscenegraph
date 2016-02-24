@@ -1,0 +1,102 @@
+{    
+  "metamodel": "rsg-core-schema.json",  
+  "@worldmodeltype": "WorldModelAgent",
+  "rootNode": {
+    "@graphtype": "Group",
+    "id": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+    "attributes": [
+
+   ],
+    "childs": [
+
+  
+       
+      {
+        "@childtype": "Child",
+        "child": {
+          "@graphtype": "Group",
+          "id": "853cb0f0-e587-4880-affe-90001da1262d",
+          "attributes": [
+            {"key": "gis:origin", "value": "wgs84"},
+            {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
+          ],
+          "childs": [
+            
+                          
+          ]
+        },
+      },
+
+
+      {
+        "@childtype": "Child",
+        "child": {
+          "@graphtype": "Group",
+          "id": "3b2c3375-0aaf-419d-8b7c-4b7190c5df89",
+          "attributes": [
+            {"key": "name", "value": "mission"},
+          ],
+          "childs": [
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "fe234f0a-8742-4506-ad35-8974f02f848c",
+                "attributes": [
+                  {"key": "name", "value": "robots"},
+                ],
+                "childs": [
+                  
+                                
+                ]
+              },
+            },            
+                  
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "1cd7e823-5b01-44cf-ad5a-572c2c3dbf96",
+                "attributes": [
+                  {"key": "name", "value": "goals"},
+                ],
+                "childs": [
+                  
+                                
+                ]
+              },
+            },    
+        
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "42b8ea33-50de-41e2-b7ee-51a966b379e9",
+                "attributes": [
+                  {"key": "name", "value": "detected_victims"},
+                ],
+                "childs": [
+                  
+                                
+                ]
+              },
+            },  
+
+          ]
+        },
+      },
+
+
+
+
+
+    ],
+    "connections": [
+
+
+    ]	       	    
+  }   	    
+}
