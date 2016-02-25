@@ -9,7 +9,22 @@ import json
 import uuid
 import math
 
-uav_update_port=12921 # cf. SWM_LOCAL_JSON_IN_PORT for robot #2
+# A priori knowledge from secene_setup() - we also might query for it,
+# but this is not necessary here.
+swm_ugv_update_port=12911 # cf. SWM_LOCAL_JSON_IN_PORT for robot #1
+swm_uav_update_port=12921 # cf. SWM_LOCAL_JSON_IN_PORT for robot #2
+swm_hmi_update_port=12931 # cf. SWM_LOCAL_JSON_IN_PORT for robot #3
+swm_root_uuid =   "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
+swm_robots_uuid = "fe234f0a-8742-4506-ad35-8974f02f848c"
+swm_origin_uuid = "853cb0f0-e587-4880-affe-90001da1262d"
+swm_ugv_uuid =    "bc31c854-fd29-4987-87d5-8e81cd94a4a9"
+swm_uav_uuid =    "e8685dab-74d3-4ada-b969-8c1caa017598"
+swm_hmi_uuid =    "bfc0e783-7266-44b0-9f3d-b2c40db87987"
+
+
+swm_ugv_tf_uuid = "f25a2385-e6ec-4324-8061-90e92cba0c00"
+swm_uav_tf_uuid = ""
+swm_hmi_tf_uuid = ""
 
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
@@ -269,8 +284,8 @@ if __name__ == '__main__':
                 [0,0,1,8.0],
                 [0,0,0,1] 
                 ]
-    rob1 = Sherpa_Actor("22422","853cb0f0-e587-4880-affe-90001da1262d","wasp1", 10, 0.001, current_pose, goal_pose)
-    rob1.setName("wasp1")
+    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 10, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid)
+    rob1.setName("uav")
     
     current_pose = [
                 [1,0,0,45.84561555807046],
@@ -284,8 +299,8 @@ if __name__ == '__main__':
                 [0,0,1,1.0],
                 [0,0,0,1] 
                 ]
-    rob2 = Sherpa_Actor("22423","853cb0f0-e587-4880-affe-90001da1262d","GR", 10, 0.0001, current_pose, goal_pose)
-    rob2.setName("GR")
+    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 10, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid)
+    rob2.setName("ugv")
     
     
     # start robots activity
