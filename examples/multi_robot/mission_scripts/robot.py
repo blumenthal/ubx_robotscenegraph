@@ -29,7 +29,7 @@ swm_hmi_tf_uuid = ""
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
     
-    def __init__(self, scene_setup_is_done = False, port = "22422", root_uuid = None, name = "robot", send_freq = 10, max_vel = 0.001, curr_pose = None, goal_pose = None, origin_uuid = None , rob_uuid = None, tranform_origin_rob_uuid = None):
+    def __init__(self, scene_setup_is_done = False, port = "22422", root_uuid = None, name = "robot", send_freq = 10, max_vel = 0.001, curr_pose = None, goal_pose = None, origin_uuid = None , rob_uuid = None, tranform_origin_rob_uuid = None, self.detected_victim_group_uuid = None):
         Thread.__init__(self)
         self.active = True
         self.scene_setup_is_done = scene_setup_is_done
@@ -46,7 +46,7 @@ class Sherpa_Actor(Thread):
         if curr_pose:
             self.current_pose = curr_pose
         else:
-            print "set current pose to review setting"
+            print "set current pose to review setting at Champoluc"
             self.current_pose = [
                 [1,0,0,45.84561555807046],
                 [0,1,0,7.72886713924574],
@@ -73,6 +73,11 @@ class Sherpa_Actor(Thread):
         else:
             print "create random tranform_origin_rob_uuid"
             self.tranform_origin_rob_uuid = str(uuid.uuid4())
+        if self.detected_victim_group_uuid:
+            self.detected_victim_group_uuid = detected_victim_group_uuid
+        else:
+            print "create random detected_victim_group_uuid"
+            self.detected_victim_group_uuid = str(uuid.uuid4())
         
         # Set up the ZMQ PUB-SUB communication layer.
         self.context = zmq.Context()
@@ -164,44 +169,54 @@ class Sherpa_Actor(Thread):
         print self.goal_pose
         
     def victim_found(self):
-        newTransformMsg = {
+        victim_uuid = str(uuid.uuid4())
+        newNodeMsg = {
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
-          "node": {    
-            "@graphtype": "Connection",
-            "@semanticContext":"Transform",
-            "id": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+          "node": {
+            "@graphtype": "Node",
+            "id": victim_uuid, 
             "attributes": [
-              {"key": "tf:name", "value": "world_to_rescuer"},
-              {"key": "type", "value": "Transform"},
+                  {"key": "name", "value": "unknown"},
+                  {"key": "clothing_color", "value": "yellow"},
+                  {"key": "comment", "value": "blabla"}
             ],
-            "sourceIds": [
-              "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
-            ],
-            "targetIds": [
-              "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
-            ],
-            "history" : [
-              {
-                "stamp": {
-                  "@stamptype": "TimeStampDate",
-                  "stamp": "2015-07-01T16:34:26Z",
-                },
-                "transform": {
-                  "type": "HomogeneousMatrix44",
-                  "matrix": [
-                    [1,0,0,1.6],
-                    [0,1,0,1.5],
-                    [0,0,1,0],
-                    [0,0,0,1] 
-                  ],
-                  "unit": "m"
-                }
-              }
-            ],         
           },
-          "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+          "parentId": self.detected_victim_group_uuid,
         }
+        self.socket.send_string(json.dumps(newNodeMsg)) 
+        newVicFoundMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "node": {
+              "@graphtype": "Connection",
+              "@semanticContext":"Transform",
+              "id": str(uuid.uuid4()),
+              "attributes": [
+                {"key": "tf:type", "value": "wgs84"}
+              ],
+              "sourceIds": [
+                self.origin_uuid,
+              ],
+              "targetIds": [
+                victim_uuid,
+              ],
+              "history" : [
+                {
+                  "stamp": {
+                    "@stamptype": "TimeStampDate",
+                    "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+                  },
+                  "transform": {
+                    "type": "HomogeneousMatrix44",
+                      "matrix": self.current_pose,
+                      "unit": "latlon"
+                  }
+                }
+              ],         
+            },
+        }
+        self.socket.send_string(json.dumps(newVicFoundMsg))
         print "[{}]: Found a victim".format(self.rob_name)
         
         
