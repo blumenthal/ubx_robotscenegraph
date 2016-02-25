@@ -18,7 +18,7 @@ swm_hmi_update_port=12931 # cf. SWM_LOCAL_JSON_IN_PORT for robot #3
 # Groups
 swm_root_uuid =   "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
 swm_robots_uuid = "fe234f0a-8742-4506-ad35-8974f02f848c"
-swm_victims_uuid = "fe234f0a-8742-4506-ad35-8974f02f848c"
+swm_victims_uuid = "42b8ea33-50de-41e2-b7ee-51a966b379e9"
 swm_origin_uuid = "853cb0f0-e587-4880-affe-90001da1262d"
 swm_ugv_uuid =    "bc31c854-fd29-4987-87d5-8e81cd94a4a9"
 swm_uav_uuid =    "e8685dab-74d3-4ada-b969-8c1caa017598"
@@ -29,6 +29,21 @@ swm_hmi_uuid =    "bfc0e783-7266-44b0-9f3d-b2c40db87987"
 swm_ugv_tf_uuid = "f25a2385-e6ec-4324-8061-90e92cba0c00"
 swm_uav_tf_uuid = "d01d79b5-ea24-49fc-a1cb-feb6d29ebe77"
 swm_hmi_tf_uuid = ""
+
+# Comment on timeing precision
+# Either (JSON parser resolves with second resolution)
+#"stamp": {
+#  "@stamptype": "TimeStampDate",
+#  "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
+#},
+#
+#"stamp": {
+#  "@stamptype": "TimeStampUTCms",
+#  "stamp": time.time()*1000.0
+#},
+
+
+
 
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
@@ -143,7 +158,7 @@ class Sherpa_Actor(Thread):
                 {
                   "stamp": {
                     "@stamptype": "TimeStampDate",
-                    "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+                    "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + "Z"
                   },
                   "transform": {
                     "type": "HomogeneousMatrix44",
@@ -181,17 +196,19 @@ class Sherpa_Actor(Thread):
             "@graphtype": "Node",
             "id": victim_uuid, 
             "attributes": [
-                  {"key": "name", "value": "unknown"},
-                  {"key": "clothing_color", "value": "yellow"},
-                  {"key": "comment", "value": "blabla"}
+                  {"key": "sar:detection", "value": "victim"},
+                  {"key": "sar:clothing_color", "value": "yellow"}
             ],
           },
           "parentId": self.detected_victim_group_uuid,
         }
         self.socket.send_string(json.dumps(newNodeMsg)) 
+        print (json.dumps(newNodeMsg))
+        time.sleep(0.1)
         newVicFoundMsg = {
             "@worldmodeltype": "RSGUpdate",
             "operation": "CREATE",
+            "parentId": self.origin_uuid,
             "node": {
               "@graphtype": "Connection",
               "@semanticContext":"Transform",
@@ -221,6 +238,8 @@ class Sherpa_Actor(Thread):
             },
         }
         self.socket.send_string(json.dumps(newVicFoundMsg))
+        time.sleep(0.1)
+        print (json.dumps(newVicFoundMsg))
         print "[{}]: Found a victim".format(self.rob_name)
         
         
@@ -269,8 +288,8 @@ class Sherpa_Actor(Thread):
                                     "history" : [
                                       {
                                         "stamp": {
-                                          "@stamptype": "TimeStampDate",
-                                          "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                          "@stamptype": "TimeStampUTCms",
+                                          "stamp": time.time()*1000.0
                                         },
                                         "transform": {
                                           "type": "HomogeneousMatrix44",
@@ -303,7 +322,7 @@ if __name__ == '__main__':
                 [0,0,1,8.0],
                 [0,0,0,1] 
                 ]
-    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 10, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
+    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 1, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
     rob1.setName("uav")
     
     current_pose = [
@@ -318,11 +337,12 @@ if __name__ == '__main__':
                 [0,0,1,1.0],
                 [0,0,0,1] 
                 ]
-    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 10, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid, swm_victims_uuid)
+    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 1, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid, swm_victims_uuid)
     rob2.setName("ugv")
     
     
     # start robots activity
+    #rob1.victim_found()
     rob1.start()
     rob2.start()
     
@@ -341,6 +361,7 @@ if __name__ == '__main__':
         print time.clock()
         time.sleep(0.5)
     rob1.victim_found()
+    time.sleep(1)
     rob1.shutdown()
     rob2.shutdown()
 

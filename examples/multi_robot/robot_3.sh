@@ -21,7 +21,7 @@ export SWM_REMOTE_OUT_PORT_SECONDARY=11411
 
 # activate osm filter
 export SWM_ENABLE_INPUT_FILTER=1
-
+#export SWM_INPUT_FILTER_PATTERN=(osm|osg)
 
 # Start the ubx system
 exec $UBX_ROOT/tools/ubx_launch -webif 8890 -c rsg_robot_1.usc
