@@ -43,7 +43,7 @@
                 "@graphtype": "Group",
                 "id": "fe234f0a-8742-4506-ad35-8974f02f848c",
                 "attributes": [
-                  {"key": "name", "value": "robots"},
+                  {"key": "name", "value": "agents"},
                 ],
                 "childs": [
      
@@ -173,7 +173,39 @@
               ], 	    
             },
 
+            {    
+              "@graphtype": "Connection",
+              "@semanticContext":"Transform",
+              "id": "d01d79b5-ea24-49fc-a1cb-feb6d29ebe77",
+              "attributes": [
+                {"key": "tf:type", "value": "wgs84"}
+              ],
+              "sourceIds": [
+                "853cb0f0-e587-4880-affe-90001da1262d",
+              ],
+              "targetIds": [
+                "bc31c854-fd29-4987-87d5-8e81cd94a4a9",
+              ],
+              "history" : [
+                {
+                  "stamp": {
+                    "@stamptype": "TimeStampUTCms",
+                    "stamp": "0.0",
+                  },
 
+                  "transform": {
+                    "type": "HomogeneousMatrix44",
+                    "matrix": [
+                      [1,0,0,45.84561555807046],
+                      [0,1,0,7.72986713924574],
+                      [0,0,1,3.12],
+                      [0,0,0,1] 
+                    ],
+                    "unit": "latlon"
+                  }
+                }
+              ], 	    
+            },
           ]	   
 
         },

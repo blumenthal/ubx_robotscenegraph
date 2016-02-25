@@ -14,22 +14,26 @@ import math
 swm_ugv_update_port=12911 # cf. SWM_LOCAL_JSON_IN_PORT for robot #1
 swm_uav_update_port=12921 # cf. SWM_LOCAL_JSON_IN_PORT for robot #2
 swm_hmi_update_port=12931 # cf. SWM_LOCAL_JSON_IN_PORT for robot #3
+
+# Groups
 swm_root_uuid =   "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
 swm_robots_uuid = "fe234f0a-8742-4506-ad35-8974f02f848c"
+swm_victims_uuid = "fe234f0a-8742-4506-ad35-8974f02f848c"
 swm_origin_uuid = "853cb0f0-e587-4880-affe-90001da1262d"
 swm_ugv_uuid =    "bc31c854-fd29-4987-87d5-8e81cd94a4a9"
 swm_uav_uuid =    "e8685dab-74d3-4ada-b969-8c1caa017598"
 swm_hmi_uuid =    "bfc0e783-7266-44b0-9f3d-b2c40db87987"
 
 
+# Transforms
 swm_ugv_tf_uuid = "f25a2385-e6ec-4324-8061-90e92cba0c00"
-swm_uav_tf_uuid = ""
+swm_uav_tf_uuid = "d01d79b5-ea24-49fc-a1cb-feb6d29ebe77"
 swm_hmi_tf_uuid = ""
 
 class Sherpa_Actor(Thread):
     """ The Sherpa Actor Class"""
     
-    def __init__(self, scene_setup_is_done = False, port = "22422", root_uuid = None, name = "robot", send_freq = 10, max_vel = 0.001, curr_pose = None, goal_pose = None, origin_uuid = None , rob_uuid = None, tranform_origin_rob_uuid = None, self.detected_victim_group_uuid = None):
+    def __init__(self, scene_setup_is_done = False, port = "22422", root_uuid = None, name = "robot", send_freq = 10, max_vel = 0.001, curr_pose = None, goal_pose = None, origin_uuid = None , rob_uuid = None, tranform_origin_rob_uuid = None, detected_victim_group_uuid = None):
         Thread.__init__(self)
         self.active = True
         self.scene_setup_is_done = scene_setup_is_done
@@ -73,7 +77,7 @@ class Sherpa_Actor(Thread):
         else:
             print "create random tranform_origin_rob_uuid"
             self.tranform_origin_rob_uuid = str(uuid.uuid4())
-        if self.detected_victim_group_uuid:
+        if detected_victim_group_uuid:
             self.detected_victim_group_uuid = detected_victim_group_uuid
         else:
             print "create random detected_victim_group_uuid"
@@ -299,7 +303,7 @@ if __name__ == '__main__':
                 [0,0,1,8.0],
                 [0,0,0,1] 
                 ]
-    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 10, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid)
+    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 10, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
     rob1.setName("uav")
     
     current_pose = [
@@ -314,7 +318,7 @@ if __name__ == '__main__':
                 [0,0,1,1.0],
                 [0,0,0,1] 
                 ]
-    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 10, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid)
+    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 10, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid, swm_victims_uuid)
     rob2.setName("ugv")
     
     
