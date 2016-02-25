@@ -186,6 +186,55 @@ class Sherpa_Actor(Thread):
         self.goal_pose = new_goal
         print "[{}]: Changed goal pose to".format(self.rob_name)
         print self.goal_pose
+
+        goal_uuid = str(uuid.uuid4())
+        newGoalMsg = {
+          "@worldmodeltype": "RSGUpdate",
+          "operation": "CREATE",
+          "node": {
+            "@graphtype": "Node",
+            "id": goal_uuid, 
+            "attributes": [
+                  {"key": "sar:area", "value": "center"},
+            ],
+          },
+          "parentId": "1cd7e823-5b01-44cf-ad5a-572c2c3dbf96",
+        }
+        self.socket.send_string(json.dumps(newGoalMsg)) 
+        print (json.dumps(newGoalMsg))
+        newGaolTfMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "parentId": self.origin_uuid,
+            "node": {
+              "@graphtype": "Connection",
+              "@semanticContext":"Transform",
+              "id": str(uuid.uuid4()),
+              "attributes": [
+                {"key": "tf:type", "value": "wgs84"}
+              ],
+              "sourceIds": [
+                self.origin_uuid,
+              ],
+              "targetIds": [
+                goal_uuid,
+              ],
+              "history" : [
+                {
+                  "stamp": {
+                    "@stamptype": "TimeStampDate",
+                    "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+                  },
+                  "transform": {
+                    "type": "HomogeneousMatrix44",
+                      "matrix": self.goal_pose,
+                      "unit": "latlon"
+                  }
+                }
+              ],         
+            },
+        }
+        self.socket.send_string(json.dumps(newGaolTfMsg))
         
     def victim_found(self):
         victim_uuid = str(uuid.uuid4())
@@ -204,7 +253,7 @@ class Sherpa_Actor(Thread):
         }
         self.socket.send_string(json.dumps(newNodeMsg)) 
         print (json.dumps(newNodeMsg))
-        time.sleep(0.1)
+        #time.sleep(0.1)
         newVicFoundMsg = {
             "@worldmodeltype": "RSGUpdate",
             "operation": "CREATE",
@@ -238,7 +287,7 @@ class Sherpa_Actor(Thread):
             },
         }
         self.socket.send_string(json.dumps(newVicFoundMsg))
-        time.sleep(0.1)
+        #time.sleep(0.1)
         print (json.dumps(newVicFoundMsg))
         print "[{}]: Found a victim".format(self.rob_name)
         
@@ -309,16 +358,17 @@ class Sherpa_Actor(Thread):
 if __name__ == '__main__':
     
     # create robot in its own thread
-    #Sherpa_Actor(port,root_uuid, name, send_freq, max_vel, current_pose, goal_pose)
+    #Sherpa_Actor(port,root_uuid, name, send_freq, max_vel, current_pose, goal_pose
     current_pose = [
                 [1,0,0,45.84561555807046],
                 [0,1,0,7.72886713924574],
                 [0,0,1,3.0],
                 [0,0,0,1] 
                 ]
+    #45.8441179 7.7309722 # this is next to a forest 
     goal_pose = [
-                [1,0,0,50],
-                [0,1,0,15],
+                [1,0,0,45.8441179],
+                [0,1,0,7.7309722],
                 [0,0,1,8.0],
                 [0,0,0,1] 
                 ]
@@ -332,8 +382,8 @@ if __name__ == '__main__':
                 [0,0,0,1] 
                 ]
     goal_pose = [
-                [1,0,0,40],
-                [0,1,0,5],
+                [1,0,0,7.7309722],
+                [0,1,0,7.7309722],
                 [0,0,1,1.0],
                 [0,0,0,1] 
                 ]
@@ -350,10 +400,11 @@ if __name__ == '__main__':
     while (time.time()-t0 < 5):
         print time.clock()
         time.sleep(0.5)
+    # 45.8442895 7.7307000 # this is inside a forest 
     rob1.set_goal([
-              [1,0,0,35.0],
-              [0,1,0,5.0],
-              [0,0,1,4.0],
+              [1,0,0,45.8442895],
+              [0,1,0,7.7307000],
+              [0,0,1,10.0],
               [0,0,0,1] 
               ])      
     t0 = time.time()
@@ -361,7 +412,7 @@ if __name__ == '__main__':
         print time.clock()
         time.sleep(0.5)
     rob1.victim_found()
-    time.sleep(1)
+    time.sleep(2)
     rob1.shutdown()
     rob2.shutdown()
 
