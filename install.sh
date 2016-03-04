@@ -226,7 +226,7 @@ echo "[Parameter] WORKSPACE_DIR is set to: ${WORKSPACE_DIR}"
 echo "[Parameter] INSTALL_DIR is set to: ${INSTALL_DIR}"
 echo "[Parameter] Parallel build parameter for make is set to: ${J}"
 
-exit
+#exit
 
 # Go to workspace
 cd ${WORKSPACE_DIR}
