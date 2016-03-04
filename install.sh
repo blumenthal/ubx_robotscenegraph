@@ -278,7 +278,7 @@ fi
 cd hdf5-1.8.13/
 #NOTE: on Ubutnu 12.04 the CMake versions do not match. You can fix this by altering the HDF5 CMake files: 
 grep "2.8.11" -l -r . | xargs sed -i 's/cmake_minimum_required (VERSION 2.8.11)/cmake_minimum_required (VERSION 2.8.7)/g'
-mkdir build
+mkdir build -p
 cd build
 cmake -DHDF5_BUILD_CPP_LIB=true -DHDF5_BUILD_HL_LIB=true -DBUILD_SHARED_LIBS=true -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
 # A note on the used flags: the C++ API and the High Level (HL) APIs are used. The latter
@@ -297,7 +297,7 @@ if [ ! -d libvariant ]; then
   hg clone https://bitbucket.org/gallen/libvariant
 fi
 cd libvariant
-mkdir build
+mkdir build -p
 cd build
 cmake ..
 cmake -DBUILD_SHARED_LIBS=true -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
@@ -320,7 +320,7 @@ else
   git pull origin master
 fi
 
-mkdir build && cd build
+mkdir build -p && cd build
 cmake -DEIGEN_INCLUDE_DIR=/usr/include/eigen3 -DUSE_HDF5=true -DHDF5_1_8_12_OR_HIGHER=true -DUSE_JSON=true -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
 # A note on the used flags: For some reason the CMake find script has problems to find Eigen3 thus we currently
 # have to provide the path as a flag. HDF5 and JSON support has to be enabled because it is not a default option.
@@ -448,7 +448,7 @@ else
   cd ubx/czmq_bridge
   git pull origin master
 fi
-mkdir build
+mkdir build -p
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
 make ${J}
@@ -486,7 +486,7 @@ if [ "$USE_ROS" = "TRUE" ]; then
     git pull origin blumenthal
   fi
   git fetch && git checkout blumenthal
-  mkdir build
+  mkdir build -p
   cd build
   cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
   make
@@ -517,7 +517,7 @@ else
   cd brics_3d_function_blocks
   git pull origin master
 fi
-mkdir build
+mkdir build -p
 cd build
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DUSE_FBX=ON -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
 # In case you retrive a "Could NOT find BRICS_3D" delete the
@@ -552,7 +552,7 @@ else
   git clone https://github.com/blumenthal/ubx_robotscenegraph
   cd ubx_robotscenegraph
 fi
-mkdir build
+mkdir build -p
 cd build
 # In case the BRICS_3D library is alredy installed
 # in another location you can use the environment
