@@ -264,8 +264,6 @@ cd ..
 echo ""
 echo "### ZMQ communication modules  ###"
 
-echo "ZMQ library:"
-
 echo "CZMQ dependencies:"
 git clone https://github.com/jedisct1/libsodium.git
 cd libsodium
@@ -276,24 +274,44 @@ ${SUDO} make install
 ${SUDO} ldconfig
 cd ..
 
-git clone https://github.com/zeromq/libzmq.git
-cd libzmq
+echo "ZMQ library:"
+# Wee need a stable verison of libzmq du to incompatibilities with Zyre. 
+# Unfortunately there are no tags github so we have to use a tar ball.
+#git clone https://github.com/zeromq/libzmq.git
+#cd libzmq
+wget http://download.zeromq.org/zeromq-4.1.2.tar.gz
+tar -xvf zeromq-4.1.2.tar.gz 
+cd zeromq-4.1.2
 ./autogen.sh
-./configure
+./configure --with-libsodium=no
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
 cd ..
 
 echo "CZMQ library:"
-git clone https://github.com/zeromq/czmq
-cd czmq
+#git clone https://github.com/zeromq/czmq
+#cd czmq
+wget https://github.com/zeromq/czmq/archive/v3.0.2.tar.gz
+tar zxvf v3.0.2.tar.gz
+cd czmq-3.0.2/
 ./autogen.sh
-./configure
+./configure 
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
 cd ..
+
+echo "Zyre library:"
+wget https://github.com/zeromq/zyre/archive/v1.1.0.tar.gz
+tar zxvf v1.1.0.tar.gz
+cd zyre-1.1.0/
+sh ./autogen.sh
+./configure 
+make ${J}
+${SUDO} make install
+${SUDO} ldconfig
+cd .
 
 echo "CZMQ-UBX bridge"
 # In case ZMQ or CZMQ libraries are alredy pre-installed
