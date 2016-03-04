@@ -369,7 +369,7 @@ make
 UBX_ROOT=$PWD
 # The UBX_ROOT environment variable is needed for the other (below) modules to find UBX properly.
 #echo "export UBX_MODULES=${INSTALL_DIR}/lib/ubx" >> ~/.bashrc
-UBX_MODULES=${INSTALL_DIR}/lib/ubx"
+UBX_MODULES="${INSTALL_DIR}/lib/ubx"
 # The UBX_MODULES variable points to the place where the UBX types, blocks etc. are installed. 
 # It is used to load the types and modules at run-time.  we set it to the UBX default folder.
 source ~/.bashrc .
