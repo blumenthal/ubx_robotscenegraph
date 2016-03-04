@@ -256,6 +256,7 @@ echo "### Generic system dependencies for compiler, revision control, etc. ###"
 echo "" 
 echo "### Dependencies for the BRICS_3D libraries ###"
 echo "Boost:"
+${SUDO} apt-get update
 ${SUDO} apt-get install -y libboost-dev \
         libboost-thread-dev \
         libboost-regex-dev

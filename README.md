@@ -54,30 +54,47 @@ Further details can be found in the respective [docker section](docker/README.md
 
 ### Installation with an install script
 
-__NOTE:__ The software modules are installed __relative__ to the invocation of [install.sh](install.sh) script.
-In the below example we assume that all modules shall be installed in the parent folder, where
-this repository (ubx_robotscenegraph) has been *cloned* to.
- 
-Call this script wihtout any parameters:
+In the below example we assume that all modules will be installed in the **parent** folder, where
+this repository (ubx_robotscenegraph) has been *cloned* to. Call the script with default parameters:
 
 ```
-	source ./ubx_robotscenegraph/install.sh
+	./install.sh -i 
 ```
- OR
+ OR:
 
 ```
-	source ./ubx_robotscenegraph/install.sh --no-sudo
+ ./install.sh --help
 ```
-In case the system has no sudo command available. 
+to retrive the folllowing usage information: 
  
- OR
-```
- source ./ubx_robotscenegraph/install.sh --no-ros
 ``` 
-In case the system has no ROS (Hydro) installtion. 
+ Usage: ./install.sh -i [--no-sudo] [--no-ros] [--workspace-path=PATH] [--install-path=PATH] [-h|--help] [-j=VALUE] 
+ E.g. : ./install.sh -i --workspace-path=../ 
 
-The ``source`` command is important because it adds environment variables (cf. [section](#environment-variables) below)
-that are required for the subsequent installation steps.
+    -i                     Mandatory! Perform actual installation.
+    -h|--help              Display this help and exit
+    --no-sudo              In case the system has no sudo command available. 
+    --no-ros               In case the system has no ROS (Hydro/Indigo) installation.
+    --workspace-path=PATH  Path to where libraries and bulild. Default is ../
+    --install-path=PATH    Path to where libraries and modeles are installed (make install) into.
+                           (except for brics_3d). Default is /usr/local 
+    -j=VALUE               used for make -jVAULE 
+```
+
+The script will automatically summarize which environment varaible have to permenently saved. Please follow the instructios. E.g.
+```
+############################ATTENTION###############################
+ ATTENTION: Please add the following environment variables:
+
+export "HDF5_ROOT=/usr/local/" >> ~/.bashrc
+export "UBX_ROOT=/workspace/microblx" >> ~/.bashrc
+export "UBX_MODULES=/usr/local/lib/ubx" >> ~/.bashrc
+export "BRICS_3D_DIR=/workspace/brics_3d" >> ~/.bashrc
+export "FBX_MODULES=/workspace/brics_3d_function_blocks" >> ~/.bashrc
+source ~/.bashrc .
+
+####################################################################
+```
 
 
 ### Manual installation
