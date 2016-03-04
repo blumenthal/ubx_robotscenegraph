@@ -402,7 +402,7 @@ if [ ! -d zeromq-4.1.2 ]; then
 fi 
 cd zeromq-4.1.2
 ./autogen.sh
-./configure --with-libsodium=no --prefix=${INSTALL_DIR}/zeromq-4.1.2
+./configure --with-libsodium=no --prefix=${INSTALL_DIR}
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
@@ -417,7 +417,7 @@ if [ ! -d czmq-3.0.2 ]; then
 fi
 cd czmq-3.0.2/
 ./autogen.sh
-./configure --prefix=${INSTALL_DIR}/czmq-3.0.2
+./configure --prefix=${INSTALL_DIR}
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
@@ -430,7 +430,7 @@ if [ ! -d zyre-1.1.0 ]; then
 fi
 cd zyre-1.1.0/
 sh ./autogen.sh
-./configure --prefix=${INSTALL_DIR}/zyre-1.1.0
+./configure --prefix=${INSTALL_DIR}
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
