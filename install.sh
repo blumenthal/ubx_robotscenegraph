@@ -366,7 +366,8 @@ source env.sh
 # It does configure a lot of LUA variables to make the UBX system models work.
 make
 #echo "export UBX_ROOT=$PWD" >> ~/.bashrc
-export UBX_ROOT=$PWD
+export UBX_ROOT="${PWD}"
+echo "UBX_ROOT=${UBX_ROOT}"
 # The UBX_ROOT environment variable is needed for the other (below) modules to find UBX properly.
 #echo "export UBX_MODULES=${INSTALL_DIR}/lib/ubx" >> ~/.bashrc
 export UBX_MODULES="${INSTALL_DIR}/lib/ubx"
@@ -434,7 +435,7 @@ sh ./autogen.sh
 make ${J}
 ${SUDO} make install
 ${SUDO} ldconfig
-cd .
+cd ..
 
 echo "CZMQ-UBX bridge"
 # In case ZMQ or CZMQ libraries are alredy pre-installed
@@ -533,7 +534,7 @@ make ${J}
 ${SUDO} make install
 cd ..
 #echo "export FBX_MODULES=$PWD" >> ~/.bashrc
-export FBX_MODULES=$PWD
+export FBX_MODULES="${PWD}"
 # The FBX_MODULES environment variable is needed for the other (below) 
 # modules to find the BRICS_3D function blocks and typs.
 #source ~/.bashrc .
