@@ -1,0 +1,34 @@
+set river fiumeReno point point01 44.123456 11.234567 11
+set river fiumeReno point point02 44.546761 11.535687 12
+set river fiumeReno point bbox01 44.546797 11.435663 11
+set river fiumeReno point bbox02 44.543578 11.345632 12
+set river fiumeReno point center 44.435768 11.242353 11
+set river fiumeReno connections
+set wood pinetaZadina point point01 44.435574 11.434675 20
+set wood pinetaZadina point point02 44.434567 11.324355 25
+set wood pinetaZadina point point03 44.434567 11.234678 20
+set wood pinetaZadina point point04 44.544567 11.644567 25
+set wood pinetaZadina point bbox01 44.535679 11.233546 22
+set wood pinetaZadina point bbox02 44.564687 11.345634 23
+set wood pinetaZadina point center 44.568901 11.234566 24
+set wood pinetaZadina connections
+set mountain monteBianco point point01 44.456346 11.434567 34
+set mountain monteBianco point point02 44.323455 11.433455 33
+set mountain monteBianco point point03 44.323455 11.433455 33
+set mountain monteBianco point point04 44.323455 11.433455 33
+set mountain monteBianco point bbox01 44.535679 11.233546 22
+set mountain monteBianco point bbox02 44.564687 11.345634 23
+set mountain monteBianco point center 44.568901 11.234566 24
+set mountain monteBianco connections
+set house municipio point point01 44.435574 11.434675 31
+set house municipio point point02 44.765673 11.543466 32
+set house municipio point point03 44.324567 11.345787 30
+set house municipio point point04 44.434356 11.544567 28
+set house municipio point bbox01 44.5435787 11.434566 30
+set house municipio point bbox02 44.435667 11.434657 29
+set house municipio point center 44.432456 11.434354 31
+set house municipio connections
+#set genius geopose 44.11 11.23 32 0 0 0 1
+#set donkey geopose 44.12 11.34 54 0 0 0 1
+#set wasp 1 geopose 44.13 11.56 76 0 0 0 1
+#add picture wasp_01 www.test.com 44 11 23 0 0 0 1
