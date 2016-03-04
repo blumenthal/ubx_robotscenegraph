@@ -7,7 +7,7 @@
 # with the "install.sh" script.
 # 
 
-FROM ubuntu:12.04
+FROM ubuntu:14.04
 MAINTAINER Sebastian Blumenthal
 
 ENV WORKSPACE_DIR /workspace
@@ -50,7 +50,8 @@ ENV BRICS_3D_DIR /workspace/brics_3d
 ENV UBX_ROOT /workspace/microblx
 ENV UBX_MODULES /usr/local/lib/ubx
 ENV FBX_MODULES /workspace/brics_3d_function_blocks
-RUN cd /workspace; /bin/bash -c "source ~/.bashrc"; /bin/bash -c "source ./ubx_robotscenegraph/install.sh --no-sudo --no-ros"
+#RUN cd /workspace; /bin/bash -c "source ~/.bashrc"; /bin/bash -c "source ./ubx_robotscenegraph/install.sh --no-sudo --no-ros"
+RUN cd /workspace; /bin/bash -c "source ~/.bashrc"; /bin/bash -c "./ubx_robotscenegraph/install.sh -i --workspace-path=/workspace --no-ros --no-sudo -j=4"
 # Use the one below for instllation of the ROS brisge as well:
 #RUN cd /workspace; /bin/bash -c "source ~/.bashrc"; /bin/bash -c "source /opt/ros/hydro/setup.bash"; /bin/bash -c "source ./ubx_robotscenegraph/install.sh --no-sudo"
 
