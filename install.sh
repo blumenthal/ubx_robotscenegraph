@@ -7,22 +7,29 @@
 # Usage
 # ------
 #
-# Call this script wihtout any parameters:
-# 
-#	source ./install.sh -i
-# 
-# OR
-#	source ./install.sh --no-sudo
+# Call this script:
 #
-# In case the system has no sudo command available. 
-# 
-# OR
-# source ./install.sh --no-ros
-# 
-# In case the system has no ROS (Hydro) installtion. 
+# Default install:
 #
-# The "source" command is important here because it adds environment variables
-# that are required for the subsequent installation steps.
+#	./install.sh -i 
+#
+# OR:
+#
+# ./install.sh --help
+#
+# to retrive the folllowing usage information  
+# 
+# Usage: ./install.sh -i [--no-sudo] [--no-ros] [--workspace-path=PATH] [--install-path=PATH] [-h|--help] [-j=VALUE] 
+# E.g. : ./install.sh -i --workspace-path=../ 
+#
+#    -i                     Mandatory! Perform actual installation.
+#    -h|--help              Display this help and exit
+#    --no-sudo              In case the system has no sudo command available. 
+#    --no-ros               In case the system has no ROS (Hydro/Indigo) installation.
+#    --workspace-path=PATH  Path to where libraries and bulild. Default is ../
+#    --install-path=PATH    Path to where libraries and modeles are installed (make install) into.
+#                           (except for brics_3d). Default is /usr/local 
+#    -j=VALUE               used for make -jVAULE 
 #
 #
 #
@@ -587,21 +594,21 @@ echo ""
 echo "############################ATTENTION###############################"
 echo " ATTENTION: Please add the followign environment variables:"
 echo ""
-echo "export HDF5_ROOT=${HDF5_ROOT} >> ~/.bashrc"
-echo "export UBX_ROOT=${UBX_ROOT} >> ~/.bashrc"
-echo "export UBX_MODULES=${UBX_MODULES} >> ~/.bashrc"
-echo "export BRICS_3D_DIR=${PWD} >> ~/.bashrc"
-echo "export FBX_MODULES=${FBX_MODULES} >> ~/.bashrc"
+echo "export \"HDF5_ROOT=${HDF5_ROOT}\" >> ~/.bashrc"
+echo "export \"UBX_ROOT=${UBX_ROOT}\" >> ~/.bashrc"
+echo "export \"UBX_MODULES=${UBX_MODULES}\" >> ~/.bashrc"
+echo "export \"BRICS_3D_DIR=${BRICS_3D_DIR}\" >> ~/.bashrc"
+echo "export \"FBX_MODULES=${FBX_MODULES}\" >> ~/.bashrc"
 echo "source ~/.bashrc ."
 echo ""
 echo "####################################################################"
 echo "In case the ROS communication modules are used also start roscore:"
 echo "	cd ./ubx_robotscenegraph"
 echo "	roscore& "
-echo "  ./run_sherpa_world_model.sh"
+echo "	./run_sherpa_world_model.sh"
 echo ""
 echo "Then enter the following command and hit enter:"
-echo "start_all()"
+echo "	start_all()"
 echo "####################################################################"
 echo ""
 
