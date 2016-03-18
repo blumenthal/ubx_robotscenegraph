@@ -37,12 +37,13 @@ function getEnvWithDefault(variableName, defaultValue)
 end
 
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
+local worldModelAgentName = getEnvWithDefault("SWM_WMA_NAME", "swm") -- human radable name to better identify this WMA; Moslty for debugging
 local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
 wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
 --wm = rsg.WorldModel() -- Defualt with auto generated rootId
 local rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
---wm:addNodeAttribute(rootId, "name", "robot_1");
+wm:addNodeAttribute(rootId, "name", worldModelAgentName);
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
 
@@ -52,19 +53,20 @@ wm:setLogLevel(0)
 
 -- Convenience function to start the system in on shot
 function start_wm() -- no particular order assumed here
-  ni:b("rsghdf5sender"):do_start()
-  ni:b("rsghdf5receiver"):do_start()
+--  ni:b("rsghdf5sender"):do_start()
+--  ni:b("rsghdf5receiver"):do_start()
   ni:b("rsgjsonsender"):do_start()
   ni:b("rsgjsonreciever"):do_start()
   ni:b("rsgjsonqueryrunner"):do_start()
   ni:b("rsgdump"):do_start()
   ni:b("zmq_hdf5_publisher"):do_start()
   ni:b("zmq_hdf5_subscriber"):do_start()
+  ni:b("zmq_hdf5_subscriber_secondary"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
   ni:b("zmq_json_query_server"):do_start()
-  ni:b("ros_hdf5_publisher"):do_start()
-  ni:b("ros_hdf5_subscriber"):do_start()
+--  ni:b("ros_hdf5_publisher"):do_start()
+--  ni:b("ros_hdf5_subscriber"):do_start()
   ni:b("ros_json_publisher"):do_start()
   ni:b("ros_json_subscriber"):do_start()
   ni:b("bytestreambuffer1"):do_start()
@@ -126,6 +128,8 @@ end
 
 -- Communication configuration with reasonable default values. Can be adapted here or 
 -- be setting the respective environment variable.
+-- e.g. export SWM_LOCAL_OUT_PORT=11511
+--
 local local_ip = getEnvWithDefault("SWM_LOCAL_IP", "localhost")  
 local local_out_port = getEnvWithDefault("SWM_LOCAL_OUT_PORT", "11411") 
 local remote_ip = getEnvWithDefault("SWM_REMOTE_IP", "127.0.0.1") 
@@ -133,7 +137,15 @@ local remote_out_port = getEnvWithDefault("SWM_REMOTE_OUT_PORT", "11511")
 local local_json_ip = getEnvWithDefault("SWM_LOCAL_JSON_IP", "127.0.0.1")
 local local_json_in_port = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT", "12911")
 local local_json_out_port = getEnvWithDefault("SWM_LOCAL_JSON_OUT_PORT", "12912")
+local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22422")
 
+-- this is special for 3 x 3 robot set up
+local remote_ip_secondary = getEnvWithDefault("SWM_REMOTE_IP_SECONDARY", "127.0.0.1") 
+local remote_out_port_secondary = getEnvWithDefault("SWM_REMOTE_OUT_PORT_SECONDARY", "11611")
+
+-- Filter settings
+local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
+local input_filter_pattern = getEnvWithDefault("SWM_INPUT_FILTER_PATTERN", "os(m|g)")
 
 return bd.system
   {
@@ -174,6 +186,7 @@ return bd.system
       { name="rsgjsonqueryrunner", type="rsg_json_query" },
       { name="zmq_hdf5_publisher", type="zmq_sender" },
       { name="zmq_hdf5_subscriber", type="zmq_receiver" },
+      { name="zmq_hdf5_subscriber_secondary", type="zmq_receiver" },
       { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
       { name="zmq_json_query_server", type="zmq_server" },
@@ -187,6 +200,7 @@ return bd.system
       -- ZMQ
       { name="bytestreambuffer1",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer2",type="lfds_buffers/cyclic_raw" },
+      { name="bytestreambuffer9",type="lfds_buffers/cyclic_raw" },
       -- ROS
       { name="bytestreambuffer3",type="lfds_buffers/cyclic_raw" }, 
       { name="bytestreambuffer4",type="lfds_buffers/cyclic_raw" },
@@ -211,11 +225,13 @@ return bd.system
 
     connections = {
       -- ZMQ
-      { src="rsghdf5sender.rsg_out", tgt="bytestreambuffer1" },
+      { src="rsgjsonsender.rsg_out", tgt="bytestreambuffer1" },
       { src="bytestreambuffer1", tgt="zmq_hdf5_publisher.zmq_out" },
 
       { src="zmq_hdf5_subscriber.zmq_in", tgt="bytestreambuffer2" },
-      { src="bytestreambuffer2", tgt="rsghdf5receiver.rsg_in" },
+      { src="bytestreambuffer2", tgt="rsgjsonreciever.rsg_in" },
+      { src="zmq_hdf5_subscriber_secondary.zmq_in", tgt="bytestreambuffer9" },
+      { src="bytestreambuffer9", tgt="rsgjsonreciever.rsg_in" },
 
       -- ROS (iblock)
       --{ src="zmq_hdf5_publisher.zmq_in", tgt="visualization_publisher" },
@@ -263,21 +279,30 @@ return bd.system
         } 
       },
       { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
-      { name="rsgjsonreciever", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
-      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 2 } },
+      { name="rsgjsonreciever", 
+        config =  { 
+          buffer_len=20000, 
+          wm_handle={wm = wm:getHandle().wm}, 
+          log_level = 2, 
+          enable_input_filter = enable_input_filter,
+          input_filter_pattern = input_filter_pattern  
+        } 
+      },
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 1 } },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
+      { name="zmq_hdf5_subscriber_secondary", config = { connection_spec= "tcp://" .. remote_ip_secondary .. ":" .. remote_out_port_secondary  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
-      { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:22422" } }, 
+      { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
       { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
       { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
       { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
       { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
       --  trig_blocks={ { b="#rsghdf5receiver", num_steps=1, measure=0 } } } },            
-      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="examples/maps/rsg/cesena_lab.json" } },
-      { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm} } },
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="../maps/rsg/sar_mission.json" } },
+      { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm}, dot_name_prefix = "rsg_dump_" .. worldModelAgentName } },
       { name="bytestreambuffer1", config = { element_num=6000 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer3", config = { element_num=50 , element_size=20000 } },
@@ -286,30 +311,28 @@ return bd.system
       { name="bytestreambuffer6", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer7", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer8", config = { element_num=50 , element_size=20000 } },
+      { name="bytestreambuffer9", config = { element_num=50 , element_size=20000 } },
       { name="bytestreambuffer_query_req", config = { element_num=50 , element_size=90000 } },
       { name="bytestreambuffer_query_rep", config = { element_num=50 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100 }, 
           trig_blocks={ 
-            { b="#rsghdf5receiver", num_steps=1, measure=0 }, 
+--            { b="#rsghdf5receiver", num_steps=1, measure=0 }, 
             { b="#rsgjsonreciever", num_steps=1, measure=0 },
             { b="#zmq_hdf5_publisher", num_steps=1, measure=0 },
             { b="#zmq_json_publisher", num_steps=1, measure=0 },
-            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },  
+--            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },  
             { b="#ros_json_publisher", num_steps=1, measure=0 },   
             { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
             { b="#zmq_json_query_server", num_steps=1, measure=0 },        
           --{ b="#rsghdf5sender", num_steps=1, measure=0 },              
           } 
         } 
-      },	
+      },  
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/opt/src/sandbox/brics_3d_function_blocks/data/way_example.osm", convert_to_utm = 1 } }     
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/cesena_lab.osm", convert_to_utm = 1, log_level = 1 } }
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="/home/sblume/my_documents/robotics/sherpa/maps/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
-     -- { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="office.osm", convert_to_utm = 1, log_level = 1 } }
-     { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_brsu.osm", convert_to_utm = 1, log_level = 1 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_champoluc.osm", convert_to_utm = 0, log_level = 1 } }
+--      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_brsu.osm", convert_to_utm = 0, log_level = 1 } }
     },
 }

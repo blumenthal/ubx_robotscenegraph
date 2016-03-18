@@ -4,9 +4,13 @@ Multi Robot Example
 Launching the system
 --------------------
 
-1.) ``roscore&``
+1.) Configure network settings
 
-2.) start 3 new terminal windows
+C.f. ``robotX.sh`` to set the correct IPs and ports. Default setting is that all robots are simultated on one PC.
+
+2.) ``roscore&``
+
+3.) start 3 new terminal windows
 
 
 Quickstart:
@@ -29,8 +33,8 @@ Manaual start:
 | ``dump_wm()``           | ``dump_wm()``        | ``dump_wm()``        |
 
 
-3.) Make as many snapshaot as needed by typing ``dump_wm()`` into the individual consoles.
+4.) Make as many snapshaot as needed by typing ``dump_wm()`` into the individual consoles.
 
-4.) Start the robot simulation script in the ``mission_scripts`` subfolder with `` python robot.py ``
+5.) Start the robot simulation script in the ``mission_scripts`` subfolder with `` python robot.py ``
 
-5.) Display grapgh via  `` evince `(../../latest_rsg_dump_to_pdf.sh)` ``
+6.) Display grapgh via  `` evince `(../../latest_rsg_dump_to_pdf.sh)` ``
