@@ -178,11 +178,22 @@ without a Mediator (recommeded) has to be selected.
 
 ### World Model Agent UUIDs
 
-Before launching a distributed scenario it has to be ensured that every World Model Agent, thus every SWM 
-has a unique UUID! It can set in the respective section in the ``sherpa_world_mode.usc`` file. 
+Before launching a distributed scenario it is strongly advised that every World Model Agent, thus every SWM 
+has a unique UUID. It can set in the respective section in the ``sherpa_world_mode.usc`` file or as an
+environment variable. If the agent IDs are the same, the *advertisment* message that automatically synchronizes agents on start up will be ignored. 
+
+
+Set the environment variable ``SWM_WMA_ID`` to the UUID to be used. E.g.:
 
 ```
-local worldModelAgentId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
+export SWM_WMA_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1
+```
+
+
+Or directly modify the default value in the usc file:
+
+```
+local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") 
 ```
 
 It is also possible to ommit that step and let the World Model Agent automatically generate one.
@@ -195,13 +206,12 @@ use that line:
 wm = rsg.WorldModel() -- Default with auto generated rootId 
 ```
 
-TBD: Environment variable. 
 
 ### Without Mediator
 
 Each SWM has a ZMQ publisher and a ZMQ subscriber, while the publisher binds/owns the port. 
 I.e. the subscriber has to know where to connect to.
-In order to connect two SWMs each subscriber of a SMW has to connect to the publisher of the other SWM(s).
+In order to connect two or three SWMs each subscriber of a SMW has to connect to the publisher of the other SWM(s).
 
 This is used the default setup:
 
@@ -213,25 +223,62 @@ This is used the default setup:
  +-----------+           +-----------+
 ```
 
-Please note, that the ports ``11411`` and ``11511`` could be indentical as well. Still it is sugested to seperate them
-because typically tests or deggugging session are carried out on single machine. 
+Please note, that the ports ``11411`` and ``11511`` could be indentical as well. Still it is suggested to seperate them
+because typically tests or deggugging sessions are carried out on a single machine. All ports and IPs can ce configured
+either in the usc file or via the below environment variables.
 
 
 Configuration of SHERPA WM 1
 ```
- local local_ip = "localhost"
- local local_out_port = "11411"
- local remote_ip = "IP#2"
- local remote_out_port = "11511"
+ export SWM_LOCAL_IP=localhost
+ export SWM_LOCAL_OUT_PORT=11411
+ export SWM_REMOTE_IP=IP#2
+ export SWM_REMOTE_OUT_PORT=11511
 ```
 
 Configuration of SHERPA WM 2
 ```
- local local_ip = "localhost"
- local local_out_port = "11511"
- local remote_ip = IP#1"
- local remote_out_port = "11411"
+ export WM_LOCAL_IP=localhost
+ export SWM_LOCAL_OUT_PORT=11511
+ export SWM_REMOTE_IP=IP#1
+ export SWM_REMOTE_OUT_PORT=11411
 ```
+
+#### Example setup with 3 robots:
+
+Here we consider a distributed deployment with three robots: *WASP*, SHERPA-*BOX* and *HMI*. They have the below IPs:
+
+| Robot |      IP       |
+|-------|---------------|
+| WASP  | 192.168.0.107 |
+| BOX   | 192.168.0.110 |
+| HMI   | 192.168.0.111 |
+
+To ease debugging we also assign human readable names to each of the agents via the ``SWM_WMA_NAME`` environment variable. 
+The ports we leave on default settings. This results in three individual configurations for the robots:  
+
+* WASP (192.168.0.107):
+```
+  export SWM_WMA_NAME=wasp
+  export SWM_REMOTE_IP=192.168.0.110
+  export SWM_REMOTE_IP_SECONDARY=192.168.0.111
+```
+
+* BOX (192.168.0.110):
+```
+  export SWM_WMA_NAME=sherpa_box
+  export SWM_REMOTE_IP=192.168.0.107
+  export SWM_REMOTE_IP_SECONDARY=192.168.0.111
+```
+
+* HMI (192.168.0.111):
+```
+  export SWM_WMA_NAME=hmi
+  export SWM_REMOTE_IP=192.168.0.107
+  export SWM_REMOTE_IP_SECONDARY=192.168.0.110
+```
+
+Note, it is also possible to flip ``SWM_REMOTE_IP`` and ``SWM_REMOTE_IP_SECONDARY``. They just need to configure the IPs of the other robots.
 
 ### With Mediator
 
