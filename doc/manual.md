@@ -246,7 +246,8 @@ Configuration of SHERPA WM 2
 
 #### Example setup with 3 robots:
 
-Here we consider a distributed deployment with three robots: *WASP*, SHERPA-*BOX* and *HMI*. They have the below IPs:
+Here we consider a distributed deployment with three robots: *WASP*, SHERPA-*BOX* and *HMI*. They have the below IPs 
+and publish update messages on port ``11411``:
 
 | Robot |      IP       |
 |-------|---------------|
@@ -255,27 +256,33 @@ Here we consider a distributed deployment with three robots: *WASP*, SHERPA-*BOX
 | HMI   | 192.168.0.111 |
 
 To ease debugging we also assign human readable names to each of the agents via the ``SWM_WMA_NAME`` environment variable. 
-The ports we leave on default settings. This results in three individual configurations for the robots:  
+We set all ports to 11411. This results in three individual configurations for the robots:  
 
 * WASP (192.168.0.107):
 ```
   export SWM_WMA_NAME=wasp
   export SWM_REMOTE_IP=192.168.0.110
+  export SWM_REMOTE_OUT_PORT=11411
   export SWM_REMOTE_IP_SECONDARY=192.168.0.111
+  export SWM_REMOTE_OUT_PORT_SECONDARY=11411
 ```
 
 * BOX (192.168.0.110):
 ```
   export SWM_WMA_NAME=sherpa_box
   export SWM_REMOTE_IP=192.168.0.107
+  export SWM_REMOTE_OUT_PORT=11411
   export SWM_REMOTE_IP_SECONDARY=192.168.0.111
+  export SWM_REMOTE_OUT_PORT_SECONDARY=11411
 ```
 
 * HMI (192.168.0.111):
 ```
   export SWM_WMA_NAME=hmi
   export SWM_REMOTE_IP=192.168.0.107
+  export SWM_REMOTE_OUT_PORT=11411
   export SWM_REMOTE_IP_SECONDARY=192.168.0.110
+  export SWM_REMOTE_OUT_PORT_SECONDARY=11411
 ```
 
 Note, it is also possible to flip ``SWM_REMOTE_IP`` and ``SWM_REMOTE_IP_SECONDARY``. They just need to configure the IPs of the other robots.
