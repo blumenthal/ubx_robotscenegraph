@@ -303,7 +303,7 @@ return bd.system
 --      { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
 --      { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
       --  trig_blocks={ { b="#rsghdf5receiver", num_steps=1, measure=0 } } } },            
-      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="../maps/rsg/sar_mission.json" } },
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="examples/maps/rsg/cesena_lab.json" } },
       { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm}, dot_name_prefix = "rsg_dump_" .. worldModelAgentName } },
       { name="bytestreambuffer1", config = { element_num=6000 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
