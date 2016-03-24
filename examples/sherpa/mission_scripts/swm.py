@@ -107,6 +107,7 @@ def quat2DCM(qx, qy, qz, qs):
 
 def addGroupNode(nodeName, nodeDescription, nodeParentId):
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
+    time.sleep(1)
     pubSocket.send_string(json.dumps({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -120,9 +121,11 @@ def addGroupNode(nodeName, nodeDescription, nodeParentId):
       "parentId": nodeParentId,
     }))  
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
-
+    time.sleep(1)
+	
 def addAgentNode(nodeName, nodeDescription, nodeParentId):
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
+	#time.sleep(1)
     pubSocket.send_string(json.dumps({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -136,6 +139,7 @@ def addAgentNode(nodeName, nodeDescription, nodeParentId):
       "parentId": nodeParentId,
     }))  
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
+    time.sleep(1)
 
 def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, pointAlt):
     print "[DCM Interface:] adding the point %s of %s ..." % (pointName, pointParent)
@@ -153,7 +157,7 @@ def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, point
       },
       "parentId": pointParentId,
     }))
-    time.sleep(1)
+    #time.sleep(1)
     pointId = getNodeId({
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
@@ -214,7 +218,7 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
       "parentId": originId,
     }))  
     print "[DCM Interface:] the geopose node for %s was successfully added!" % (nodeName)
-    #time.sleep(1) 
+    time.sleep(1) 
 
 def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
     print "[DCM Interface:] updating the geopose node for %s ..." % (nodeName)
@@ -248,7 +252,7 @@ def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, no
       }
     }))  
     print "[DCM Interface:] the geopose node for %s was successfully updated!" % (nodeName)
-    #time.sleep(1) 
+    time.sleep(1) 
 
 def getNodeId(queryMessage):
     socket = context.socket(zmq.REQ)
@@ -269,7 +273,7 @@ def initialiseSWM():
     addGroupNode("environment", "This is the node of the scenario environment objects.", objectsId)
     addGroupNode("observations", "This is the node of the the sherpa observations.", objectsId)
     print "[DCM Interface:] adding the geoposes reference frame node ..."
-    #time.sleep(1)
+    time.sleep(1)
     pubSocket.send_string(json.dumps({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -283,7 +287,7 @@ def initialiseSWM():
       "parentId": swmId,
     }))  
     print "[DCM Interface:] the geoposes reference frame node was successfully added!"
-    #time.sleep(1) 
+    time.sleep(1) 
     print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
 
 def addGeniusNode():
@@ -396,7 +400,7 @@ def addPictureNode(pictureAuthor, pictureUrl, pictureLat, pictureLon, pictureAlt
     })
     addGeoposeNode("picture %s %s" % (pictureAuthor, pictureTime), pictureId, pictureLat, pictureLon, pictureAlt, pictureQuat0, pictureQuat1, pictureQuat2, pictureQuat3)
     print "[DCM Interface:] the picture taken from agent %s at time %s was successfully added!" % (pictureAuthor, pictureTime)
-    #time.sleep(1) 
+    time.sleep(1) 
 
 def addRiverNode(riverName):
     if getNodeId({
@@ -426,7 +430,7 @@ def addRiverNode(riverName):
           },
           "parentId": getNodeId(environmentQueryMsg),
         }))
-        #time.sleep(1) 
+        time.sleep(1) 
         print "[DCM Interface:] the river %s was successfully added!" % (riverName)
 
 def addWoodNode(woodName):
@@ -457,7 +461,7 @@ def addWoodNode(woodName):
           },
           "parentId": getNodeId(environmentQueryMsg),
         }))
-        #time.sleep(1) 
+        time.sleep(1) 
         print "[DCM Interface:] the wood %s was successfully added!" % (woodName)
 
 def addHouseNode(houseName):
@@ -488,7 +492,7 @@ def addHouseNode(houseName):
           },
           "parentId": getNodeId(environmentQueryMsg),
         }))
-        #time.sleep(1) 
+        time.sleep(1) 
         print "[DCM Interface:] the house %s was successfully added!" % (houseName)
 
 def addMountainNode(mountainName):
@@ -519,7 +523,7 @@ def addMountainNode(mountainName):
           },
           "parentId": getNodeId(environmentQueryMsg),
         }))
-        #time.sleep(1) 
+        time.sleep(1) 
         print "[DCM Interface:] the mountain %s was successfully added!" % (mountainName)
 
 def connectRiver(riverName):
@@ -581,7 +585,7 @@ def connectRiver(riverName):
               },
               "parentId": getNodeId(parentQueryMsg)
             }))
-            #time.sleep(1) 
+            time.sleep(1) 
             print "[DCM Interface:] the river %s connections were successfully added!" % (riverName)
     
 def connectWood(woodName):
@@ -637,7 +641,7 @@ def connectWood(woodName):
               },
               "parentId": getNodeId(parentQueryMsg)
             }))
-            #time.sleep(1) 
+            time.sleep(1) 
             print "[DCM Interface:] the wood %s connections were successfully added!" % (woodName)
 
 def connectHouse(houseName):
@@ -693,7 +697,7 @@ def connectHouse(houseName):
               },
               "parentId": getNodeId(parentQueryMsg)
             }))
-            #time.sleep(1) 
+            time.sleep(1) 
             print "[DCM Interface:] the house %s connections were successfully added!" % (houseName)
 
 def connectMountain(mountainName):
@@ -749,7 +753,7 @@ def connectMountain(mountainName):
           },
           "parentId": getNodeId(parentQueryMsg)
         }))
-        #time.sleep(1) 
+        time.sleep(1) 
         print "[DCM Interface:] the mountain %s connections were successfully added!" % (mountainName)
 
 def addRiverPoint(pointParent, pointName, pointLat, pointLon, pointAlt):
