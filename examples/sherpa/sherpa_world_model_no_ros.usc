@@ -64,6 +64,7 @@ function start_wm() -- no particular order assumed here
   ni:b("zmq_hdf5_subscriber_secondary"):do_start()
   ni:b("zmq_json_publisher"):do_start()
   ni:b("zmq_json_subscriber"):do_start()
+  ni:b("zmq_json_subscriber_secondary"):do_start()
   ni:b("zmq_json_query_server"):do_start()
 --  ni:b("ros_hdf5_publisher"):do_start()
 --  ni:b("ros_hdf5_subscriber"):do_start()
@@ -138,6 +139,7 @@ local remote_ip = getEnvWithDefault("SWM_REMOTE_IP", docker0_ip)
 local remote_out_port = getEnvWithDefault("SWM_REMOTE_OUT_PORT", "11511")
 local local_json_ip = getEnvWithDefault("SWM_LOCAL_JSON_IP", docker0_ip)
 local local_json_in_port = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT", "12911")
+local local_json_in_port_secondary = getEnvWithDefault("SWM_LOCAL_JSON_IN_PORT_SECONDARY", "13911") --workaround
 local local_json_out_port = getEnvWithDefault("SWM_LOCAL_JSON_OUT_PORT", "12912")
 local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22422")
 
@@ -195,6 +197,7 @@ return bd.system
       { name="zmq_hdf5_subscriber_secondary", type="zmq_receiver" },
       { name="zmq_json_publisher", type="zmq_sender" }, -- will be replaced by zyre
       { name="zmq_json_subscriber", type="zmq_receiver" }, -- will be replaced by zyre
+      { name="zmq_json_subscriber_secondary", type="zmq_receiver" }, -- will be replaced by zyre; workaround for having multiple local json publishers
       { name="zmq_json_query_server", type="zmq_server" },
 --      { name="ros_hdf5_publisher", type="ros_sender" },
 --      { name="ros_hdf5_subscriber", type="ros_receiver" },
@@ -263,6 +266,7 @@ return bd.system
       
       { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
       { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
+      { src="zmq_json_subscriber_secondary.zmq_in", tgt="bytestreambuffer6" },
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
@@ -301,6 +305,7 @@ return bd.system
       { name="zmq_hdf5_subscriber_secondary", config = { connection_spec= "tcp://" .. remote_ip_secondary .. ":" .. remote_out_port_secondary  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
+      { name="zmq_json_subscriber_secondary", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port_secondary  } },
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
 --      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },s
 --      { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
