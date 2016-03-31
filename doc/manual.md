@@ -256,7 +256,8 @@ and publish update messages on port ``11411``:
 | HMI   | 192.168.0.111 |
 
 To ease debugging we also assign human readable names to each of the agents via the ``SWM_WMA_NAME`` environment variable. 
-We set all ports to 11411. This results in three individual configurations for the robots:  
+We set all ports to 11411. We further assume that there is no ROS installed on the WASP robot. 
+This results in three individual configurations and launch commands for the robots:  
 
 * WASP (192.168.0.107):
 ```
@@ -265,6 +266,9 @@ We set all ports to 11411. This results in three individual configurations for t
   export SWM_REMOTE_OUT_PORT=11411
   export SWM_REMOTE_IP_SECONDARY=192.168.0.111
   export SWM_REMOTE_OUT_PORT_SECONDARY=11411
+  
+  ./run_run_sherpa_world_model --no-ros
+  start_all()
 ```
 
 * BOX (192.168.0.110):
@@ -274,6 +278,10 @@ We set all ports to 11411. This results in three individual configurations for t
   export SWM_REMOTE_OUT_PORT=11411
   export SWM_REMOTE_IP_SECONDARY=192.168.0.111
   export SWM_REMOTE_OUT_PORT_SECONDARY=11411
+  
+  roscore&
+  ./run_run_sherpa_world_model
+  start_all()
 ```
 
 * HMI (192.168.0.111):
@@ -283,6 +291,10 @@ We set all ports to 11411. This results in three individual configurations for t
   export SWM_REMOTE_OUT_PORT=11411
   export SWM_REMOTE_IP_SECONDARY=192.168.0.110
   export SWM_REMOTE_OUT_PORT_SECONDARY=11411
+  
+  roscore&
+  ./run_run_sherpa_world_model
+  start_all()
 ```
 
 Note, it is also possible to flip ``SWM_REMOTE_IP`` and ``SWM_REMOTE_IP_SECONDARY``. They just need to configure the IPs of the other robots.
