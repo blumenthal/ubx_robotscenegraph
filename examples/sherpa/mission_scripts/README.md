@@ -42,6 +42,7 @@ The available commands are the following ones:
 * set wasp (TAG) geopose (LAT) (LON) (ALT) (Q0) (Q1) (Q2) (Q3): create/set the geopose node of the wasp (NAME) with the position (LAT) (LON) (ALT) and the quaternion (Q0) (Q1) (Q2) (Q3) and create the DCM structure and/or the wasp node if it isn't already available.
 * set river/wood/house/mountain (NAME) point (TAG) (LAT) (LON) (ALT): create/set the point identified by the tag (TAG) of the object river/wood/house/mountain (NAME) with the position (LAT) (LON) (ALT) and create the DCM structure and/or the river/wood/house/mountain node if it isn't already available.
 * set river/wood/house/mountain (NAME) connections: create the connection node of all the created points of the object river/wood/house/mountain (NAME).
+* getGeopose(agent): this command is available only when using SWM in a script. Simply import the swm as written below and then use "geopose = getGeopose(agent)" to retrieve the latest geopose for the agent. Valid agents are: "donkey", "genius", "wasp_x" (where x is the name of the wasp, usually 0). The function will return a GeoPose object
 
 These commands can be run thorugh terminal from the pySWM directory by running the line ``python swm.py <COMMAND>`` where ``<COMMAND>`` is one of the commands of the previous list (e.g. ``python swm.py add genius``).
 Otherwise it is also possible to specify these commands in the lines of a file with 
@@ -60,7 +61,8 @@ where ``'/home/path/to/pySWM'`` is the path to the pySWM folder. The commands of
 Authors
 -------
 
-* Marco Melega 
+* Marco Melega
+* Michele Furci
 
-Last update: 04.03.2016
+Last update: 31.03.2016
 
