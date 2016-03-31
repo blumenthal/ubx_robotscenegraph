@@ -149,6 +149,10 @@ local remote_out_port_secondary = getEnvWithDefault("SWM_REMOTE_OUT_PORT_SECONDA
 local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
 local input_filter_pattern = getEnvWithDefault("SWM_INPUT_FILTER_PATTERN", "os(m|g)")
 
+-- Map files
+local rsg_map_file = getEnvWithDefault("SWM_RSG_MAP_FILE", "examples/maps/rsg/cesena_lab.json")
+local osm_map_file = getEnvWithDefault("SWM_OSM_MAP_FILE", "examples/maps/osm/map_micro_champoluc.osm") 
+
 return bd.system
   {
     imports = {
@@ -298,12 +302,12 @@ return bd.system
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
---      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
+--      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },s
 --      { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
 --      { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
 --      { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
       --  trig_blocks={ { b="#rsghdf5receiver", num_steps=1, measure=0 } } } },            
-      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file="examples/maps/rsg/cesena_lab.json" } },
+      { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file=rsg_map_file } },
       { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm}, dot_name_prefix = "rsg_dump_" .. worldModelAgentName } },
       { name="bytestreambuffer1", config = { element_num=6000 , element_size=20000 } },
       { name="bytestreambuffer2", config = { element_num=50 , element_size=20000 } },
@@ -334,7 +338,7 @@ return bd.system
       },  
 --      { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_champoluc.osm", convert_to_utm = 0, log_level = 1 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file=osm_map_file, convert_to_utm = 0, log_level = 1 } }
 --      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_brsu.osm", convert_to_utm = 0, log_level = 1 } }
     },
 }
