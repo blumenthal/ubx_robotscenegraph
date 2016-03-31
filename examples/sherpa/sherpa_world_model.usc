@@ -43,7 +43,7 @@ wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId
 --wm = rsg.WorldModel() -- Defualt with auto generated rootId
 local rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
-wm:addNodeAttribute(rootId, "name", worldModelAgentName);
+--wm:addNodeAttribute(rootId, "name", worldModelAgentName);
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
 
