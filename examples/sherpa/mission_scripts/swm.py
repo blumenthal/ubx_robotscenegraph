@@ -121,11 +121,11 @@ def addGroupNode(nodeName, nodeDescription, nodeParentId):
       "parentId": nodeParentId,
     }))  
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
-    time.sleep(1) 
-
+    time.sleep(1)
+	
 def addAgentNode(nodeName, nodeDescription, nodeParentId):
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
-    time.sleep(1)
+	#time.sleep(1)
     pubSocket.send_string(json.dumps({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -139,12 +139,12 @@ def addAgentNode(nodeName, nodeDescription, nodeParentId):
       "parentId": nodeParentId,
     }))  
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
-    time.sleep(1) 
+    time.sleep(1)
 
 def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, pointAlt):
     print "[DCM Interface:] adding the point %s of %s ..." % (pointName, pointParent)
     pointFullName = pointParent + "_" + pointName
-    time.sleep(1)
+    #time.sleep(1)
     pubSocket.send_string(json.dumps({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
@@ -157,7 +157,7 @@ def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, point
       },
       "parentId": pointParentId,
     }))
-    time.sleep(1)
+    #time.sleep(1)
     pointId = getNodeId({
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
@@ -223,7 +223,7 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
 def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
     print "[DCM Interface:] updating the geopose node for %s ..." % (nodeName)
     nodeDcm = quat2DCM(float(nodeQuat0), float(nodeQuat1), float(nodeQuat2), float(nodeQuat3))
-    time.sleep(1)
+    #time.sleep(1)
     pubSocket.send_string(json.dumps({
       "@worldmodeltype": "RSGUpdate",
       "operation": "UPDATE_TRANSFORM",
