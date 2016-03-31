@@ -13,12 +13,18 @@ import random
 import sys
 import time
 import json
+import math
 import re
+from geographic_msgs.msg import GeoPose
+from geographic_msgs.msg import GeoPoint
+from geometry_msgs.msg import Quaternion
+import numpy as np
 
 lineNum = 0
 #geoPointsNum = 0
 #geoPointsLoad = 0
 dcmFile = ""
+sleep_amount = 0.1
 
 swmQueryMsg = {
   "@worldmodeltype": "RSGQuery",
@@ -92,6 +98,83 @@ donkeyGeoposeQueryMsg = {
   ]
 }
 
+originQueryMsg = {
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_NODES",
+  "attributes": [
+    {"key": "gis:origin", "value": "wgs84"},
+  ]
+}
+
+def getNodeId(queryMessage):
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:22422")
+    socket.send_string(json.dumps(queryMessage))
+    queryResult = socket.recv_json()
+    time.sleep(sleep_amount)
+    #print "Query: " + str(queryMessage)
+    #print "Query result: " + str(queryResult)
+    if queryResult['ids']:
+        return queryResult['ids'][0]
+    else:
+        return ""
+
+def query(queryMessage):
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:22422")
+    socket.send_string(json.dumps(queryMessage))
+    queryResult = socket.recv_json()
+    time.sleep(sleep_amount)
+    #print "Query: " + str(queryMessage)
+    #print "Query result: " + str(queryResult)
+    if queryResult['querySuccess']:
+        return queryResult
+    else:
+        return ""
+		
+def pubSWM(json_msg):
+    pubSocket.send_string(json.dumps(json_msg))
+    #print "Published: " + str(json_msg)
+    time.sleep(sleep_amount)
+
+def getGeopose(agent):
+    initCom()
+    originId = getNodeId(originQueryMsg)
+    if not originId:
+        return 0
+    else:
+        if agent == "genius":
+            nodeId = getNodeId(geniusQueryMsg)
+            if not nodeId:
+                return 0
+            else:
+                result = query({ "@worldmodeltype": "RSGQuery", "query": "GET_TRANSFORM", "id": nodeId, "idReferenceNode": originId})
+                matrix = [[0 for x in range(3)] for x in range(3)]
+                for i in range(3):
+                    for j in range(3):
+                        matrix[i][j] = result['transform']['matrix'][i][j]
+                q = DCM2quat(matrix)
+                geopoint = GeoPoint(result['transform']['matrix'][0][3], result['transform']['matrix'][1][3], result['transform']['matrix'][2][3])
+                geopose = GeoPose(geopoint, q)
+                return geopose
+                #TODO transform from matrix to Geopose
+        elif agent == "donkey":
+            nodeId = getNodeId(donkeyQueryMsg)
+            if not nodeId:
+                return 0
+            else:
+                result = query({ "@worldmodeltype": "RSGQuery", "query": "GET_TRANSFORM", "id": nodeId, "idReferenceNode": originId})
+                return result['transform']['matrix']
+                #TODO transform from matrix to Geopose
+        elif "wasp" in agent:
+            nodeId = getNodeId({"@worldmodeltype": "RSGQuery","query": "GET_NODES","attributes": [{"key": "sherpa:agent_name", "value": agent},]})
+            if not nodeId:
+                return 0
+            else:
+                result = query({ "@worldmodeltype": "RSGQuery", "query": "GET_TRANSFORM", "id": nodeId, "idReferenceNode": originId})
+                return result['transform']['matrix']
+                #TODO transform from matrix to Geopose
+
 def quat2DCM(qx, qy, qz, qs):
     matrix = [[0 for x in range(3)] for x in range(3)]
     matrix[0][0] = 1-2*(qy*qy+qz*qz)
@@ -104,11 +187,39 @@ def quat2DCM(qx, qy, qz, qs):
     matrix[2][1] = 2*(qy*qz+qs*qx)
     matrix[2][2] = 1-2*(qx*qx+qy*qy)
     return matrix
+   
+
+def DCM2quat(matrix):
+    den = np.array([ 1.0 + matrix[0][0] - matrix[1][1] - matrix[2][2],
+                       1.0 - matrix[0][0] + matrix[1][1] - matrix[2][2],
+                       1.0 - matrix[0][0] - matrix[1][1] + matrix[2][2],
+                       1.0 + matrix[0][0] + matrix[1][1] + matrix[2][2]])
+    max_idx = np.flatnonzero(den == max(den))[0]
+    q = np.zeros(4)
+    q[max_idx] = 0.5 * math.sqrt(max(den))
+    denom = 4.0 * q[max_idx]
+    if (max_idx == 0):
+        q[1] =  (matrix[1][0] + matrix[0][1]) / denom 
+        q[2] =  (matrix[2][0] + matrix[0][2]) / denom 
+        q[3] = -(matrix[2][1] - matrix[1][2]) / denom 
+    if (max_idx == 1):
+        q[0] =  (matrix[1][0] + matrix[0][1]) / denom 
+        q[2] =  (matrix[2][1] + matrix[1][2]) / denom 
+        q[3] = -(matrix[0][2] - matrix[2][0]) / denom 
+    if (max_idx == 2):
+        q[0] =  (matrix[2][0] + matrix[0][2]) / denom 
+        q[1] =  (matrix[2][1] + matrix[1][2]) / denom 
+        q[3] = -(matrix[1][0] - matrix[0][1]) / denom 
+    if (max_idx == 3):
+        q[0] = -(matrix[2][1] - matrix[1][2]) / denom 
+        q[1] = -(matrix[0][2] - matrix[2][0]) / denom 
+        q[2] = -(matrix[1][0] - matrix[0][1]) / denom
+    q_out = Quaternion(q[0],q[1],q[2],q[3])
+    return q_out
 
 def addGroupNode(nodeName, nodeDescription, nodeParentId):
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
-    time.sleep(1)
-    pubSocket.send_string(json.dumps({
+    pubSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -119,14 +230,13 @@ def addGroupNode(nodeName, nodeDescription, nodeParentId):
         ],
       },
       "parentId": nodeParentId,
-    }))  
+    })
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
-    time.sleep(1)
 	
 def addAgentNode(nodeName, nodeDescription, nodeParentId):
+    #TODO check if the node was really published??
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
-	#time.sleep(1)
-    pubSocket.send_string(json.dumps({
+    pubSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -137,15 +247,13 @@ def addAgentNode(nodeName, nodeDescription, nodeParentId):
         ],
       },
       "parentId": nodeParentId,
-    }))  
+    })
     print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
-    time.sleep(1)
 
 def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, pointAlt):
     print "[DCM Interface:] adding the point %s of %s ..." % (pointName, pointParent)
     pointFullName = pointParent + "_" + pointName
-    #time.sleep(1)
-    pubSocket.send_string(json.dumps({
+    pubSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -156,8 +264,7 @@ def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, point
         ],
       },
       "parentId": pointParentId,
-    }))
-    #time.sleep(1)
+    })
     pointId = getNodeId({
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
@@ -166,65 +273,63 @@ def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, point
       ],
       "parentId": pointParentId,
     })
-    addGeoposeNode(pointFullName, pointId, pointLat, pointLon, pointAlt, 0, 0, 0, 1)
-    print "[DCM Interface:] the point %s of %s was successfully added!" % (pointName, pointParent)
+    if not pointId:
+        print "[DCM Interface:] addGeopoint fail. Not able to get pointId"
+    else:
+        addGeoposeNode(pointFullName, pointId, pointLat, pointLon, pointAlt, 0, 0, 0, 1)
+        print "[DCM Interface:] the point %s of %s was successfully added!" % (pointName, pointParent)
 
 def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
     print "[DCM Interface:] adding the geopose node for %s ..." % (nodeName)
-    originId = getNodeId({
-      "@worldmodeltype": "RSGQuery",
-      "query": "GET_NODES",
-      "attributes": [
-        {"key": "gis:origin", "value": "wgs84"},
-      ]
-    })
-    nodeDcm = quat2DCM(float(nodeQuat0), float(nodeQuat1), float(nodeQuat2), float(nodeQuat3))
-    time.sleep(1)
-    pubSocket.send_string(json.dumps({
-      "@worldmodeltype": "RSGUpdate",
-      "operation": "CREATE",
-      "node": {
-	    "@graphtype": "Connection",
-	    "@semanticContext":"Transform",
-	    "attributes": [
-            {"key": "name", "value": nodeName + "_geopose"},
-		    {"key": "tf:type", "value": "wgs84"}
-	    ],
-	    "sourceIds": [
-          originId,
-	    ],
-	    "targetIds": [
-	      nodeParentId
-	    ],
-	    "history" : [
-	      {
-	        "stamp": {
-	          "@stamptype": "TimeStampDate",
-	          "stamp": time.strftime("%Y-%m-%dT%H:%M:%S%Z"),
-	        },
-	        "transform": {
-	          "type": "HomogeneousMatrix44",
-	            "matrix": [
-                  [nodeDcm[0][0],nodeDcm[0][1],nodeDcm[0][2],nodeLat],
-                  [nodeDcm[1][0],nodeDcm[1][1],nodeDcm[1][2],nodeLon],
-                  [nodeDcm[2][0],nodeDcm[2][1],nodeDcm[2][2],nodeAlt],
-	              [0,0,0,1] 
-	            ],
-	            "unit": "latlon"
-	        }
-	      }
-	    ], 	    
-      },
-      "parentId": originId,
-    }))  
-    print "[DCM Interface:] the geopose node for %s was successfully added!" % (nodeName)
-    time.sleep(1) 
+    originId = getNodeId(originQueryMsg)
+    if not originId:
+        print "[DCM Interface:] addGeoposeNode failed. Not able to get originId"
+        #TODO make initialization?
+    else:
+        nodeDcm = quat2DCM(float(nodeQuat0), float(nodeQuat1), float(nodeQuat2), float(nodeQuat3))
+        pubSWM({
+          "@worldmodeltype": "RSGUpdate",
+          "operation": "CREATE",
+          "node": {
+	        "@graphtype": "Connection",
+	        "@semanticContext":"Transform",
+	        "attributes": [
+                {"key": "name", "value": nodeName + "_geopose"},
+	    	    {"key": "tf:type", "value": "wgs84"}
+	        ],
+	        "sourceIds": [
+              originId,
+	        ],
+	        "targetIds": [
+	          nodeParentId
+	        ],
+	        "history" : [
+	          {
+	            "stamp": {
+	              "@stamptype": "TimeStampDate",
+	              "stamp": time.strftime("%Y-%m-%dT%H:%M:%S%Z"),
+	            },
+	            "transform": {
+	              "type": "HomogeneousMatrix44",
+	                "matrix": [
+                      [nodeDcm[0][0],nodeDcm[0][1],nodeDcm[0][2],nodeLat],
+                      [nodeDcm[1][0],nodeDcm[1][1],nodeDcm[1][2],nodeLon],
+                      [nodeDcm[2][0],nodeDcm[2][1],nodeDcm[2][2],nodeAlt],
+	                  [0,0,0,1] 
+	                ],
+	                "unit": "latlon"
+	            }
+	          }
+	        ], 	    
+          },
+          "parentId": originId,
+        }) 
+        print "[DCM Interface:] the geopose node for %s was successfully added!" % (nodeName)
 
 def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
     print "[DCM Interface:] updating the geopose node for %s ..." % (nodeName)
     nodeDcm = quat2DCM(float(nodeQuat0), float(nodeQuat1), float(nodeQuat2), float(nodeQuat3))
-    #time.sleep(1)
-    pubSocket.send_string(json.dumps({
+    pubSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "UPDATE_TRANSFORM",
       "node": {
@@ -250,57 +355,117 @@ def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, no
 	      }
 	    ], 	    
       }
-    }))  
+    })
     print "[DCM Interface:] the geopose node for %s was successfully updated!" % (nodeName)
-    time.sleep(1) 
-
-def getNodeId(queryMessage):
-    socket = context.socket(zmq.REQ)
-    socket.connect("tcp://localhost:22422")
-    socket.send_string(json.dumps(queryMessage))
-    queryResult = socket.recv_json()
-    if queryResult['ids']:
-        return queryResult['ids'][0]
-    else:
-        return ""
 
 def initialiseSWM():
-    addGroupNode("swm", "This is the SHERPA World Model (SWM) of the DCM.", worldModelAgentId)
+    #Initialization adds swm, objects, animals, environment and observation groups if not present
+    print "[DCM Interface:] AgentId %s" % (worldModelAgentId)
     swmId = getNodeId(swmQueryMsg)
-    addGroupNode("objects", "This is the node of the objects included in the SWM.", swmId)
+    if not swmId:
+        addGroupNode("swm", "This is the SHERPA World Model (SWM) of the DCM.", worldModelAgentId)
+        swmId = getNodeId(swmQueryMsg)
+        if not swmId:
+            print "[DCM Interface:] Initialization: failed to add SWM node"
+            return 0
+    else:
+        print "[DCM Interface:] Initialization: SWM node already present"
+
     objectsId = getNodeId(objectsQueryMsg)
-    addGroupNode("animals", "This is the node of the animals, i.e. agents of the SHERPA team.", objectsId)
-    addGroupNode("environment", "This is the node of the scenario environment objects.", objectsId)
-    addGroupNode("observations", "This is the node of the the sherpa observations.", objectsId)
-    print "[DCM Interface:] adding the geoposes reference frame node ..."
-    time.sleep(1)
-    pubSocket.send_string(json.dumps({
-      "@worldmodeltype": "RSGUpdate",
-      "operation": "CREATE",
-      "node": {
-        "@graphtype": "Group",
-        "attributes": [
-	      {"key": "gis:origin", "value": "wgs84"},
-	      {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
-        ],
-      },
-      "parentId": swmId,
-    }))  
-    print "[DCM Interface:] the geoposes reference frame node was successfully added!"
-    time.sleep(1) 
+    if not objectsId:
+        addGroupNode("objects", "This is the node of the objects included in the SWM.", swmId)
+        objectsId = getNodeId(objectsQueryMsg)
+        if not objectsId:
+            print "[DCM Interface:] Initialization: failed to add OBJECTS node"
+            return 0
+    else:
+        print "[DCM Interface:] Initialization: OBJECTS node already present"
+
+    animalsId = getNodeId(animalsQueryMsg)
+    if not animalsId:
+        addGroupNode("animals", "This is the node of the animals, i.e. agents of the SHERPA team.", objectsId)
+        animalsId = getNodeId(animalsQueryMsg)
+        if not animalsId:
+            print "[DCM Interface:] Initialization: failed to add ANIMALS node"
+            return 0
+    else:
+        print "[DCM Interface:] Initialization: ANIMALS node already present"
+
+    environmentId = getNodeId(environmentQueryMsg)
+    if not environmentId:
+        addGroupNode("environment", "This is the node of the scenario environment objects.", objectsId)
+        environmentId = getNodeId(environmentQueryMsg)
+        if not environmentId:
+            print "[DCM Interface:] Initialization: failed to add ENVIRONMENT node"
+            return 0
+    else:
+        print "[DCM Interface:] Initialization: ENVIRONMENT node already present"
+
+    observationsId = getNodeId(observationsQueryMsg)
+    if not observationsId:
+        addGroupNode("observations", "This is the node of the the sherpa observations.", objectsId)
+        observationsId = getNodeId(observationsQueryMsg)
+        if not observationsId:
+            print "[DCM Interface:] Initialization: failed to add OBSERVATIONS node"
+            return 0
+    else:
+        print "[DCM Interface:] Initialization: OBSERVATIONS node already present"
+
+    originID = getNodeId(originQueryMsg)
+    if not originID:
+      print "[DCM Interface:] adding the geoposes reference frame node ..."
+      pubSWM({
+        "@worldmodeltype": "RSGUpdate",
+        "operation": "CREATE",
+        "node": {
+          "@graphtype": "Group",
+          "attributes": [
+	        {"key": "gis:origin", "value": "wgs84"},
+	        {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
+          ],
+        },
+        "parentId": swmId,
+      })
+      print "[DCM Interface:] the geoposes reference frame node was successfully added!"
+      originID = getNodeId(originQueryMsg)
+      if not originID:
+            print "[DCM Interface:] Initialization: failed to add ORIGIN node"
+            return 0
+    else:
+        print "[DCM Interface:] Initialization: ORIGIN node already present"
+
     print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
 
 def addGeniusNode():
-    if not getNodeId(swmQueryMsg):
-        print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
-        initialiseSWM()
-    addAgentNode("genius", "This is the node of the busy genius, i.e. the human rescuer.", getNodeId(animalsQueryMsg))
+    if getNodeId(geniusQueryMsg):
+        print "[DCM Interface:] Genius Node already created"
+        return 0
+    else:
+        initialiseSWM()        #Always try to initialise? In worst case initialize won't to anything.
+        Id = getNodeId(animalsQueryMsg)
+        if not Id:
+            print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
+            initialiseSWM()
+            addAgentNode("genius", "This is the node of the busy genius, i.e. the human rescuer.", Id)
+            return 1
+        else:
+          addAgentNode("genius", "This is the node of the busy genius, i.e. the human rescuer.", Id)
+          return 1
 
 def addDonkeyNode():
-    if not getNodeId(swmQueryMsg):
-        print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
-        initialiseSWM()
-    addAgentNode("donkey", "This is the node of the intelligent donkey, i.e. the robotic rover.", getNodeId(animalsQueryMsg))
+    if getNodeId(donkeyQueryMsg):
+        print "[DCM Interface:] Donkey Node already created"
+        return 0
+    else:
+        Id = getNodeId(animalsQueryMsg)
+        if not Id:
+            print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
+            initialiseSWM()
+            addAgentNode("donkey", "This is the node of the intelligent donkey, i.e. the robotic rover.", Id)
+            return 1
+        else:
+          addAgentNode("donkey", "This is the node of the intelligent donkey, i.e. the robotic rover.", Id)
+          return 1
 
 def addWaspNode(waspName):
     waspFullName = "wasp_" + waspName
@@ -312,24 +477,47 @@ def addWaspNode(waspName):
       ]
     }):
         print "[DCM Interface:] %s node already added!" % (waspFullName)
-    else:           
-        if not getNodeId(swmQueryMsg):
+        return 0
+    else:
+        Id = getNodeId(animalsQueryMsg)
+        if not Id:
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
-        addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, getNodeId(animalsQueryMsg))
-
+            addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, IdParent)
+            return 1
+        else:
+          addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, IdParent)
+          return 1
+       
 def setGeniusGeopose(bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3):
     bgGeoposeId = getNodeId(geniusGeoposeQueryMsg)
     if not bgGeoposeId:
-        if not getNodeId(geniusQueryMsg):
+        IdGenius = getNodeId(geniusQueryMsg)
+        if not IdGenius: #there is not the geopose for the BG and there is not the BG node
             print "[DCM Interface:] the genius node is not currently available: starting its creation ..."
-            addGeniusNode()
-        addGeoposeNode("genius", getNodeId(geniusQueryMsg), bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
+            success = addGeniusNode()
+            if success:
+                print "[DCM]: added genius correctly"
+                IdGenius = getNodeId(geniusQueryMsg)
+                if not IdGenius:
+                    print "[DCM]: query genius fail DIO CANE!"
+                    return 0
+                else:
+                    print "[DCM]: Il Genius c' e DIO MAIALONE. Aggiungo la geopose"
+                    addGeoposeNode("genius", IdGenius, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
+                    return 1
+            else:
+                print "[DCM]: NOT added genius correctly"
+                return 0
+        else:   #there is not the geopose for the BG but there is the BG node
+            addGeoposeNode("genius", IdGenius, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
+            return 1
     else:
         print "[DCM Interface:] the genius geopose node was already created: updating the geopose attributes ..."
         updateGeoposeNode("genius", bgGeoposeId, bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3)
 
 def setDonkeyGeopose(donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3):
+    # TODO check
     donkeyGeoposeId = getNodeId(donkeyGeoposeQueryMsg)
     if not donkeyGeoposeId:
         if not getNodeId(donkeyQueryMsg):
@@ -341,6 +529,7 @@ def setDonkeyGeopose(donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, 
         updateGeoposeNode("donkey", donkeyGeoposeId, donkeyLat, donkeyLon, donkeyAlt, donkeyQuat0, donkeyQuat1, donkeyQuat2, donkeyQuat3)
 
 def setWaspGeopose(waspName, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, waspQuat2, waspQuat3):
+    # TODO check
     nodeName = "wasp_" + waspName
     waspGeoposeId = getNodeId({
       "@worldmodeltype": "RSGQuery",
@@ -366,14 +555,13 @@ def setWaspGeopose(waspName, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, wa
         updateGeoposeNode(nodeName, waspGeoposeId, waspLat, waspLon, waspAlt, waspQuat0, waspQuat1, waspQuat2, waspQuat3)
 
 def addPictureNode(pictureAuthor, pictureUrl, pictureLat, pictureLon, pictureAlt, pictureQuat0, pictureQuat1, pictureQuat2, pictureQuat3):
+    # TODO check
     if not getNodeId(swmQueryMsg):
         print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
         initialiseSWM()
-        print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
     pictureTime = time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     print "[DCM Interface:] adding the picture taken from agent %s at time %s ..." % (pictureAuthor, pictureTime)
-    time.sleep(1)
-    pubSocket.send_string(json.dumps({
+    pubSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -386,8 +574,7 @@ def addPictureNode(pictureAuthor, pictureUrl, pictureLat, pictureLon, pictureAlt
         ],
       },
       "parentId": getNodeId(observationsQueryMsg),
-    }))
-    time.sleep(1) 
+    })
     pictureId = getNodeId({
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
@@ -400,9 +587,9 @@ def addPictureNode(pictureAuthor, pictureUrl, pictureLat, pictureLon, pictureAlt
     })
     addGeoposeNode("picture %s %s" % (pictureAuthor, pictureTime), pictureId, pictureLat, pictureLon, pictureAlt, pictureQuat0, pictureQuat1, pictureQuat2, pictureQuat3)
     print "[DCM Interface:] the picture taken from agent %s at time %s was successfully added!" % (pictureAuthor, pictureTime)
-    time.sleep(1) 
 
 def addRiverNode(riverName):
+    # TODO check
     if getNodeId({
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
@@ -417,8 +604,7 @@ def addRiverNode(riverName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the river %s ..." % (riverName)
-        time.sleep(1)
-        pubSocket.send_string(json.dumps({
+        pubSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -429,8 +615,7 @@ def addRiverNode(riverName):
             ],
           },
           "parentId": getNodeId(environmentQueryMsg),
-        }))
-        time.sleep(1) 
+        })
         print "[DCM Interface:] the river %s was successfully added!" % (riverName)
 
 def addWoodNode(woodName):
@@ -448,8 +633,7 @@ def addWoodNode(woodName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the wood %s ..." % (woodName)
-        time.sleep(1)
-        pubSocket.send_string(json.dumps({
+        pubSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -460,8 +644,7 @@ def addWoodNode(woodName):
             ],
           },
           "parentId": getNodeId(environmentQueryMsg),
-        }))
-        time.sleep(1) 
+        })
         print "[DCM Interface:] the wood %s was successfully added!" % (woodName)
 
 def addHouseNode(houseName):
@@ -479,8 +662,7 @@ def addHouseNode(houseName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the house %s ..." % (houseName)
-        time.sleep(1)
-        pubSocket.send_string(json.dumps({
+        pubSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -491,8 +673,7 @@ def addHouseNode(houseName):
             ],
           },
           "parentId": getNodeId(environmentQueryMsg),
-        }))
-        time.sleep(1) 
+        })
         print "[DCM Interface:] the house %s was successfully added!" % (houseName)
 
 def addMountainNode(mountainName):
@@ -510,8 +691,7 @@ def addMountainNode(mountainName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the mountain %s ..." % (mountainName)
-        time.sleep(1)
-        pubSocket.send_string(json.dumps({
+        pubSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -522,8 +702,7 @@ def addMountainNode(mountainName):
             ],
           },
           "parentId": getNodeId(environmentQueryMsg),
-        }))
-        time.sleep(1) 
+        })
         print "[DCM Interface:] the mountain %s was successfully added!" % (mountainName)
 
 def connectRiver(riverName):
@@ -566,8 +745,7 @@ def connectRiver(riverName):
                 {"key": "name", "value": riverName},                      
               ]
             }
-            time.sleep(1)
-            pubSocket.send_string(json.dumps({
+            pubSWM({
               "@worldmodeltype": "RSGUpdate",
               "operation": "CREATE",
               "node": {     
@@ -584,8 +762,7 @@ def connectRiver(riverName):
                 "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" } 
               },
               "parentId": getNodeId(parentQueryMsg)
-            }))
-            time.sleep(1) 
+            })
             print "[DCM Interface:] the river %s connections were successfully added!" % (riverName)
     
 def connectWood(woodName):
@@ -622,8 +799,7 @@ def connectWood(woodName):
                 {"key": "osm:natural", "value": "wood"},                      
               ]
             }
-            time.sleep(1)
-            pubSocket.send_string(json.dumps({
+            pubSWM({
               "@worldmodeltype": "RSGUpdate",
               "operation": "CREATE",
               "node": {     
@@ -640,8 +816,7 @@ def connectWood(woodName):
                 "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" } 
               },
               "parentId": getNodeId(parentQueryMsg)
-            }))
-            time.sleep(1) 
+            })
             print "[DCM Interface:] the wood %s connections were successfully added!" % (woodName)
 
 def connectHouse(houseName):
@@ -678,8 +853,7 @@ def connectHouse(houseName):
                 {"key": "osm:building", "value": "house"},                      
               ]
             }
-            time.sleep(1)
-            pubSocket.send_string(json.dumps({
+            pubSWM({
               "@worldmodeltype": "RSGUpdate",
               "operation": "CREATE",
               "node": {     
@@ -696,8 +870,7 @@ def connectHouse(houseName):
                 "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" } 
               },
               "parentId": getNodeId(parentQueryMsg)
-            }))
-            time.sleep(1) 
+            })
             print "[DCM Interface:] the house %s connections were successfully added!" % (houseName)
 
 def connectMountain(mountainName):
@@ -734,8 +907,7 @@ def connectMountain(mountainName):
             {"key": "osm:natural", "value": "mountain"},                      
           ]
         }
-        time.sleep(1)
-        pubSocket.send_string(json.dumps({
+        pubSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {     
@@ -752,8 +924,7 @@ def connectMountain(mountainName):
             "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" } 
           },
           "parentId": getNodeId(parentQueryMsg)
-        }))
-        time.sleep(1) 
+        })
         print "[DCM Interface:] the mountain %s connections were successfully added!" % (mountainName)
 
 def addRiverPoint(pointParent, pointName, pointLat, pointLon, pointAlt):
@@ -873,12 +1044,11 @@ def exitWithError(errorMsg):
 
 def processCommand(words):
     if words[0] == "initialise" or words[0] == "initialize":
-        if getNodeId(swmQueryMsg):
-            print "[DCM Interface:] SWM already initialised!"            
-        else:
-            print "[DCM Interface:] starting the initialisation procedure for SWM ..."
-            initialiseSWM()
-            print "[DCM Interface:] the initialisation procedure for SWM was successfully completed!"
+        # if getNodeId(swmQueryMsg):
+            # print "[DCM Interface:] SWM already initialised!"            
+        # else:
+        print "[DCM Interface:] starting the initialisation procedure for SWM ..."
+        initialiseSWM()
     elif words[0] == "add":
         if len(words) > 1:
             if words[1] == "genius":
@@ -1143,6 +1313,8 @@ if __name__ == '__main__':
                 sys.exit("[DCM Interface:] ERROR: please specify a file with extension .dcm to be loaded!")
         else:
             sys.exit("[DCM Interface:] ERROR: please specify the name of the file with extension .dcm to be loaded!")
+    #elif len(sys.argv) > 1 and sys.argv[1] == "get":
+        #return "working"   # TODO
     elif len(sys.argv) > 1:
         processCommand(sys.argv[1:])
     else:
