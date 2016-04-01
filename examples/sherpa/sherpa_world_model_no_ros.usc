@@ -121,7 +121,7 @@ end
 -- Feel free to make further aplication specific adjustments. 
 function start_all()
 --  scene_setup()
-  load_map()
+--  load_map()
   start_wm()
   sync() -- just to be on the safe side
 end

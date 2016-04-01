@@ -121,7 +121,7 @@ end
 -- Feel free to make further aplication specific adjustments. 
 function start_all()
 --  scene_setup()
-  load_map()
+--  load_map()
   start_wm()
   sync() -- just to be on the safe side
 end
@@ -304,7 +304,8 @@ return bd.system
       { name="zmq_hdf5_subscriber_secondary", config = { connection_spec= "tcp://" .. remote_ip_secondary .. ":" .. remote_out_port_secondary  } }, 
       { name="zmq_json_publisher", config = { connection_spec="tcp://*:" .. local_json_out_port  } },
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
-      { name="zmq_json_subscriber_secondary", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port_secondary  } },
+      { name="zmq_json_subscriber_secondary", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port_secondary } },
+      --{ name="zmq_json_subscriber_secondary", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port_secondary .."," .. "tcp://" .. local_json_ip .. ":" .. local_json_in_port_secondary+1 } },
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
       { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
       { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
