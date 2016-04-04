@@ -178,6 +178,15 @@ void rsg_dump_step(ubx_block_t *b)
 
 		/* Save a complete snapshopt relative to the root node */
 		wm->scene.executeGraphTraverser(inf->wm_printer, wm->scene.getRootId());
+		bool printRemoteRootNodes = true;
+		if(printRemoteRootNodes) {
+			vector<brics_3d::rsg::Id> remoteRootNodeIds;
+			wm->scene.getRemoteRootNodes(remoteRootNodeIds);
+			for(vector<brics_3d::rsg::Id>::const_iterator it = remoteRootNodeIds.begin(); it != remoteRootNodeIds.end(); ++it) {
+				wm->scene.executeGraphTraverser(inf->wm_printer, *it);
+			}
+		}
+
 		inf->output->open((fileName + ".gv").c_str(), std::ios::trunc);
 		if (!inf->output->fail()) {
 			*inf->output << inf->wm_printer->getDotGraph();
