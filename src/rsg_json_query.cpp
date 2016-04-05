@@ -147,7 +147,7 @@ void rsg_json_query_step(ubx_block_t *b)
 {
 
         struct rsg_json_query_info *inf = (struct rsg_json_query_info*) b->private_data;
-        LOG(DEBUG) << "rsg_json_query: Processing an incoming update";
+        //LOG(DEBUG) << "rsg_json_query: Processing an incoming update";
 
 		/*
 		 * read data
@@ -161,9 +161,9 @@ void rsg_json_query_step(ubx_block_t *b)
 		msg.len = inf->input_buffer_size;
 		msg.data = (void *)inf->input_buffer;
 		int readBytes = __port_read(port, &msg);
-		LOG(DEBUG) << "rsg_json_query: Port returned " << readBytes <<
-                      " bytes, while data message length is " << msg.len <<
-                      " bytes. Resulting size = " << data_size(&msg);
+//		LOG(DEBUG) << "rsg_json_query: Port returned " << readBytes <<
+//                      " bytes, while data message length is " << msg.len <<
+//                      " bytes. Resulting size = " << data_size(&msg);
 
 		const char *dataBuffer = (char *)msg.data;
 		if ((dataBuffer!=0) && (msg.len > 1) && (readBytes > 1)) {
@@ -207,7 +207,7 @@ void rsg_json_query_step(ubx_block_t *b)
 		} else if (dataBuffer == 0) {
 			LOG(DEBUG) << "Pointer to data buffer is zero. Aborting this update.";
 		} else {
-			LOG(DEBUG) << "Incoming update has not enough data to be processed. Aborting this update.";
+			//LOG(DEBUG) << "Incoming update has not enough data to be processed. Aborting this update.";
 		}
 
 

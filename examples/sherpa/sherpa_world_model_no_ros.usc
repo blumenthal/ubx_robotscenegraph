@@ -36,9 +36,12 @@ function getEnvWithDefault(variableName, defaultValue)
   return envVariable    
 end
 
+local logLevel = tonumber(getEnvWithDefault("SWM_LOG_LEVEL", 1)) --  LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4
+
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
 local worldModelAgentName = getEnvWithDefault("SWM_WMA_NAME", "swm") -- human radable name to better identify this WMA; Moslty for debugging
 local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
+local worldModelGlobalId = getEnvWithDefault("SWM_GLOBAL_ID", "") -- application globel root Id.
 wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
 --wm = rsg.WorldModel() -- Defualt with auto generated rootId
 local rootId = wm:getRootId()
@@ -112,7 +115,7 @@ end
 
 -- Trigger full syncronisation. 
 function sync()
-  ni:b("rsghdf5sender"):do_step() -- Robot to Robot
+--  ni:b("rsghdf5sender"):do_step() -- Robot to Robot
   ni:b("rsgjsonsender"):do_step() -- Internal Robot (Bridges)
 end
 
@@ -187,8 +190,8 @@ return bd.system
     },
 
     blocks = {
-      { name="rsghdf5sender", type="rsg_sender" }, 
-      { name="rsghdf5receiver", type="rsg_reciever" },
+--      { name="rsghdf5sender", type="rsg_sender" }, 
+--      { name="rsghdf5receiver", type="rsg_reciever" },
       { name="rsgjsonsender", type="rsg_json_sender" },
       { name="rsgjsonreciever", type="rsg_json_reciever" },
       { name="rsgjsonqueryrunner", type="rsg_json_query" },
@@ -279,27 +282,28 @@ return bd.system
     },
 
     configurations = {
-      { name="rsghdf5sender", 
-        config =  { 
-          wm_handle={wm = wm:getHandle().wm}, 
-          store_dot_files = 0, -- handling of dot files gets bulky for bigger scenes like a complete OSM map. 
-          store_history_as_dot_files = 0, 
-          dot_name_prefix = "sherpa_wm",
-          log_level = 2 
-        } 
-      },
-      { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
+--      { name="rsghdf5sender", 
+--        config =  { 
+--          wm_handle={wm = wm:getHandle().wm}, 
+--          store_dot_files = 0, -- handling of dot files gets bulky for bigger scenes like a complete OSM map. 
+--          store_history_as_dot_files = 0, 
+--          dot_name_prefix = "sherpa_wm",
+--          log_level = 2 
+--        } 
+--      },
+--      { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
       { name="rsgjsonreciever", 
         config =  { 
           buffer_len=20000, 
           wm_handle={wm = wm:getHandle().wm}, 
-          log_level = 2, 
+          log_level = logLevel, 
           enable_input_filter = enable_input_filter,
-          input_filter_pattern = input_filter_pattern  
+          input_filter_pattern = input_filter_pattern,
+          remote_root_auto_mount_id = worldModelGlobalId  
         } 
       },
-      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 1 } },
-      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = logLevel } },
+      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_hdf5_subscriber_secondary", config = { connection_spec= "tcp://" .. remote_ip_secondary .. ":" .. remote_out_port_secondary  } }, 
