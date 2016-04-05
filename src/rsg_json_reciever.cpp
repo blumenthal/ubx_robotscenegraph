@@ -75,7 +75,7 @@ int rsg_json_reciever_init(ubx_block_t *b)
         if(inf->wm == 0) {
 //        	LOG(FATAL) << " World model handle could not be initialized.";
 //        	return -1;
-    		LOG(ERROR) << "World model handle could not be optained via configuration parameter."
+    		LOG(ERROR) << "World model handle could not be obtained via configuration parameter."
     					  "Creating a new world model instance instead (mostly for debugging purposes)."
     					  "Please check your system design if this is intended!";
     		inf->wm = new brics_3d::WorldModel();
@@ -84,7 +84,7 @@ int rsg_json_reciever_init(ubx_block_t *b)
         bool inputFilterIsEnabled = false;
         int* enable_input_filter =  ((int*) ubx_config_get_data_ptr(b, "enable_input_filter", &clen));
         if(clen == 0) {
-        	LOG(INFO) << "rsg_json_reciever: No enable_input_filter configuation given. Turned off by default.";
+        	LOG(INFO) << "rsg_json_reciever: No enable_input_filter configuration given. Turned off by default.";
         } else {
         	if (*enable_input_filter == 1) {
         		LOG(INFO) << "rsg_json_reciever: enable_input_filter turned on.";
@@ -96,11 +96,11 @@ int rsg_json_reciever_init(ubx_block_t *b)
         }
         LOG(INFO) << "rsg_json_reciever: enable_input_filter = " << inputFilterIsEnabled;
 
-		/* retrive optional input_filter_pattern from config */
+		/* retrieve optional input_filter_pattern from config */
 		std::string semanticContextIdentifier = "osm";
 		char* chrptr = (char*) ubx_config_get_data_ptr(b, "input_filter_pattern", &clen);
 		if(clen == 0) {
-			LOG(INFO) << "rsg_json_reciever:  No input_filter_pattern configuation given. Selecting a default name.";
+			LOG(INFO) << "rsg_json_reciever:  No input_filter_pattern configuration given. Selecting a default name.";
 			semanticContextIdentifier = "osm";
 		} else {
 			if(strcmp(chrptr, "")==0) {
@@ -115,13 +115,40 @@ int rsg_json_reciever_init(ubx_block_t *b)
 		}
 		LOG(INFO) << "rsg_json_reciever:  input_filter_pattern = " << semanticContextIdentifier;
 
+		/* retrieve optional remote_root_auto_mount_id from config */
+		std::string remoteRootAutoMountId = ""; // empty = disables.
+		chrptr = (char*) ubx_config_get_data_ptr(b, "remote_root_auto_mount_id", &clen);
+		if(clen == 0) {
+			LOG(INFO) << "rsg_json_reciever:  No remote_root_auto_mount_id configuation given. Selecting a default name.";
+			remoteRootAutoMountId = "";
+		} else {
+			if(strcmp(chrptr, "")==0) {
+				LOG(INFO) << "rsg_json_reciever:  remote_root_auto_mount_id is empty. Selecting a default name.";
+				remoteRootAutoMountId = "";
+			} else {
+				std::string idString(chrptr);
+				LOG(INFO) << "rsg_json_reciever: Using remote_root_auto_mount_id = " << idString;
+				remoteRootAutoMountId = idString;
+
+			}
+		}
+		LOG(INFO) << "rsg_json_reciever:  remote_root_auto_mount_id = " << remoteRootAutoMountId;
+
         /* Attach debug graph printer */
         inf->wm_printer = new brics_3d::rsg::DotVisualizer(&inf->wm->scene);
         inf->wm_printer->setFileName("ubx_current_replica_graph");
 
         /* Use auto mount policy */
-    	inf->wm_auto_mounter = new brics_3d::rsg::RemoteRootNodeAutoMounter(&inf->wm->scene, inf->wm->getRootNodeId()); //mount everything relative to root node
-    	inf->wm->scene.attachUpdateObserver(inf->wm_auto_mounter);
+		if(remoteRootAutoMountId.compare("") != 0) {
+			LOG(INFO) << "rsg_json_reciever:  remote_root_auto_mount_id is enabled.";
+	        brics_3d::rsg::Id autoMointdId;
+	        autoMointdId.fromString(remoteRootAutoMountId);
+	    	inf->wm_auto_mounter = new brics_3d::rsg::RemoteRootNodeAutoMounter(&inf->wm->scene, autoMointdId, true); //mount everything relative to root node
+			inf->wm->scene.attachUpdateObserver(inf->wm_auto_mounter);
+		} else {
+			LOG(INFO) << "rsg_json_reciever:  remote_root_auto_mount_id is disabled.";
+		}
+
 
         /* Attach deserializer (invoked at step function) */
     	if(inputFilterIsEnabled) {
@@ -217,7 +244,7 @@ void rsg_json_reciever_step(ubx_block_t *b)
 {
 
         struct rsg_json_reciever_info *inf = (struct rsg_json_reciever_info*) b->private_data;
-        LOG(DEBUG) << "rsg_json_reciever: Processing an incoming update";
+//        LOG(DEBUG) << "rsg_json_reciever: Processing an incoming update";
 
 		/* read data */
 		ubx_port_t* port = inf->ports.rsg_in;
@@ -229,9 +256,9 @@ void rsg_json_reciever_step(ubx_block_t *b)
 		msg.len = inf->hdf_5_input_buffer_size;
 		msg.data = (void *)inf->hdf_5_input_buffer;
 		int readBytes = __port_read(port, &msg);
-		LOG(DEBUG) << "rsg_json_reciever: Port returned " << readBytes <<
-                      " bytes, while data message length is " << msg.len <<
-                      " bytes. Resulting size = " << data_size(&msg);
+//		LOG(DEBUG) << "rsg_json_reciever: Port returned " << readBytes <<
+//                      " bytes, while data message length is " << msg.len <<
+//                      " bytes. Resulting size = " << data_size(&msg);
 
 		const char *dataBuffer = (char *)msg.data;
 		int transferred_bytes;
@@ -240,8 +267,10 @@ void rsg_json_reciever_step(ubx_block_t *b)
 			LOG(INFO) << "rsg_json_reciever: \t transferred_bytes = " << transferred_bytes;
 		} else if (dataBuffer == 0) {
 			LOG(ERROR) << "rsg_json_reciever: Pointer to data buffer is zero. Aborting this update.";
+		} else if (readBytes == 0) {
+			// Regular case if no new data is available
 		} else {
-			LOG(DEBUG) << "rsg_json_reciever: Incoming updare has not enough data to be processed. Aborting this update.";
+			LOG(DEBUG) << "rsg_json_reciever: Incoming update has not enough data to be processed. Aborting this update.";
 		}
 
 }

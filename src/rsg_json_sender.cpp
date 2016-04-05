@@ -298,7 +298,7 @@ void rsg_json_sender_step(ubx_block_t *b)
 
         /* Resend the complete scene graph */
         LOG(INFO) << "rsg_json_sender: Resending the complete RSG now.";
-        inf->wm->scene.advertiseRootNode(); // Make shure root node is always send; The graph traverser cannot handle this.
+        inf->wm->scene.advertiseRootNode(); // Make sure root node is always send; The graph traverser cannot handle this.
         inf->wm_resender->reset();
         wm->scene.executeGraphTraverser(inf->wm_resender, wm->scene.getRootId()); // Note: addRemoteRoot node is only forwarded once
 
