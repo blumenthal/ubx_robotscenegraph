@@ -36,6 +36,8 @@ function getEnvWithDefault(variableName, defaultValue)
   return envVariable    
 end
 
+local logLevel = tonumber(getEnvWithDefault("SWM_LOG_LEVEL", 1)) --  LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4
+
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
 local worldModelAgentName = getEnvWithDefault("SWM_WMA_NAME", "swm") -- human radable name to better identify this WMA; Moslty for debugging
 local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
@@ -293,14 +295,14 @@ return bd.system
         config =  { 
           buffer_len=20000, 
           wm_handle={wm = wm:getHandle().wm}, 
-          log_level = 1, 
+          log_level = logLevel, 
           enable_input_filter = enable_input_filter,
           input_filter_pattern = input_filter_pattern,
           remote_root_auto_mount_id = worldModelGlobalId  
         } 
       },
-      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 1 } },
-      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = 1  }},
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = logLevel } },
+      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
       { name="zmq_hdf5_subscriber_secondary", config = { connection_spec= "tcp://" .. remote_ip_secondary .. ":" .. remote_out_port_secondary  } }, 
@@ -345,7 +347,7 @@ return bd.system
       },  
       { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
-      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file=osm_map_file, convert_to_utm = 0, log_level = 1 } }
+      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file=osm_map_file, convert_to_utm = 0, log_level = logLevel } }
 --      { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file="examples/maps/osm/map_micro_brsu.osm", convert_to_utm = 0, log_level = 1 } }
     },
 }
