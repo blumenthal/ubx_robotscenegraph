@@ -26,8 +26,8 @@ export SWM_LOCAL_JSON_IN_PORT=12911  #default value = 12911
 export SWM_LOCAL_JSON_IN_PORT_SECONDARY=13911  #default value = 13911
 export SWM_LOCAL_JSON_OUT_PORT=12912   #  default value = 12912
 export SWM_LOCAL_JSON_QUERY_PORT=22422  # default value = 22422
-export SWM_REMOTE_IP_SECONDARY=127.0.0.1 # default value = 127.0.0.1
-export SWM_REMOTE_OUT_PORT_SECONDARY=11611 # default value = 11611
+export SWM_REMOTE_IP_SECONDARY=192.168.1.104 # default value = 127.0.0.1
+export SWM_REMOTE_OUT_PORT_SECONDARY=11411 # default value = 11611
 
 # Filter settings (optional)
 export SWM_ENABLE_INPUT_FILTER=0 # default value = 0

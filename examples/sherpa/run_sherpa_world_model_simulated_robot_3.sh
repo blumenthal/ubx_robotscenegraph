@@ -19,14 +19,14 @@ export SWM_GLOBAL_ID=e2d399ac-b4ee-4ba4-acad-91709b522bc5   # default value =
 # Communication setup with ZMQ (version without mediator component)
 export SWM_LOCAL_IP=localhost   # default value = localhost
 export SWM_LOCAL_OUT_PORT=11411 # default value = 11411
-export SWM_REMOTE_IP=192.168.1.104   #default value = 127.0.0.1
+export SWM_REMOTE_IP=192.168.1.101   #default value = 127.0.0.1
 export SWM_REMOTE_OUT_PORT=11411  # default value = 11511
 export SWM_LOCAL_JSON_IP=127.0.0.1   #default value = 127.0.0.1
 export SWM_LOCAL_JSON_IN_PORT=12911  #default value = 12911
 export SWM_LOCAL_JSON_IN_PORT_SECONDARY=13911  #default value = 13911
 export SWM_LOCAL_JSON_OUT_PORT=12912   #  default value = 12912
 export SWM_LOCAL_JSON_QUERY_PORT=22422  # default value = 22422
-export SWM_REMOTE_IP_SECONDARY=192.168.1.104 # default value = 127.0.0.1
+export SWM_REMOTE_IP_SECONDARY=192.168.1.101 # default value = 127.0.0.1
 export SWM_REMOTE_OUT_PORT_SECONDARY=11511 # default value = 11611
 
 # Filter settings (optional)
@@ -38,4 +38,4 @@ export SWM_RSG_MAP_FILE=../maps/rsg/cesena_lab.json # default value = examples/m
 export SWM_OSM_MAP_FILE=../maps/osm/map_micro_champoluc.osm # default value = examples/maps/osm/map_micro_champoluc.osm
 
 # Start the ubx system
-exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model.usc	
+exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model_no_ros.usc	
