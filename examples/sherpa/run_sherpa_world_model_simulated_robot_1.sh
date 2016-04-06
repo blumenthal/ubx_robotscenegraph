@@ -14,7 +14,7 @@ export SWM_LOG_LEVEL=0  #  default value = 1
 # World Model Agent 
 export SWM_WMA_NAME=wasp   #  default value = swm
 export SWM_WMA_ID=f3c1c524-486d-40dc-8cbe-7d8053e7f587  # default value = e379121f-06c6-4e21-ae9d-ae78ec1986a1
-export SWM_GLOBAL_ID=e2d399ac-b4ee-4ba4-acad-91709b522bc5   # default value =
+export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 
 # Communication setup with ZMQ (version without mediator component)
 export SWM_LOCAL_IP=localhost   # default value = localhost

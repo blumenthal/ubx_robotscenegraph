@@ -3,7 +3,7 @@
 # set up some environtment scripts
 source $FBX_MODULES/env.sh
 
-# Example configuration for a sherpa_box. Note that all varibles have default values,
+# Example configuration for a sherpa_box. Note that all variables have default values,
 # that get overridden by this script.
 # Assumption: wasp and sherpa_box are launched on the same PC with an IP = 192.168.1.101
 # while the HMI is launched on a second PC with IP = 192.168.1.104
@@ -14,7 +14,7 @@ export SWM_LOG_LEVEL=0  #  default value = 1
 # World Model Agent 
 export SWM_WMA_NAME=sherpa_box   #  default value = swm
 export SWM_WMA_ID=c253cebe-9b00-4c77-9f07-9520023bd122  # default value = e379121f-06c6-4e21-ae9d-ae78ec1986a1
-export SWM_GLOBAL_ID=e2d399ac-b4ee-4ba4-acad-91709b522bc5   # default value =
+export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 
 # Communication setup with ZMQ (version without mediator component)
 export SWM_LOCAL_IP=localhost   # default value = localhost
