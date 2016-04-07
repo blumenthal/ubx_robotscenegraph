@@ -483,10 +483,10 @@ def addWaspNode(waspName):
         if not Id:
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
-            addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, IdParent)
+            addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, Id)
             return 1
         else:
-          addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, IdParent)
+          addAgentNode("wasp_" + waspName, "This is the node of the wasp %s, i.e. one of the SHERPA quadrotor drone for low-altitude search & rescue." % waspName, Id)
           return 1
        
 def setGeniusGeopose(bgLat, bgLon, bgAlt, bgQuat0, bgQuat1, bgQuat2, bgQuat3):
