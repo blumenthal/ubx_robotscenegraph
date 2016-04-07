@@ -81,6 +81,7 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer6"):do_start()
   ni:b("bytestreambuffer7"):do_start()
   ni:b("bytestreambuffer8"):do_start()
+  ni:b("bytestreambuffer9"):do_start()
   ni:b("bytestreambuffer_query_req"):do_start()
   ni:b("bytestreambuffer_query_rep"):do_start()
   ni:b("cyclic_io_trigger"):do_start() 
