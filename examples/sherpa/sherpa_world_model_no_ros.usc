@@ -119,6 +119,10 @@ function sync()
   ni:b("rsgjsonsender"):do_step() -- Internal Robot (Bridges)
 end
 
+function start_auto_sync()
+  ni:b("cyclic_sync_trigger"):do_start() 
+end
+
 -- This is the entry function that should be called after launch.
 -- This has to be done manually (currently).
 -- Feel free to make further aplication specific adjustments. 
@@ -227,7 +231,8 @@ return bd.system
       { name="bytestreambuffer_query_rep",type="lfds_buffers/cyclic_raw" },
 
       { name="cyclic_io_trigger", type="std_triggers/ptrig" }, -- we have to poll if something is in the input buffer
---      { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
+      { name="cyclic_sync_trigger", type="std_triggers/ptrig" },
+  --    { name="visualization_publisher", type="rosbridge/publisher" }, -- optional for visualization
 
       { name = "osm", type="osmloader/osmloader" },
       
@@ -311,7 +316,7 @@ return bd.system
       { name="zmq_json_subscriber", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port  } },
       { name="zmq_json_subscriber_secondary", config = { connection_spec= "tcp://" .. local_json_ip .. ":" .. local_json_in_port_secondary  } },
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
---      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },s
+--      { name="ros_hdf5_publisher", config = { topic_name="world_model/update_stream" } },
 --      { name="ros_hdf5_subscriber", config = { topic_name="world_model/update_stream_tf_bridge" } },
 --      { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
 --      { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
@@ -345,6 +350,14 @@ return bd.system
           } 
         } 
       },  
+      { name="cyclic_sync_trigger", -- Note: on first failure the other blocks are not triggered any more...
+        config = { 
+          period = {sec=10, usec=0 }, 
+          trig_blocks={ 
+            { b="#rsgjsonsender", num_steps=1, measure=0 },              
+          } 
+        } 
+      },    
 --      { name="visualization_publisher", config = { topic_name="world_model/update_stream_json" } },
 
       { name="osm", config =  { wm_handle={wm = wm:getHandle().wm}, map_file=osm_map_file, convert_to_utm = 0, log_level = 1 } }
