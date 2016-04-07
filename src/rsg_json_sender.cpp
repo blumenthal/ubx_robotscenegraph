@@ -9,6 +9,7 @@
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/JSONSerializer.h>
 #include <brics_3d/worldModel/sceneGraph/SceneGraphToUpdatesTraverser.h>
+#include <brics_3d/worldModel/sceneGraph/RootFinder.h>
 #include <brics_3d/worldModel/sceneGraph/FrequencyAwareUpdateFilter.h>
 #include <brics_3d/worldModel/sceneGraph/ISceneGraphUpdateObserver.h>
 
@@ -300,7 +301,41 @@ void rsg_json_sender_step(ubx_block_t *b)
         LOG(INFO) << "rsg_json_sender: Resending the complete RSG now.";
         inf->wm->scene.advertiseRootNode(); // Make sure root node is always send; The graph traverser cannot handle this.
         inf->wm_resender->reset();
-        wm->scene.executeGraphTraverser(inf->wm_resender, wm->scene.getRootId()); // Note: addRemoteRoot node is only forwarded once
+        Id localRootId = wm->scene.getRootId();
+        /*
+         * Warning a traversal that starts "above" the local root node is not guaranteed to
+         * pass over the the complete structure. This has to be established beforehand.
+         * It is actually beyond the context of a single agent. The application/system composition
+         * has to be performed top-down and not vice versa.
+         *
+         * This is more an added robustness to send primitives further down the tree.
+         * E.g. an agent updates mostly another containment like a commonly shared one.
+         *
+         *             global_root
+         *                 |
+         *    +------------+--------- +
+         *    |            |          |
+         *    r1           r2      local_root
+         *
+         */
+        Id rootId = localRootId;
+        bool useGlobalRootId = true;
+        if(useGlobalRootId) { //use (potental) global id
+        	Id globalRootId = 0;
+    		brics_3d::rsg::RootFinder rootFinder;
+    		wm->scene.executeGraphTraverser(&rootFinder, localRootId);
+    		globalRootId = rootFinder.getRootNode();
+
+    		if(!globalRootId.isNil()) {
+    			rootId = globalRootId;
+    		} else {
+    			LOG(ERROR) << "rsg_json_sender: Cannot obtain a global root Id. Using the local one instead.";
+    		}
+
+    		LOG(DEBUG) << "rsg_json_sender: using rootId = " << rootId << ", while localRootId = " << localRootId;
+        }
+
+        wm->scene.executeGraphTraverser(inf->wm_resender, rootId); // Note: addRemoteRoot node is only forwarded once
 
 }
 
