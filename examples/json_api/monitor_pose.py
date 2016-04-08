@@ -11,8 +11,8 @@ import json
 
 ### Variables ###
 
-objectAttribute = "name"
-objectValue = "rescuer"
+objectAttribute = "sherpa:agent_name"
+objectValue = "genius"
 
 ### Communication Setup ###
 
@@ -32,6 +32,7 @@ getRootNodeMsg = {
 print("Sending query for root node Id: %s " % json.dumps(getRootNodeMsg))
 socket.send_string(json.dumps(getRootNodeMsg))
 result = socket.recv()
+socket.close()
 print("Received reply for root node Id: %s " % result)
 
 msg = json.loads(result.decode('utf8'))
@@ -50,20 +51,43 @@ getNodes = {
 }
 
 print("Sending query for object node Id(s): %s " % json.dumps(getNodes))
+socket = context.socket(zmq.REQ)
+socket.connect("tcp://localhost:22422")
 socket.send_string(json.dumps(getNodes))
 result = socket.recv()
+socket.close()
 print("Received reply for object node Id(s): %s " % result)
 
 msg = json.loads(result.decode('utf8'))
 ids = msg["ids"]
 print("ids = %s " % ids)
 
+if (len(ids) > 0):
+  
+  
 
+  ### Poll for updates. ###
+  while True: 
+    # Of course we want to get the _latest_ information.
+    currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    print(currentTimeStamp)
+    
+    getPose = {
+      "@worldmodeltype": "RSGQuery",
+      "query": "GET_TRANSFORM",
+      "id": ids[0],
+      "idReferenceNode": rootId,
+      "timeStamp": {
+        "@stamptype": "TimeStampDate",
+        "stamp": currentTimeStamp,
+      } 
+    }
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:22422")
+    socket.send_string(json.dumps(getPose))
+    result = socket.recv()
+    socket.close()
+    print("Received reply for object pose: %s " % result)
 
-### Poll for updates. ###
-
-
-# Of course we want to get the _latest_ information.
-currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
 
