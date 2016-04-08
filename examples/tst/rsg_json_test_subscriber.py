@@ -28,6 +28,22 @@ else:
   socket.setsockopt_string(zmq.SUBSCRIBE, topicfilter) # Python3
 
 while True:
-  string = socket.recv()
-  print (string)
-
+  update = socket.recv_json()
+  print(".")
+  #print (update)
+  # filter only for 
+  if(update['node']):
+    if(update['node']['attributes']):
+      attributes=update['node']['attributes']
+      for i in range(len(attributes)):
+       #print i, attributes[i]
+       k = attributes[i]['key']
+       v = attributes[i]['value'] 
+       #print("Key = " + k) 
+       if (k=="tst:envtst"):
+        print("TST Found tst:envtst with value = " + str(v))
+        #TODO redirect v to delegation framework
+       elif(k=="tst:ennodeupdate"):
+        print("TST Found tst:ennodeupdate value = " + str(v))
+        #TODO redirect v to delegation framework   
+       #print(attribute)
