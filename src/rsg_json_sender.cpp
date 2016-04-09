@@ -201,10 +201,23 @@ int rsg_json_sender_init(ubx_block_t *b)
 
     	}
 
+
+    	float* max_freq =  ((float*) ubx_config_get_data_ptr(b, "max_freq", &clen));
+    	if(clen == 0) {
+    		*max_freq = 1.0;
+    		LOG(WARNING) << "rsg_json_sender: No max_freq configuration given. Setting it to " << *max_freq;
+    	} else {
+    		if (*max_freq <= 0) {
+    			*max_freq = 1.0;
+    			LOG(WARNING) << "rsg_json_sender: max_freq <= 0. Resetting it to " << *max_freq;
+    	    }
+    	}
+		LOG(INFO) << "rsg_json_sender: max_freq = " << *max_freq;
+
     	/* Attach filter */
     	inf->frequency_filter = new brics_3d::rsg::FrequencyAwareUpdateFilter();
     	inf->frequency_filter->setMaxGeometricNodeUpdateFrequency(0); // everything;
-    	inf->frequency_filter->setMaxTransformUpdateFrequency(0.5); // not more then x Hz;
+    	inf->frequency_filter->setMaxTransformUpdateFrequency(*max_freq); // not more then x Hz;
 
     	/* Attach the UBX port to the world model */
     	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");

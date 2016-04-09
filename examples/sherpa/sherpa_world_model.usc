@@ -157,6 +157,7 @@ local remote_out_port_secondary = getEnvWithDefault("SWM_REMOTE_OUT_PORT_SECONDA
 -- Filter settings
 local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
 local input_filter_pattern = getEnvWithDefault("SWM_INPUT_FILTER_PATTERN", "os(m|g)")
+local max_transform_freq = tonumber(getEnvWithDefault("SWM_MAX_TRANSFORM_FREQ", 1.0))
 
 -- Map files
 local rsg_map_file = getEnvWithDefault("SWM_RSG_MAP_FILE", "examples/maps/rsg/cesena_lab.json")
@@ -307,7 +308,7 @@ return bd.system
           remote_root_auto_mount_id = worldModelGlobalId  
         } 
       },
-      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = logLevel } },
+      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = logLevel, max_freq = max_transform_freq } },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 

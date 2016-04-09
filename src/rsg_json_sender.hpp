@@ -25,6 +25,7 @@ ubx_config_t rsg_json_sender_config[] = {
         		"To be used for debugging. Requires store_dot_files to be true." },
     	{ .name="dot_name_prefix", .type_name = "char" , .doc="Optional prefix for stored dot files." },
         { .name="log_level", .type_name = "int", .doc="Set the log level: LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4" },
+        { .name="max_freq", .type_name = "float", .doc="Defines the maximum frequency for publishing Transform updates." },
         { NULL },
 };
 
