@@ -137,6 +137,24 @@ def pubSWM(json_msg):
     #print "Published: " + str(json_msg)
     time.sleep(sleep_amount)
 
+# This is an alternative to the pubSWM.
+# The pubSWM sends messages via the ZMQ PUB-SUB
+# in a "fire and forget" way, while this function
+# uses the ZMQ REQ-REP to receive a feedback 
+# if the update wass sucessfull or not.
+def updateSWM(updateMessage):
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:22422")
+    socket.send_string(json.dumps(updateMessage))
+    updateResult = socket.recv_json()
+    #time.sleep(sleep_amount)
+    print "Update: " + str(updateMessage)
+    print "Update result: " + str(updateResult)
+    if updateResult['updateSuccess']:
+        return updateResult 
+    else:
+        return ""
+
 def getGeopose(agent):
     initCom()
     originId = getNodeId(originQueryMsg)
@@ -287,7 +305,8 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
         #TODO make initialization?
     else:
         nodeDcm = quat2DCM(float(nodeQuat0), float(nodeQuat1), float(nodeQuat2), float(nodeQuat3))
-        pubSWM({
+        updateSWM({
+        #pubSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -306,8 +325,10 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
 	        "history" : [
 	          {
 	            "stamp": {
-	              "@stamptype": "TimeStampDate",
-	              "stamp": time.strftime("%Y-%m-%dT%H:%M:%S%Z"),
+#	              "@stamptype": "TimeStampDate",
+#	              "stamp": time.strftime("%Y-%m-%dT%H:%M:%S%Z"),
+                "@stamptype": "TimeStampUTCms",
+                "stamp": time.time()*1000.0
 	            },
 	            "transform": {
 	              "type": "HomogeneousMatrix44",
@@ -329,7 +350,8 @@ def addGeoposeNode(nodeName, nodeParentId, nodeLat, nodeLon, nodeAlt, nodeQuat0,
 def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, nodeQuat1, nodeQuat2, nodeQuat3):
     print "[DCM Interface:] updating the geopose node for %s ..." % (nodeName)
     nodeDcm = quat2DCM(float(nodeQuat0), float(nodeQuat1), float(nodeQuat2), float(nodeQuat3))
-    pubSWM({
+    updateSWM({
+    #pubSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "UPDATE_TRANSFORM",
       "node": {
@@ -339,8 +361,10 @@ def updateGeoposeNode(nodeName, nodeId, nodeLat, nodeLon, nodeAlt, nodeQuat0, no
 	    "history" : [
 	      {
 	        "stamp": {
-	          "@stamptype": "TimeStampDate",
-	          "stamp": time.strftime("%Y-%m-%dT%H:%M:%S%Z"),
+#	              "@stamptype": "TimeStampDate",
+#	              "stamp": time.strftime("%Y-%m-%dT%H:%M:%S%Z"),
+                "@stamptype": "TimeStampUTCms",
+                "stamp": time.time()*1000.0
 	        },
 	        "transform": {
 	          "type": "HomogeneousMatrix44",
