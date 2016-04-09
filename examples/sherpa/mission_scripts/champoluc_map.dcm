@@ -1,0 +1,96 @@
+set river river_blk01 point bbox01 45.843168092493634 7.730888708211306 1570
+set river river_blk01 point bbox02 45.843344728511482 7.731197307636265 1595
+set river river_blk01 point center 45.843256410502558 7.7310430079237855 1570
+set river river_blk01 connections
+set river river_blk02 point bbox01 45.84334344816542 7.730966727763951 1571
+set river river_blk02 point bbox02 45.843598390068166 7.731322518514185 1590
+set river river_blk02 point center 45.843470919116793 7.731144623139068 1571
+set river river_blk02 connections
+set river river_blk03 point bbox01 45.843589771315045 7.731085847185295 1572
+set river river_blk03 point bbox02 45.843878628249044 7.73148431899996 1592
+set river river_blk03 point center 45.8437341997820445 7.7312850830926275 1572
+set river river_blk03 connections
+set river river_blk04 point bbox01 45.843869237048139 7.731201348027782 1573
+set river river_blk04 point bbox02 45.844093460187729 7.731595305429956 1595
+set river river_blk04 point center 45.843981348617934 7.731398326728869 1573
+set river river_blk04 connections
+set river river_blk05 point bbox01 45.844082999941399 7.731302566331131 1574
+set river river_blk05 point bbox02 45.844350666291412 7.731705403917507 1595
+set river river_blk05 point center 45.8442168331164055 7.731503985124319 1574
+set river river_blk05 connections
+set mountain mountain_blk01 point bbox01 45.843173473594611 7.729509629586227 0
+set mountain mountain_blk01 point bbox02 45.843954220236874 7.730027437345314 3000
+set mountain mountain_blk01 point center 45.8435638469157425 7.7297685334657705 0
+set mountain mountain_blk01 connections
+set wood tree_blk01 point bbox01 45.84439765 07.73083287 1579
+set wood tree_blk01 point bbox02 45.84448533 07.73092813 1600
+set wood tree_blk01 point center 45.84444149 07.73088050 1579
+set wood tree_blk01 connections
+set wood tree_blk02 point bbox01 45.84404321 07.73088130 1579
+set wood tree_blk02 point bbox02 45.84410197 07.73096916 1599
+set wood tree_blk02 point center 45.84407259 07.73092523 1579
+set wood tree_blk02 connections
+set wood tree_blk03 point bbox01 45.84458983 07.73113253 1583
+set wood tree_blk03 point bbox02 45.84463995 07.73119626 1600
+set wood tree_blk03 point center 45.84461489 07.73116439 1583
+set wood tree_blk03 connections
+set wood tree_blk04 point bbox01 45.84461337 07.73122089 1580
+set wood tree_blk04 point bbox02 45.84465236 07.73127311 1604
+set wood tree_blk04 point center 45.84463286 07.73124700 1580
+set wood tree_blk04 connections
+set wood tree_blk05 point bbox01 45.84478696 07.73073011 1581
+set wood tree_blk05 point bbox02 45.84485981 07.73082057 1601
+set wood tree_blk05 point center 45.84482338 07.73077534 1581
+set wood tree_blk05 connections
+set wood tree_blk06 point bbox01 45.84479741 07.73090176 1585
+set wood tree_blk06 point bbox02 45.84484659 07.73095130 1600
+set wood tree_blk06 point center 45.84482200 07.73092653 1585
+set wood tree_blk06 connections
+set wood tree_blk07 point bbox01 45.84482291 07.73095640 1580
+set wood tree_blk07 point bbox02 45.84487228 07.73101931 1601
+set wood tree_blk07 point center 45.84484760 07.73098785 1580
+set wood tree_blk07 connections
+set wood tree_blk08 point bbox01 45.84484260 07.73104696 1581
+set wood tree_blk08 point bbox02 45.84489994 07.73110268 1601
+set wood tree_blk08 point center 45.84487127 07.73107482 1581
+set wood tree_blk08 connections
+set wood tree_blk09 point bbox01 45.84479909 07.73118113 1581
+set wood tree_blk09 point bbox02 45.84489509 07.73129566 1601
+set wood tree_blk09 point center 45.84484709 07.73123839 1581
+set wood tree_blk09 connections
+set wood tree_blk10 point bbox01 45.84494970 07.73123331 1584
+set wood tree_blk10 point bbox02 45.84503227 07.73132263 1602
+set wood tree_blk10 point center 45.84499098 07.73127797 1584
+set wood tree_blk10 connections
+set wood tree_blk11 point bbox01 45.84421402 07.73091272 1578
+set wood tree_blk11 point bbox02 45.84427074 07.73097987 1606
+set wood tree_blk11 point center 45.84424238 07.73094629 1578
+set wood tree_blk11 connections
+set wood tree_blk12 point bbox01 45.84427335 07.73100874 1585
+set wood tree_blk12 point bbox02 45.84431469 07.73103854 1604
+set wood tree_blk12 point center 45.84429402 07.73102364 1585
+set wood tree_blk12 connections
+set wood tree_blk13 point bbox01 45.84432602 07.73098355 1579
+set wood tree_blk13 point bbox02 45.84437632 07.73103164 1603
+set wood tree_blk13 point center 45.84435117 07.73100759 1579
+set wood tree_blk13 connections
+set wood tree_blk14 point bbox01 45.84433828 07.73104680 1587
+set wood tree_blk14 point bbox02 45.84439032 07.73108894 1599
+set wood tree_blk14 point center 45.84436430 07.73106787 1587
+set wood tree_blk14 connections
+set wood tree_blk15 point bbox01 45.84351904 07.73050868 1578
+set wood tree_blk15 point bbox02 45.84357129 07.73058343 1604
+set wood tree_blk15 point center 45.84354516 07.73054606 1578
+set wood tree_blk15 connections
+set wood tree_blk16 point bbox01 45.84356397 07.73038832 1578
+set wood tree_blk16 point bbox02 45.84360090 07.73044965 1614
+set wood tree_blk16 point center 45.84358243 07.73041899 1578
+set wood tree_blk16 connections
+set wood tree_blk17 point bbox01 45.84361563 07.73052230 1578
+set wood tree_blk17 point bbox02 45.84364223 07.73056822 1607
+set wood tree_blk17 point center 45.84362893 07.73054526 1578
+set wood tree_blk17 connections
+set wood tree_blk18 point bbox01 45.84366181 07.73040595 1578
+set wood tree_blk18 point bbox02 45.84370779 07.73044491 1605
+set wood tree_blk18 point center 45.84368480 07.73042543 1578
+set wood tree_blk18 connections
