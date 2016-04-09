@@ -619,7 +619,7 @@ def addRiverNode(riverName):
       "query": "GET_NODES",
       "attributes": [
           {"key": "name", "value": riverName},
-          {"key": "osm:waterway", "value": "river"},                      
+          {"key": "type", "value": "river"},                      
       ]
     }):
         print "[DCM Interface:] %s node already added!" % (riverName)
@@ -635,7 +635,7 @@ def addRiverNode(riverName):
             "@graphtype": "Group",
             "attributes": [
               {"key": "name", "value": riverName}, 
-              {"key": "osm:waterway", "value": "river"},                     
+              {"key": "type", "value": "river"},                     
             ],
           },
           "parentId": getNodeId(environmentQueryMsg),
@@ -734,7 +734,7 @@ def connectRiver(riverName):
       "@worldmodeltype": "RSGQuery",
       "query": "GET_NODES",
       "attributes": [
-        {"key": "osm:waterway", "value": "river"},
+        {"key": "type", "value": "river"},
         {"key": "comment", "value": "This Connection defines all points that belong to %s" % (riverName)},
       ]
     }):
@@ -766,7 +766,7 @@ def connectRiver(riverName):
               "query": "GET_NODES",
               "attributes": [
                 {"key": "name", "value": riverName},  
-                {"key": "osm:waterway", "value": "river"},                    
+                {"key": "type", "value": "river"},                    
               ]
             }
             pubSWM({
