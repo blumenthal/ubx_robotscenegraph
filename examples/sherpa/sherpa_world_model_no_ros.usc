@@ -42,17 +42,23 @@ local logLevel = tonumber(getEnvWithDefault("SWM_LOG_LEVEL", 1)) --  LOGDEBUG = 
 local worldModelAgentName = getEnvWithDefault("SWM_WMA_NAME", "swm") -- human radable name to better identify this WMA; Moslty for debugging
 local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
 local worldModelGlobalId = getEnvWithDefault("SWM_GLOBAL_ID", "") -- application globel root Id.
-wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
---wm = rsg.WorldModel() -- Defualt with auto generated rootId
+
+if worldModelAgentId == "" then
+  print("No agent ID specified. Generating a new one.")
+  wm = rsg.WorldModel() -- Defualt with auto generated rootId
+else
+  wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+end
+
 local rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
---wm:addNodeAttribute(rootId, "name", worldModelAgentName);
+wm:addNodeAttribute(rootId, "name", worldModelAgentName .. "_started_" .. os.date("%Y-%m-%d_%H-%M-%S")); -- optional; can cause crashes when modifies for a second time
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
 
 
 -- Below is a set of functions that can be called at runtime by 
--- typing them into the command line intetface.
+-- typing them into the command line interface.
 
 -- Convenience function to start the system in on shot
 function start_wm() -- no particular order assumed here
