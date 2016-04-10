@@ -196,16 +196,27 @@ Or directly modify the default value in the usc file:
 local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") 
 ```
 
-It is also possible to ommit that step and let the World Model Agent automatically generate one.
-Instead of this line:
+It is also possible to ommit that step and let the World Model Agent automatically generate an ID.
+Simply leave the SWM_WMA_ID empty:
+
+
 ```
-wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
-```
-use that line:
-```
-wm = rsg.WorldModel() -- Default with auto generated rootId 
+ export SWM_WMA_ID= 
 ```
 
+Of course, all individual agents (with individual IDs) will have to be connected. The easiest way is to 
+define a global application ID and enable the "auto mount" capabilities of the SWM. I.e. whenever
+a new agent joins it is automatically added as child to that global application ID. In order
+to activate this functionalyly simply let the World Model Agent automatically generate one as described above
+and set the ``SWM_GLOBAL_ID`` to the global ID. E.g.   
+
+```
+ export SWM_WMA_ID=
+ export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1 
+```
+
+Note in this example the ``SWM_GLOBAL_ID`` uses the same Id as in the above exambles for a fixed WMA ids. 
+This can be a helpful migration stategiy in cases some applications assume the existance of a particular (global) root Id. 
 
 ### Without Mediator
 
