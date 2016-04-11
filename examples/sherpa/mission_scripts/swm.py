@@ -1055,10 +1055,12 @@ def stringIsFloat(inputString):
     return inputString.isdigit() or re.match("^\d+?\.\d+?$", inputString) is not None
 
 def stringArrayIsValidGeoPose(inputArray):
-    return stringIsFloat(inputArray[0]) and stringIsFloat(inputArray[1]) and stringIsFloat(inputArray[2]) and stringIsFloat(inputArray[3]) and stringIsFloat(inputArray[4]) and stringIsFloat(inputArray[5]) and stringIsFloat(inputArray[6])
+    #return stringIsFloat(inputArray[0]) and stringIsFloat(inputArray[1]) and stringIsFloat(inputArray[2]) and stringIsFloat(inputArray[3]) and stringIsFloat(inputArray[4]) and stringIsFloat(inputArray[5]) and stringIsFloat(inputArray[6])
+    return True
 
 def stringArrayIsValidGeoPoint(inputArray):
-    return stringIsFloat(inputArray[0]) and stringIsFloat(inputArray[1]) and stringIsFloat(inputArray[2])
+    #return stringIsFloat(inputArray[0]) and stringIsFloat(inputArray[1]) and stringIsFloat(inputArray[2])
+    return True
 
 def exitWithError(errorMsg):
     if lineNum > 0:

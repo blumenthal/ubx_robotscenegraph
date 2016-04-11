@@ -13,13 +13,17 @@ import json
 
 objectAttribute = "sherpa:agent_name"
 objectValue = "genius"
+server = "tcp://localhost:22422" #local
+#server = "tcp://192.168.0.104:22422" #sherpa box
+#server = "tcp://127.0.0.1:22422" #local
+
 
 ### Communication Setup ###
 
 # Set up the ZMQ REQ-REP communication layer for queries.
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
-socket.connect("tcp://localhost:22422")
+socket.connect(server)
 
 ### Query to get Ids of object and reference frame ####
 
@@ -52,7 +56,7 @@ getNodes = {
 
 print("Sending query for object node Id(s): %s " % json.dumps(getNodes))
 socket = context.socket(zmq.REQ)
-socket.connect("tcp://localhost:22422")
+socket.connect(server)
 socket.send_string(json.dumps(getNodes))
 result = socket.recv()
 socket.close()
@@ -83,7 +87,7 @@ if (len(ids) > 0):
       } 
     }
     socket = context.socket(zmq.REQ)
-    socket.connect("tcp://localhost:22422")
+    socket.connect(server)
     socket.send_string(json.dumps(getPose))
     result = socket.recv()
     socket.close()
