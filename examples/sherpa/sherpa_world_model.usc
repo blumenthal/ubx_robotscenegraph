@@ -169,6 +169,11 @@ local max_transform_freq = tonumber(getEnvWithDefault("SWM_MAX_TRANSFORM_FREQ", 
 local rsg_map_file = getEnvWithDefault("SWM_RSG_MAP_FILE", "examples/maps/rsg/cesena_lab.json")
 local osm_map_file = getEnvWithDefault("SWM_OSM_MAP_FILE", "examples/maps/osm/map_micro_champoluc.osm") 
 
+-- Debug visualization
+local generate_dot_files = tonumber(getEnvWithDefault("SWM_GENERATE_DOT_FILES", 0))
+local generate_img_files = tonumber(getEnvWithDefault("SWM_GENERATE_IMG_FILES", 0)) -- requres generate_dot_files to be true
+local store_dot_history = tonumber(getEnvWithDefault("SWM_STORE_DOT_HISTORY", 0)) -- requres generate_dot_files to be true
+
 return bd.system
   {
     imports = {
@@ -314,7 +319,17 @@ return bd.system
           remote_root_auto_mount_id = worldModelGlobalId  
         } 
       },
-      { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = logLevel, max_freq = max_transform_freq } },
+      { name="rsgjsonsender", 
+        config =  { 
+          wm_handle={wm = wm:getHandle().wm}, 
+          store_dot_files = generate_dot_files,           
+          generate_svg_files = generate_img_files, 
+          store_history_as_dot_files = store_dot_history,      
+          dot_name_prefix = worldModelAgentName,
+          log_level = logLevel, 
+          max_freq = max_transform_freq 
+        } 
+      },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 

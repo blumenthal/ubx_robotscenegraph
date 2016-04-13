@@ -144,11 +144,12 @@ int rsg_json_sender_init(ubx_block_t *b)
     	if(inf->wm == 0) {
 //    		LOG(FATAL) << " World model handle could not be initialized.";
     		//return -1;
-    		LOG(ERROR) << "World model handle could not be optained via configuration parameter."
+    		LOG(ERROR) << "World model handle could not be obtained via configuration parameter."
     					  "Creating a new world model instance instead (mostly for debugging purposes)."
     					  "Please check your system design if this is intended!";
     		inf->wm = new brics_3d::WorldModel();
     	}
+
 
     	/* Attach debug graph printer */
     	brics_3d::rsg::VisualizationConfiguration dotConfig;
@@ -160,7 +161,7 @@ int rsg_json_sender_init(ubx_block_t *b)
 
     	int* store_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_dot_files", &clen));
     	if(clen == 0) {
-    		LOG(INFO) << "rsg_json_sender: No store_dot_files configuation given. Turned off by default.";
+    		LOG(INFO) << "rsg_json_sender: No store_dot_files configuration given. Turned off by default.";
     	} else {
     		if (*store_dot_files == 1) {
     			LOG(INFO) << "rsg_json_sender: store_dot_files turned on.";
@@ -171,9 +172,22 @@ int rsg_json_sender_init(ubx_block_t *b)
     		}
     	}
 
+    	int* generate_svg_files =  ((int*) ubx_config_get_data_ptr(b, "generate_svg_files", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_json_sender: No generate_svg_files configuration given. Turned off by default.";
+    	} else {
+    		if (*generate_svg_files == 1) {
+    			LOG(INFO) << "rsg_json_sender: generate_svg_files turned on.";
+    	    	inf->wm_printer->setGenerateSvgFiles(true);
+    		} else {
+    			LOG(INFO) << "rsg_json_sender: generate_svg_files turned off.";
+    	    	inf->wm_printer->setGenerateSvgFiles(false);
+    		}
+    	}
+
     	int* store_history_as_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_history_as_dot_files", &clen));
     	if(clen == 0) {
-    		LOG(INFO) << "rsg_json_sender: No store_history_as_dot_files configuation given. Turned off by default.";
+    		LOG(INFO) << "rsg_json_sender: No store_history_as_dot_files configuration given. Turned off by default.";
     	} else {
     		if (*store_history_as_dot_files == 1) {
     			LOG(INFO) << "rsg_json_sender: store_history_as_dot_files turned on.";
@@ -184,7 +198,7 @@ int rsg_json_sender_init(ubx_block_t *b)
     		}
 
 
-    		/* retrive optinal dot file prefix from config */
+    		/* Retrieve optional dot file prefix from config */
     		char* chrptr = (char*) ubx_config_get_data_ptr(b, "dot_name_prefix", &clen);
     		if(clen == 0) {
     			LOG(INFO) << "rsg_json_sender: No dot_name_prefix configuation given. Selecting a default name.";

@@ -19,8 +19,9 @@ char rsg_json_sender_meta[] =
 /* declaration of block configuration */
 ubx_config_t rsg_json_sender_config[] = {
         { .name="wm_handle", .type_name = "struct rsg_wm_handle", .doc="Handle to the world wodel instance. This parameter is mandatory." },
-        { .name="store_dot_files", .type_name = "int", .doc="If true every modifcation of the scene graph is stored one dot file, "
+        { .name="store_dot_files", .type_name = "int", .doc="If true every modifcation of the scene graph is stored in one dot file, "
         		"otherwise no debug graphs will be written at all. To be used for debugging." },
+        { .name="generate_svg_files", .type_name = "int", .doc="If true every and if store_dot_files is set to true every dot file is automatically converted into a svg file. For debugging only, can degenerate system performance." },
         { .name="store_history_as_dot_files", .type_name = "int", .doc="If true every modifcation of the scene graph is stored in a seperate dot file. "
         		"To be used for debugging. Requires store_dot_files to be true." },
     	{ .name="dot_name_prefix", .type_name = "char" , .doc="Optional prefix for stored dot files." },
