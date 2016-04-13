@@ -13,7 +13,8 @@ export SWM_LOG_LEVEL=0  #  default value = 1
 
 # World Model Agent 
 export SWM_WMA_NAME=wasp   #  default value = swm
-export SWM_WMA_ID=f3c1c524-486d-40dc-8cbe-7d8053e7f587  # default value = e379121f-06c6-4e21-ae9d-ae78ec1986a1
+#export SWM_WMA_ID=f3c1c524-486d-40dc-8cbe-7d8053e7f587  # default value = e379121f-06c6-4e21-ae9d-ae78ec1986a1
+export SWM_WMA_ID= # An empty World Model Agent Id will trigger to generate one.
 export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 
 # Communication setup with ZMQ (version without mediator component)
@@ -32,6 +33,7 @@ export SWM_REMOTE_OUT_PORT_SECONDARY=11411 # default value = 11611
 # Filter settings (optional)
 export SWM_ENABLE_INPUT_FILTER=0 # default value = 0
 export SWM_INPUT_FILTER_PATTERN= # default value = os(m|g)
+export SWM_MAX_TRANSFORM_FREQ=5 # default value = 5
 
 # Map files settings (optional)
 export SWM_RSG_MAP_FILE=../maps/rsg/cesena_lab.json # default value = examples/maps/rsg/cesena_lab.json

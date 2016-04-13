@@ -33,6 +33,7 @@ export SWM_REMOTE_OUT_PORT_SECONDARY=11411 # default value = 11611
 # Filter settings (optional)
 export SWM_ENABLE_INPUT_FILTER=0 # default value = 0
 export SWM_INPUT_FILTER_PATTERN= # default value = os(m|g)
+export SWM_MAX_TRANSFORM_FREQ=5 # default value = 5
 
 # Map files settings (optional)
 export SWM_RSG_MAP_FILE=../maps/rsg/cesena_lab.json # default value = examples/maps/rsg/cesena_lab.json
