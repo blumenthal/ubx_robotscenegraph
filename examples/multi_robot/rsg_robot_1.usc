@@ -36,14 +36,26 @@ function getEnvWithDefault(variableName, defaultValue)
   return envVariable    
 end
 
+local logLevel = tonumber(getEnvWithDefault("SWM_LOG_LEVEL", 1))
+
 -- create an inctance of the RSG to serve as World Model Agent for the robot 
 local worldModelAgentName = getEnvWithDefault("SWM_WMA_NAME", "swm") -- human radable name to better identify this WMA; Moslty for debugging
 local worldModelAgentId = getEnvWithDefault("SWM_WMA_ID", "e379121f-06c6-4e21-ae9d-ae78ec1986a1") -- Every SHERPA WM needs a unique number. E.g. use uuidgen to generate fresh ones.
-wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+local worldModelGlobalId = getEnvWithDefault("SWM_GLOBAL_ID", "") -- application globel root Id.
+
+if worldModelAgentId == "" then
+  print("No agent ID specified. Generating a new one.")
+  wm = rsg.WorldModel() -- Defualt with auto generated rootId
+else
+  wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
+end
+
+--wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
 --wm = rsg.WorldModel() -- Defualt with auto generated rootId
 local rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
-wm:addNodeAttribute(rootId, "name", worldModelAgentName);
+--wm:addNodeAttribute(rootId, "name", worldModelAgentName);
+wm:addNodeAttribute(rootId, "name", worldModelAgentName .. "_started_" .. os.date("%Y-%m-%d_%H-%M-%S")); -- optional; can cause crashes when modifies for a second time
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
 
@@ -145,6 +157,12 @@ local remote_out_port_secondary = getEnvWithDefault("SWM_REMOTE_OUT_PORT_SECONDA
 -- Filter settings
 local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
 local input_filter_pattern = getEnvWithDefault("SWM_INPUT_FILTER_PATTERN", "os(m|g)")
+local max_transform_freq = tonumber(getEnvWithDefault("SWM_MAX_TRANSFORM_FREQ", 5.0))
+
+-- Debug visualization
+local generate_dot_files = tonumber(getEnvWithDefault("SWM_GENERATE_DOT_FILES", 0))
+local generate_img_files = tonumber(getEnvWithDefault("SWM_GENERATE_IMG_FILES", 0)) -- requres generate_dot_files to be true
+local store_dot_history = tonumber(getEnvWithDefault("SWM_STORE_DOT_HISTORY", 0)) -- requres generate_dot_files to be true
 
 return bd.system
   {
@@ -277,14 +295,25 @@ return bd.system
           log_level = 2 
         } 
       },
-      { name="rsghdf5receiver", config =  { buffer_len=20000, wm_handle={wm = wm:getHandle().wm}, log_level = 2 } },
       { name="rsgjsonreciever", 
         config =  { 
           buffer_len=20000, 
           wm_handle={wm = wm:getHandle().wm}, 
-          log_level = 2, 
+          log_level = logLevel, 
           enable_input_filter = enable_input_filter,
-          input_filter_pattern = input_filter_pattern  
+          input_filter_pattern = input_filter_pattern,
+          remote_root_auto_mount_id = worldModelGlobalId  
+        } 
+      },
+      { name="rsgjsonsender", 
+        config =  { 
+          wm_handle={wm = wm:getHandle().wm}, 
+          store_dot_files = generate_dot_files,           
+          generate_svg_files = generate_img_files, 
+          store_history_as_dot_files = store_dot_history,      
+          dot_name_prefix = worldModelAgentName,
+          log_level = logLevel, 
+          max_freq = max_transform_freq 
         } 
       },
       { name="rsgjsonsender", config =  { wm_handle={wm = wm:getHandle().wm}, store_history_as_dot_files = 0, log_level = 1 } },

@@ -6,6 +6,8 @@ source $FBX_MODULES/env.sh
 export SWM_WMA_NAME=hmi_view
 export SWM_WMA_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1
 #export SWM_WMA_ID=631488ca-8b8f-4ce7-b149-997d6e0ed1cf
+export SWM_WMA_ID=""
+export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1
 
 # configure ports
 # reassign JSON ports 
