@@ -1,0 +1,226 @@
+{    
+  "metamodel": "rsg-core-schema.json",  
+  "@worldmodeltype": "WorldModelAgent",
+  "remoteRootNodes": [ 
+  {
+    "@graphtype": "Group",
+    "id": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+    "attributes": [
+
+    ],
+    "childs": [
+
+  
+       
+      {
+        "@childtype": "Child",
+        "child": {
+          "@graphtype": "Group",
+          "id": "853cb0f0-e587-4880-affe-90001da1262d",
+          "attributes": [
+            {"key": "gis:origin", "value": "wgs84"},
+          ],
+          "childs": [
+            
+                          
+          ]
+        },
+      },
+
+
+      {
+        "@childtype": "Child",
+        "child": {
+          "@graphtype": "Group",
+          "id": "3b2c3375-0aaf-419d-8b7c-4b7190c5df89",
+          "attributes": [
+            {"key": "name", "value": "mission"},
+          ],
+          "childs": [
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "fe234f0a-8742-4506-ad35-8974f02f848c",
+                "attributes": [
+                  {"key": "name", "value": "agents"},
+                ],
+                "childs": [
+     
+
+                  {
+                    "@childtype": "Child",
+                    "child": {
+                      "@graphtype": "Group",
+                      "id": "e8685dab-74d3-4ada-b969-8c1caa017598",
+                      "attributes": [
+                        {"key": "name", "value": "ugv_1"},
+                        {"key": "rsg:agent_policy", "value": "only Transforms with freq <= 0.5 Hz"}
+                      ],
+                      "childs": [
+                        
+                                      
+                      ]
+                    },
+                  },  
+             
+      
+                  {
+                    "@childtype": "Child",
+                    "child": {
+                      "@graphtype": "Group",
+                      "id": "bc31c854-fd29-4987-87d5-8e81cd94a4a9",
+                      "attributes": [
+                        {"key": "name", "value": "uav_1"},
+                        {"key": "rsg:agent_policy", "value": "only Transforms with freq <= 0.5 Hz"},
+                        {"key": "rsg:agent_policy", "value": "no Primitives from context osm"}
+                      ],
+                      "childs": [
+                        
+                                      
+                      ]
+                    },
+                  },  
+                 
+
+                  {
+                    "@childtype": "Child",
+                    "child": {
+                      "@graphtype": "Group",
+                      "id": "bfc0e783-7266-44b0-9f3d-b2c40db87987",
+                      "attributes": [
+                        {"key": "name", "value": "hmi_1"},
+                        {"key": "rsg:agent_policy", "value": "only Primitives from context victim"}
+                      ],
+                      "childs": [
+                        
+                                      
+                      ]
+                    },
+                  },  
+         
+                ]
+              },
+            },            
+                  
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "1cd7e823-5b01-44cf-ad5a-572c2c3dbf96",
+                "attributes": [
+                  {"key": "name", "value": "goals"},
+                ],
+                "childs": [
+                  
+                                
+                ]
+              },
+            },    
+        
+
+            {
+              "@childtype": "Child",
+              "child": {
+                "@graphtype": "Group",
+                "id": "42b8ea33-50de-41e2-b7ee-51a966b379e9",
+                "attributes": [
+                  {"key": "name", "value": "detected_victims"},
+                ],
+                "childs": [
+                  
+                                
+                ]
+              },
+            },  
+
+          ],
+
+          "connections": [
+
+            {    
+              "@graphtype": "Connection",
+              "@semanticContext":"Transform",
+              "id": "f25a2385-e6ec-4324-8061-90e92cba0c00",
+              "attributes": [
+                {"key": "tf:type", "value": "wgs84"}
+              ],
+              "sourceIds": [
+                "853cb0f0-e587-4880-affe-90001da1262d",
+              ],
+              "targetIds": [
+                "e8685dab-74d3-4ada-b969-8c1caa017598",
+              ],
+              "history" : [
+                {
+                  "stamp": {
+                    "@stamptype": "TimeStampUTCms",
+                    "stamp": "0.0",
+                  },
+
+                  "transform": {
+                    "type": "HomogeneousMatrix44",
+                    "matrix": [
+                      [1,0,0,45.84561555807046],
+                      [0,1,0,7.72886713924574],
+                      [0,0,1,3.12],
+                      [0,0,0,1] 
+                    ],
+                    "unit": "latlon"
+                  }
+                }
+              ], 	    
+            },
+
+            {    
+              "@graphtype": "Connection",
+              "@semanticContext":"Transform",
+              "id": "d01d79b5-ea24-49fc-a1cb-feb6d29ebe77",
+              "attributes": [
+                {"key": "tf:type", "value": "wgs84"}
+              ],
+              "sourceIds": [
+                "853cb0f0-e587-4880-affe-90001da1262d",
+              ],
+              "targetIds": [
+                "bc31c854-fd29-4987-87d5-8e81cd94a4a9",
+              ],
+              "history" : [
+                {
+                  "stamp": {
+                    "@stamptype": "TimeStampUTCms",
+                    "stamp": "0.0",
+                  },
+
+                  "transform": {
+                    "type": "HomogeneousMatrix44",
+                    "matrix": [
+                      [1,0,0,45.84561555807046],
+                      [0,1,0,7.72986713924574],
+                      [0,0,1,3.12],
+                      [0,0,0,1] 
+                    ],
+                    "unit": "latlon"
+                  }
+                }
+              ], 	    
+            },
+          ]	   
+
+        },
+      },
+
+
+
+
+
+    ],
+    "connections": [
+
+
+    ]	       	    
+  },
+  ]   	    
+}
