@@ -372,7 +372,7 @@ if __name__ == '__main__':
                 [0,0,1,8.0],
                 [0,0,0,1] 
                 ]
-    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 1, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
+    rob1 = Sherpa_Actor(True, swm_uav_update_port,swm_origin_uuid,"uav", 100, 0.001, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
     rob1.setName("uav")
     
     current_pose = [
@@ -387,7 +387,7 @@ if __name__ == '__main__':
                 [0,0,1,1.0],
                 [0,0,0,1] 
                 ]
-    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 1, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid, swm_victims_uuid)
+    rob2 = Sherpa_Actor(True, swm_ugv_update_port,swm_origin_uuid,"ugv", 10, 0.0001, current_pose, goal_pose, swm_origin_uuid, swm_ugv_uuid, swm_ugv_tf_uuid, swm_victims_uuid)
     rob2.setName("ugv")
     
     
