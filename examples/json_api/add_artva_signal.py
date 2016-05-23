@@ -9,6 +9,7 @@ import zmq
 import random
 import sys
 import time
+import datetime
 import json
 
 # The port is defined by the system composition (sherpa_world_model.usc) file
@@ -20,7 +21,7 @@ port = "22422"
 # Set up the ZMQ REQ-REP communication layer.
 context = zmq.Context()
 
-def sendMessageToSMW(message):
+def sendMessageToSWM(message):
   socket = context.socket(zmq.REQ)
   socket.connect("tcp://localhost:%s" % port) # Currently he have to reconnect for every message.
   print("Sending update: %s " % (message))
@@ -109,8 +110,8 @@ newTransformMsg = {
 
 
 # Send the messages.
-sendMessageToSMW(json.dumps(newOriginMsg))
-sendMessageToSMW(json.dumps(newArtvaNodeMsg))
-sendMessageToSMW(json.dumps(newTransformMsg))
+sendMessageToSWM(json.dumps(newOriginMsg))
+sendMessageToSWM(json.dumps(newArtvaNodeMsg))
+sendMessageToSWM(json.dumps(newTransformMsg))
 
 

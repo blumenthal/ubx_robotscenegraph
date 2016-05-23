@@ -90,6 +90,16 @@ Possible data ranges from rather primitive shapes like a box or a cylinder to
 unconstrained geometries like point clouds or meshes. A GeometricNode can
 be used to store measurements from sensors.
 
+#### Sherpa specific Nodes
+
+
+* **ARTVA Signals**: A single ARTVA measurement is represented by a single ``Node``, 
+which is tagged with a ``sherpa:artva_signal`` **Attribute** e.g. (``sherpa:artva_signal``,``77``).
+It typically has a Connection to a GIS origin via a **Transform** to inticates its geo-pose. 
+Examples to [add](../examples/json_api/add_artva_signal.py) and [query](../examples/json_api/get_artva_signals.py) ARTVA measurements can be found in the JOSN API section.
+
+The complete list of Attributes used for a SHERPA mission can be found in the [codebook](https://github.com/blumenthal/sherpa_world_model_knowrob_bridge/blob/master/doc/codebook.md).
+
 ### Specialized Edges
 
 So far nodes can be related via *contaiment* relations, which are modled as parent-child
