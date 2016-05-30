@@ -87,7 +87,7 @@ newCommandMsg = {
     "@graphtype": "Node",
     "id": "3e02fe9f-bc0a-4192-86d3-28dfff75f8c9", 
     "attributes": [
-          {"key": "sherpa:sherpa:command", "value": "follow me"},
+          {"key": "sherpa:command", "value": "follow me"},
           {"key": "sherpa:target_agent_name", "value": "donkey"},
           {"key": "sherpa:command_pointing_gesture", "value": {"direction":[0.3, 0.7, 0.0]}},
     ],
