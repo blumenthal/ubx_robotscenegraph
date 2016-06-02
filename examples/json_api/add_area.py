@@ -269,7 +269,7 @@ newTransformToPolygonPoint4Msg = {
 # It references all points that belong to a polygon describing the area in
 # the targetIds field. Note, the first and last reference to a point have to be the 
 # same to obtain a closed polygon.  
-newConnectionMsg = {
+newAreaConnectionMsg = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "CREATE",
   "node": {    
@@ -306,5 +306,5 @@ sendMessageToSWM(json.dumps(newAreaPolygonPouint3Msg))
 sendMessageToSWM(json.dumps(newTransformToPolygonPoint3Msg))
 sendMessageToSWM(json.dumps(newAreaPolygonPouint4Msg))
 sendMessageToSWM(json.dumps(newTransformToPolygonPoint4Msg))
-
+sendMessageToSWM(json.dumps(newAreaConnectionMsg))
 
