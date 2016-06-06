@@ -1,0 +1,11 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "roifilter",
+  "operation":       "LOAD",
+  "input": {
+  "metamodel": "rsg-functionBlock-path-schema.json",
+    "path":     "/opt/src/sandbox/brics_3d_function_blocks/lib/",
+    "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
+  }
+}
