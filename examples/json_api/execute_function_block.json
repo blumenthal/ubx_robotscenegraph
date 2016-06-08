@@ -1,0 +1,10 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "roifilter",
+  "operation":       "EXECUTE",
+  "input": [
+		"943ba6f4-5c70-46ec-83af-0d5434953e5f",
+		"631ba6f4-5c70-46ec-83af-0d5434953e5f"
+  ]
+}
