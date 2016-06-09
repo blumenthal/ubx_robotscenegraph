@@ -90,6 +90,7 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer9"):do_start()
   ni:b("bytestreambuffer_query_req"):do_start()
   ni:b("bytestreambuffer_query_rep"):do_start()
+  ni:b("zyre_local_bridge"):do_start()
   ni:b("cyclic_io_trigger"):do_start() 
 --  ni:b("dbg_hexdump"):do_init()  
 --  ni:b("dbg_hexdump"):do_start()   
@@ -202,7 +203,8 @@ return bd.system
       "blocks/rossenderlib.so",
       "blocks/rosreceiverlib.so",
 
-      "blocks/osmloader.so"
+      "blocks/osmloader.so",
+      "blocks/zyrebridgelib.so"
     },
 
     blocks = {
@@ -237,6 +239,7 @@ return bd.system
       -- ZMQ/Zyre
       { name="bytestreambuffer5",type="lfds_buffers/cyclic_raw" },
       { name="bytestreambuffer6",type="lfds_buffers/cyclic_raw" },
+      { name="zyre_local_bridge", type="zyre_bridge" },
 
       -- JSON based queries to WM
       { name="bytestreambuffer_query_req",type="lfds_buffers/cyclic_raw" },
@@ -287,6 +290,9 @@ return bd.system
       { src="zmq_json_subscriber.zmq_in", tgt="bytestreambuffer6" },
       { src="bytestreambuffer6", tgt="rsgjsonreciever.rsg_in" },
       { src="zmq_json_subscriber_secondary.zmq_in", tgt="bytestreambuffer6" },
+      -- Zyre bridge
+      { src="zyre_local_bridge.zyre_in", tgt="bytestreambuffer6" },
+      { src="bytestreambuffer5", tgt="zyre_local_bridge.zyre_out" },
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="bytestreambuffer_query_req" },
@@ -330,6 +336,7 @@ return bd.system
           max_freq = max_transform_freq 
         } 
       },
+      { name="zyre_local_bridge", config = { max_send=5 , wm_name="SWM_zyre_bridge" , type_list="test_type1" , local_endpoint="ipc:///tmp/swm_com" , gossip_endpoint="ipc:///tmp/local-hub" , group="local" } },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
@@ -368,7 +375,8 @@ return bd.system
 --            { b="#ros_hdf5_publisher", num_steps=1, measure=0 },  
             { b="#ros_json_publisher", num_steps=1, measure=0 },   
             { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
-            { b="#zmq_json_query_server", num_steps=1, measure=0 },        
+            { b="#zmq_json_query_server", num_steps=1, measure=0 },
+            { b="#zyre_local_bridge", num_steps=1, measure=0 },
           --{ b="#rsghdf5sender", num_steps=1, measure=0 },              
           } 
         } 
