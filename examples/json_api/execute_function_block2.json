@@ -1,0 +1,11 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "roifilter",
+  "operation":       "EXECUTE",
+  "input": {
+    "metamodel": "fbx-roifilter-input-schema.json",
+		"outputHookId": "943ba6f4-5c70-46ec-83af-0d5434953e5f",
+		"pointCloudId": "631ba6f4-5c70-46ec-83af-0d5434953e5f"
+  }
+}
