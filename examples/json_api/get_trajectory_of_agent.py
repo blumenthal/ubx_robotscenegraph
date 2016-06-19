@@ -128,24 +128,25 @@ if (len(ids) > 0):
     }
   } 
   result = functionBlockOperation(getPoseHistoryQuery)
+  print("Recieved pose history:")  
+  print(result["output"]["history"])  
 
-
-  # Of course we want to get the _latest_ information.
-  currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-  print(currentTimeStamp)
-    
-  getPose = {
-      "@worldmodeltype": "RSGQuery",
-      "query": "GET_TRANSFORM",
-      "id": ids[0],
-      "idReferenceNode": rootId,
-      "timeStamp": {
-        "@stamptype": "TimeStampDate",
-        "stamp": currentTimeStamp,
-      } 
-  }
-  result = querySWM(getPose)
-  print("Received reply for object pose: %s " % str(result))
+  ## For comparison - below is an example how to get a single pose rather than a full history:
+  #currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+  #print(currentTimeStamp)
+  #  
+  #getPose = {
+  #    "@worldmodeltype": "RSGQuery",
+  #    "query": "GET_TRANSFORM",
+  #    "id": ids[0],
+  #    "idReferenceNode": rootId,
+  #    "timeStamp": {
+  #      "@stamptype": "TimeStampDate",
+  #      "stamp": currentTimeStamp,
+  #    } 
+  #}
+  #result = querySWM(getPose)
+  #print("Received reply for object pose: %s " % str(result))
 
 
 
