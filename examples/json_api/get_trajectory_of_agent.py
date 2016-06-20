@@ -95,7 +95,7 @@ if (len(ids) > 0):
     "name":            blockName,
     "operation":       "UNLOAD",
     "input": {
-    "metamodel": "rsg-functionBlock-path-schema.json",
+      "metamodel": "rsg-functionBlock-path-schema.json",
       "path":     fbxPath,
       "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
     }
@@ -108,7 +108,7 @@ if (len(ids) > 0):
     "name":            blockName,
     "operation":       "LOAD",
     "input": {
-    "metamodel": "rsg-functionBlock-path-schema.json",
+      "metamodel": "rsg-functionBlock-path-schema.json",
       "path":     fbxPath,
       "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
     }
