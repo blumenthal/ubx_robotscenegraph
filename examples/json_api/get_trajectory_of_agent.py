@@ -12,8 +12,9 @@ objectAttribute = "sherpa:agent_name"
 agent = "genius"
 fbxPath = "/opt/src/sandbox/brics_3d_function_blocks/lib/"
 
-if len(sys.argv) > 1:
-    agent = sys.argv[1]
+if len(sys.argv) > 2:
+    objectAttribute = sys.argv[1]
+    agent = sys.argv[2]
 
 print("Reqesting pose history for agent : %s " % (agent))
 
