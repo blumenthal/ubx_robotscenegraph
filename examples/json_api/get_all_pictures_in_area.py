@@ -1,5 +1,10 @@
 # Example on how to get a complete trajectory of a SHERPA agent
 # 
+# to test it call
+#  python add_area.py
+#  cd ../sherpa/mission_scripts
+#  python swm.py add picture genius ok 45 13 2199 0 0 0 1
+
 
 import zmq
 import sys
@@ -14,9 +19,8 @@ agent = "genius"
 fbxPath = os.environ['FBX_MODULES']
 fbxPath = fbxPath + "/lib/"
 
-if len(sys.argv) > 2:
-    objectAttribute = sys.argv[1]
-    agent = sys.argv[2]
+if len(sys.argv) > 1:
+    agent = sys.argv[1]
 
 print("Reqesting pose history for agent : %s " % (agent))
 
@@ -62,36 +66,23 @@ def functionBlockOperation(operation):
     else:
         return ""
 
-### Query to get Ids of object and reference frame ####
-
-# Get root node Id as reference
-getRootNodeMsg = {
-  "@worldmodeltype": "RSGQuery",
-  "query": "GET_ROOT_NODE"
-}
-result = querySWM(getRootNodeMsg)
-rootId = result["rootId"]
-print("rootId = %s " % rootId)
-referenceId = rootId
-
-
-# Get object Id 
-getNodes = {
+# Get area object Id 
+getAreas = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": objectAttribute, "value": agent },
+      {"key": "geo:area", "value": "polygon"},
   ]
 }
 
-result = querySWM(getNodes)
+result = querySWM(getAreas)
 ids = result["ids"]
 print("ids = %s " % ids)
 
 if (len(ids) > 0):
 
-  ### Prepare  poisehistory functionblock ###  
-  blockName = "posehistory"
+  ### Prepare  nodesinarea functionblock ###  
+  blockName = "nodesinarea"
   unloadFunctionBlock =  {
     "@worldmodeltype": "RSGFunctionBlock",
     "metamodel":       "rsg-functionBlock-schema.json",
@@ -118,38 +109,37 @@ if (len(ids) > 0):
   }
   functionBlockOperation(loadFunctionBlock)
 
-  ### Request history ###
-  getPoseHistoryQuery =  {
+  ### Request picture nodes witin area ###
+  getNodesInAreaQuery =  {
     "@worldmodeltype": "RSGFunctionBlock",
     "metamodel":       "rsg-functionBlock-schema.json",
     "name":            blockName,
     "operation":       "EXECUTE",
     "input": {
-      "metamodel": "fbx-posehistory-input-schema.json",
-		  "id": ids[0],
-		  "idReferenceNode": rootId
+      "metamodel": "fbx-nodesinarea-input-schema.json",
+		  "areaId": ids[0],
+      "attributes": [
+        {"key": "name", "value": "picture"},
+      ],
     }
   } 
-  result = functionBlockOperation(getPoseHistoryQuery)
-  print("Recieved pose history:")  
-  print(result["output"]["history"])  
+  result = functionBlockOperation(getNodesInAreaQuery)
 
-  ## For comparison - below is an example how to get a single pose rather than a full history:
-  #currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-  #print(currentTimeStamp)
-  #  
-  #getPose = {
-  #    "@worldmodeltype": "RSGQuery",
-  #    "query": "GET_TRANSFORM",
-  #    "id": ids[0],
-  #    "idReferenceNode": rootId,
-  #    "timeStamp": {
-  #      "@stamptype": "TimeStampDate",
-  #      "stamp": currentTimeStamp,
-  #    } 
-  #}
-  #result = querySWM(getPose)
-  #print("Received reply for object pose: %s " % str(result))
+  pictureIds = result["output"]["ids"]
+  if (len(pictureIds) > 0):
+    print("Found one or more pictures in the given area.")     
+    for i in pictureIds:
+     print(i)
+     attibutesMsg = {
+      "@worldmodeltype": "RSGQuery",
+       "query": "GET_NODE_ATTRIBUTES",
+        "id": i
+     } 
+     result = querySWM(attibutesMsg)
+     print("attributes = %s " % result["attributes"])       
+ 
 
+
+  
 
 
