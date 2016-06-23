@@ -65,6 +65,15 @@ class Sherpa_Actor(Thread):
         self.rob_name = name #"robot"
         self.send_freq = send_freq #10 #in Hz
         self.max_vel = max_vel # max velocity factor of robot
+
+        # for battery simulation
+        self.battery_uuid = "052d2a58-9566-46d7-adef-336f280baf2d" #str(uuid.uuid4())
+        # A wasp has a voltage range of 13.5V  16.8V
+        self.battery_min = 13.5 # [V]
+        self.battery_max = 16.8 # [V]
+        self.battery_discharge_per_second = 0.1 # [V/s] 
+        self.battery_voltage = self.battery_max          
+
         if curr_pose:
             self.current_pose = curr_pose
         else:
@@ -132,7 +141,7 @@ class Sherpa_Actor(Thread):
             "@worldmodeltype": "RSGUpdate",
             "operation": "CREATE",
             "node": {
-              "@graphtype": "Node",
+              "@graphtype": "Group",
               "id": self.rob_uuid, 
               "attributes": [
                     {"key": "shepa:agent_name", "value": self.rob_name},
@@ -181,6 +190,22 @@ class Sherpa_Actor(Thread):
 #          self.socket.send_string(json.dumps(newTransformMsg)) 
           swm.updateSWM(newTransformMsg)  
           print (json.dumps(newTransformMsg))
+
+          # create node to represent the battery state
+          newBatteryMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "node": {
+              "@graphtype": "Node",
+              "id": self.battery_uuid, 
+              "attributes": [
+                    {"key": "sensor:battery", "value": self.battery_voltage},
+              ],
+            },
+            "parentId": self.self.rob_uuid,
+          }
+          swm.updateSWM(newBatteryMsg)  
+          print (json.dumps(newBatteryMsg))
  
     def shutdown(self):
         self.active = False
@@ -358,17 +383,41 @@ class Sherpa_Actor(Thread):
                                     ],
                                   }
                                 }
-        
+ 
+            # simulate battery discharge
+            cycle_time_in_seconds = 1.0/self.send_freq # [s]
+            print ("cycle_time_in_seconds: " + str(cycle_time_in_seconds))
+            self.battery_voltage =  self.battery_voltage - cycle_time_in_seconds * self.battery_discharge_per_second
+            if self.battery_voltage < self.battery_min:
+              self.battery_voltage = self.battery_min
+
+            batteryUpdateMsg = {
+              "@worldmodeltype": "RSGUpdate",
+              "operation": "UPDATE_ATTRIBUTES",
+              "node": {
+                "@graphtype": "Node",
+                "id": self.battery_uuid,
+                "attributes": [
+                      {"key": "sensor:battery_voltage", "value": self.battery_voltage},
+                ],         
+               },
+            }
+
+
             # fire and forget version (not yet working with zyre)            
             swm.pubSWM(transforUpdateMsg)
+            swm.pubSWM(batteryUpdateMsg)
 
             # version with ACK maessage
 #            swm.updateSWM(transforUpdateMsg) 
 
+           
+
             print "[{}]: position".format(self.name)
             print "[{},{},{}]".format(self.current_pose[0][3],self.current_pose[1][3],self.current_pose[2][3])
+            print "battery level: [{} V]".format(self.battery_voltage)
             print "#####"
-            time.sleep(1/self.send_freq)
+            time.sleep(1.0/self.send_freq)
 
 if __name__ == '__main__':
     
@@ -377,7 +426,7 @@ if __name__ == '__main__':
 
     # 2.) load_map
 
-    # Get correct ids 
+    # Get correct ids 15142
     swm.initCom()    
 
     objectAttribute = "gis:origin"
@@ -503,7 +552,7 @@ if __name__ == '__main__':
                 ]
     rob1 = Sherpa_Actor(False, swm_uav_update_port,swm_animals_uuid,"wasp_1", 100, 0.05, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
     rob1.setName("wasp_1")
-    exit(0)    
+    #exit(0)    
 
     # start robots activity
     rob1.start()
