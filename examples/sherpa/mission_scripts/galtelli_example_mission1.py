@@ -406,9 +406,80 @@ if __name__ == '__main__':
     swm_animals_uuid = result["ids"][0]
     print("swm_animals_uuid = " + swm_animals_uuid)
 
-   
-    # Add fixed mission frame at: 9.61712430331891 40.38291805158355
-    
+    objectAttribute = "name"
+    objectValue = "swm"
+    getMissionGroup = {
+      "@worldmodeltype": "RSGQuery",
+      "query": "GET_NODES",
+       "attributes": [
+        {"key": objectAttribute, "value": objectValue },
+      ]
+    }      
+    result = swm.query(getMissionGroup)
+    swm_mission_uuid = result["ids"][0]
+    print("swm_mission_uuid = " + swm_mission_uuid)
+
+    # Add fixed mission frame at: 9.61712430331891 40.38291805158355 
+    fixedMssionFramePos = [ 9.61712430331891, 40.38291805158355 ]
+    missionOriginId = "e3c33a96-9923-4eeb-9a9b-e1b57ce67f86"    
+    newMissionOriginMsg = {
+      "@worldmodeltype": "RSGUpdate",
+      "operation": "CREATE",
+      "node": {
+        "@graphtype": "Node",
+        "id": missionOriginId,
+        "attributes": [
+          {"key": "sherpa:origin", "value": "initial"},
+          {"key": "comment", "value": "Reference frame for the mission. Typcally an initial odometry frame of one of the animals."},
+         ],          
+       },
+     "parentId": swm_mission_uuid,
+    }
+    print (json.dumps(newMissionOriginMsg))
+    swm.updateSWM(newMissionOriginMsg)          
+
+    missionOriginGeoposeId = "86f210f0-f52a-40d6-95d0-d5f9254fb476"    
+    newMissionOriginMsg = {
+      "@worldmodeltype": "RSGUpdate",
+      "operation": "CREATE",
+      "node": {
+        "@graphtype": "Connection",
+        "@semanticContext":"Transform",
+        "id": str(uuid.uuid4()),
+        "attributes": [
+	        {"key": "tf:type", "value": "wgs84"}
+        ],
+        "sourceIds": [
+          swm_origin_uuid,
+        ],
+        "targetIds": [
+          missionOriginId,
+        ],
+        "history" : [
+           {
+            "stamp": {
+              "@stamptype": "TimeStampDate",
+               "stamp": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + "Z"
+            },
+            "transform": {
+              "type": "HomogeneousMatrix44",
+	               "matrix": [
+                    [1,0,0,fixedMssionFramePos[0]],
+                    [0,1,0,fixedMssionFramePos[1]],
+                    [0,0,1,0.0],
+                    [0,0,0,1] 
+	                ],
+                 "unit": "latlon"
+             }
+          }
+        ], 	    
+     },
+     "parentId": swm_origin_uuid,
+    }
+
+    print (json.dumps(newMissionOriginMsg))
+    swm.updateSWM(newMissionOriginMsg)    
+
 
     # create robot in its own thread
     #Sherpa_Actor(port,root_uuid, name, send_freq, max_vel, current_pose, goal_pose
@@ -432,7 +503,7 @@ if __name__ == '__main__':
                 ]
     rob1 = Sherpa_Actor(False, swm_uav_update_port,swm_animals_uuid,"wasp_1", 100, 0.05, current_pose, goal_pose, swm_origin_uuid, swm_uav_uuid, swm_uav_tf_uuid, swm_victims_uuid)
     rob1.setName("wasp_1")
-    
+    exit(0)    
 
     # start robots activity
     rob1.start()
