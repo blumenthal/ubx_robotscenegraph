@@ -215,7 +215,21 @@ class Sherpa_Actor(Thread):
           print (json.dumps(newBatteryMsg))
 
           # sensor node for ARTVA?
- 
+          newArtvaMsg = {
+            "@worldmodeltype": "RSGUpdate",
+            "operation": "CREATE",
+            "node": {
+              "@graphtype": "Node",
+              "id": self.artva_uuid, 
+              "attributes": [
+                    {"key": "sherpa:artva_signal", "value": self.artva_signal},
+              ],
+            },
+            "parentId": self.rob_uuid,
+          }
+          swm.updateSWM(newArtvaMsg)  
+          print (json.dumps(newArtvaMsg)) 
+
     def shutdown(self):
         self.active = False
         print "[{}]: Received shut down".format(self.rob_name)
@@ -427,10 +441,22 @@ class Sherpa_Actor(Thread):
             else:
               self.artva_signal = 0
 
+            artvaUpdateMsg = {
+              "@worldmodeltype": "RSGUpdate",
+              "operation": "UPDATE_ATTRIBUTES",
+              "node": {
+                "@graphtype": "Node",
+                "id": self.artva_uuid,
+                "attributes": [
+                    {"key": "sherpa:artva_signal", "value": self.artva_signal}
+                ],         
+               },
+            }
 
             # fire and forget version (not yet working with zyre)            
             swm.pubSWM(transforUpdateMsg)
             swm.pubSWM(batteryUpdateMsg)
+            swm.pubSWM(artvaUpdateMsg)
 
             # version with ACK maessage
 #            swm.updateSWM(transforUpdateMsg) 
