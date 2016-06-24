@@ -74,6 +74,11 @@ class Sherpa_Actor(Thread):
         self.battery_discharge_per_second = 0.1 # [V/s] 
         self.battery_voltage = self.battery_max          
 
+        # artva simulation 
+        self.artva_uuid = "9218643f-a71d-48bc-8cf1-8a701bd5a5fd" #str(uuid.uuid4())
+        self.artva_signal = 0 # range [0-100] ?!?
+        self.artva_range = 0.0001 # sort of lat lon distance ....
+
         if curr_pose:
             self.current_pose = curr_pose
         else:
@@ -109,6 +114,8 @@ class Sherpa_Actor(Thread):
         else:
             print "create random detected_victim_group_uuid"
             self.detected_victim_group_uuid = str(uuid.uuid4())
+
+        self.victim_pose = self.goal_pose       
         
 #        # Set up the ZMQ PUB-SUB communication layer.
 #        self.context = zmq.Context()
@@ -202,10 +209,12 @@ class Sherpa_Actor(Thread):
                     {"key": "sensor:battery", "value": self.battery_voltage},
               ],
             },
-            "parentId": self.self.rob_uuid,
+            "parentId": self.rob_uuid,
           }
           swm.updateSWM(newBatteryMsg)  
           print (json.dumps(newBatteryMsg))
+
+          # sensor node for ARTVA?
  
     def shutdown(self):
         self.active = False
@@ -404,6 +413,21 @@ class Sherpa_Actor(Thread):
             }
 
 
+            # simulate ARTVA based on distance              
+            # calculate difference between current and goal pos
+            lat_diff = self.victim_pose[0][3] - self.current_pose[0][3]
+            long_diff = self.victim_pose[1][3] - self.current_pose[1][3]
+            alt_diff = self.victim_pose[2][3] - self.current_pose[2][3]
+            
+            # calculate length 
+            length = math.sqrt(pow(lat_diff, 2)+pow(long_diff, 2))
+            print "distance to artva = {}".format(length)
+            if length < self.artva_range:
+              self.artva_signal = 100 - (length * self.artva_range/100.0) #fixme                          
+            else:
+              self.artva_signal = 0
+
+
             # fire and forget version (not yet working with zyre)            
             swm.pubSWM(transforUpdateMsg)
             swm.pubSWM(batteryUpdateMsg)
@@ -416,6 +440,7 @@ class Sherpa_Actor(Thread):
             print "[{}]: position".format(self.name)
             print "[{},{},{}]".format(self.current_pose[0][3],self.current_pose[1][3],self.current_pose[2][3])
             print "battery level: [{} V]".format(self.battery_voltage)
+            print "artva signal: [{} ]".format(self.artva_signal)
             print "#####"
             time.sleep(1.0/self.send_freq)
 
