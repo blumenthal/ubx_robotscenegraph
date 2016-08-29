@@ -339,7 +339,20 @@ return bd.system
         } 
       },
 --      { name="zyre_local_bridge", config = { max_send=5 , wm_name="SWM_zyre_bridge" , type_list="test_type1" , local_endpoint="ipc:///tmp/swm_com" , gossip_endpoint="ipc:///tmp/local-hub" , group="local" } },
-      { name="zyre_local_bridge", config = { bind=bind_zyre, max_send=5 , max_msg_length=2000, wm_name="SWM_zyre_bridge" , type_list="test_type1" , local_endpoint="ipc:///tmp/sherpa_wm-2" , gossip_endpoint="ipc:///tmp/local-hub" , group="local" } },
+--      { name="zyre_local_bridge", config = { bind=bind_zyre, max_send=5 , max_msg_length=2000, wm_name="SWM_zyre_bridge" , type_list="test_type1" , local_endpoint="ipc:///tmp/sherpa_wm-2" , gossip_endpoint="ipc:///tmp/local-hub" , group="local" } },
+      { name="zyre_local_bridge", 
+        config = { 
+          max_send=5 ,                -- Max number of msgs that are sent during step fcn." 
+          max_msg_length=2000,        -- Max length of msg coming from RSG
+          wm_name="SWM_zyre_bridge" , -- Mame of the bridge in the zyre network." 
+          group="local",              -- Zyre group to join
+          gossip_flag = 0,            -- 1 for using gossip locally; 0 for using UDP beaconing instead
+          gossip_endpoint="ipc:///tmp/local-hub" , -- Endpoint for zyre gossip discovery"
+          bind = 0,         -- Decides whether this node binds or connects to gossip network; The must be at least on node that binds. 
+          local_endpoint="ipc:///tmp/sherpa_wm-2" -- currently unused; local endpoint for zyre network;"
+
+        } 
+      },
       { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_hdf5_publisher", config = { connection_spec="tcp://*:" .. local_out_port  } },
       { name="zmq_hdf5_subscriber", config = { connection_spec= "tcp://" .. remote_ip .. ":" .. remote_out_port  } }, 
