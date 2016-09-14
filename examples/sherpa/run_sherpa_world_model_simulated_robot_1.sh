@@ -40,4 +40,4 @@ export SWM_RSG_MAP_FILE=../maps/rsg/cesena_lab.json # default value = examples/m
 export SWM_OSM_MAP_FILE=../maps/osm/map_micro_champoluc.osm # default value = examples/maps/osm/map_micro_champoluc.osm
 
 # Start the ubx system
-exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model_zyre.usc	
+exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model.usc	
