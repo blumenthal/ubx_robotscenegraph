@@ -77,7 +77,7 @@ function start_wm() -- no particular order assumed here
   ni:b("ros_json_publisher"):do_start()
   ni:b("ros_json_subscriber"):do_start()
   ni:b("zyre_updates_output_buffer"):do_start()
-  ni:b("zyre_updates_input_buffer"):do_start()
+--  ni:b("zyre_updates_input_buffer"):do_start() -- superseeded by zyre_rsgjsonqueryrunner
   ni:b("ros_updates_output_buffer"):do_start()
   ni:b("ros_updates_input_buffer"):do_start()
   ni:b("zmq_query_req_buffer"):do_start()
