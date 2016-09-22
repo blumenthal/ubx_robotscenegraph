@@ -69,7 +69,8 @@ wm:setLogLevel(0)
 function start_wm() -- no particular order assumed here
   ni:b("rsgjsonsender"):do_start()
   ni:b("rsgjsonreciever"):do_start()
-  ni:b("rsgjsonqueryrunner"):do_start()
+  ni:b("zmq_rsgjsonqueryrunner"):do_start()
+  ni:b("zyre_rsgjsonqueryrunner"):do_start()
   ni:b("rsgdump"):do_start()
   ni:b("zmq_json_query_server"):do_init()
   ni:b("zmq_json_query_server"):do_start()
@@ -81,6 +82,8 @@ function start_wm() -- no particular order assumed here
   ni:b("ros_updates_input_buffer"):do_start()
   ni:b("zmq_query_req_buffer"):do_start()
   ni:b("zmq_query_rep_buffer"):do_start()
+  ni:b("zyre_query_req_buffer"):do_start()
+  ni:b("zyre_query_rep_buffer"):do_start()
   ni:b("zyre_local_bridge"):do_start()
   ni:b("cyclic_io_trigger"):do_start() 
 --  ni:b("dbg_hexdump"):do_init()  
@@ -197,7 +200,8 @@ return bd.system
     blocks = {
       { name="rsgjsonsender", type="rsg_json_sender" },
       { name="rsgjsonreciever", type="rsg_json_reciever" },
-      { name="rsgjsonqueryrunner", type="rsg_json_query" },
+      { name="zmq_rsgjsonqueryrunner", type="rsg_json_query" },
+      { name="zyre_rsgjsonqueryrunner", type="rsg_json_query" },
       { name="zmq_json_query_server", type="zmq_server" },
       { name="ros_json_publisher", type="ros_sender" },
       { name="ros_json_subscriber", type="ros_receiver" },
@@ -214,6 +218,8 @@ return bd.system
       -- JSON based queries to WM
       { name="zmq_query_req_buffer",type="lfds_buffers/cyclic_raw" },
       { name="zmq_query_rep_buffer",type="lfds_buffers/cyclic_raw" },
+      { name="zyre_query_req_buffer",type="lfds_buffers/cyclic_raw" },
+      { name="zyre_query_rep_buffer",type="lfds_buffers/cyclic_raw" },
 
       -- ROS
       { name="ros_updates_output_buffer",type="lfds_buffers/cyclic_raw" }, 
@@ -229,18 +235,22 @@ return bd.system
 
     connections = {
 
-      -- Zyre
+      -- Zyre updates
       { src="rsgjsonsender.rsg_out", tgt="zyre_updates_output_buffer" },
       { src="zyre_updates_output_buffer", tgt="zyre_local_bridge.zyre_out" },       
       { src="zyre_local_bridge.zyre_in", tgt="zyre_updates_input_buffer" },
       { src="zyre_updates_input_buffer", tgt="rsgjsonreciever.rsg_in" },     
-
+      -- Zyre queries
+      { src="zyre_local_bridge.zyre_in", tgt="zyre_query_req_buffer" },
+      { src="zyre_query_req_buffer", tgt="zyre_rsgjsonqueryrunner.rsq_query" },
+      { src="zyre_rsgjsonqueryrunner.rsg_result", tgt="zyre_query_rep_buffer" },
+      { src="zyre_query_rep_buffer", tgt="zyre_local_bridge.zyre_out" },
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="zmq_query_req_buffer" },
 --      { src="zmq_json_query_server.zmq_req", tgt="dbg_hexdump" }, --DBG
-      { src="zmq_query_req_buffer", tgt="rsgjsonqueryrunner.rsq_query" },
-      { src="rsgjsonqueryrunner.rsg_result", tgt="zmq_query_rep_buffer" },
+      { src="zmq_query_req_buffer", tgt="zmq_rsgjsonqueryrunner.rsq_query" },
+      { src="zmq_rsgjsonqueryrunner.rsg_result", tgt="zmq_query_rep_buffer" },
       { src="zmq_query_rep_buffer", tgt="zmq_json_query_server.zmq_rep" },
 
       -- ROS 
@@ -287,7 +297,8 @@ return bd.system
 
         } 
       },
-      { name="rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
+      { name="zmq_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
+      { name="zyre_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
       { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
       { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
@@ -299,13 +310,16 @@ return bd.system
       { name="ros_updates_input_buffer", config = { element_num=50 , element_size=20000 } },
       { name="zmq_query_req_buffer", config = { element_num=50 , element_size=90000 } },
       { name="zmq_query_rep_buffer", config = { element_num=50 , element_size=90000 } },
+      { name="zyre_query_req_buffer", config = { element_num=50 , element_size=90000 } },
+      { name="zyre_query_rep_buffer", config = { element_num=50 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100 }, 
           trig_blocks={ 
             { b="#rsgjsonreciever", num_steps=1, measure=0 },  
             { b="#ros_json_publisher", num_steps=1, measure=0 },   
-            { b="#rsgjsonqueryrunner", num_steps=1, measure=0 }, 
+            { b="#zmq_rsgjsonqueryrunner", num_steps=1, measure=0 },
+            { b="#zyre_rsgjsonqueryrunner", num_steps=1, measure=0 },  
             { b="#zmq_json_query_server", num_steps=1, measure=0 },
             { b="#zyre_local_bridge", num_steps=1, measure=0 },             
           } 
