@@ -273,7 +273,7 @@ ${SUDO} apt-get install -y libxerces-c-dev
 echo "Lib yaml" #Reqired for installation on SHERPA Wasp (Odroid U3) 
 ${SUDO} apt-get install -y libyaml-dev
 
-echo "HDF5: " (deprecated)
+echo "HDF5: " # (deprecated)
 # This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
 # So far tested with verisons 1.8.9(minimum), 1.8.12 and 1.8.13.
