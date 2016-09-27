@@ -22,7 +22,7 @@ This folder contains a **Dockerfile** to create a Docker container with a SHERPA
 ### Usage
 
 ```
-  docker run -it -p 8888:8888 -p 11411:11411 -p 12912:12912 sherpa-wm
+  docker run -it --net=host -p 8888:8888 -p 11411:11411 -p 12912:12912 sherpa-wm
   cd ./ubx_robotscenegraph
   ./run_sherpa_world_model.sh --no-ros
   start_all()
