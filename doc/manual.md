@@ -152,6 +152,8 @@ Examples for using the JSON API to update the graph can be found for [here](../e
 An query is regarded as a **R**ead operation on the graph. Depending on the type of 
 query this can involve a traversal of the primitives in the graph.
 
+### Queries on graph primitives
+
 The below table with pseudo code illustrates the **queries** on the graph **primitives**:
 
 
@@ -167,6 +169,76 @@ The below table with pseudo code illustrates the **queries** on the graph **prim
 
 
 Examples for using the JSON API to query the graph can be found for [here](../examples/json_api)
+
+### Complex queries based on query function blocks
+
+A *query function block* is a computational module that can be loaded at run time.
+Technically speaking it is a shared library, that can be loaded on demand and
+contains a particular algorithm to efficiently (in-memory) compute a reply.
+The repository for function block can be found [here](https://github.com/blumenthal/brics_3d_function_blocks) and is part of a standard 
+installation. Some examples are:
+
+* [posehistory](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/posehistory): A query function block to retrieve the history of poses between two nodes in the scene graph
+* [nodesinarea](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/nodesinarea): A query function block to retrieve all node of the scene graph within an area
+
+Client code can utilize these modules either by respective method calls on the 
+C++ API or use special JSON messages. In fact the queries are quite similar to the
+above queries for graph primitives. However there are two major differences:
+
+1. Every query block has to be loaded first. If it is not loaded, all replies will return ``false``.
+   Of course, a block can be also unloaded if desired.
+2. Every query block has its own data types for in and output. A data meta model 
+   as JSON Schema defines how exactly to send and receive. 
+   
+
+Example JSON message for loading a block. In this example it is the a ``posehistory`` query function block:
+
+```
+{
+    "@worldmodeltype": "RSGFunctionBlock",
+    "metamodel":       "rsg-functionBlock-schema.json",
+    "name":            "posehistory",
+    "operation":       "LOAD",
+    "input": {
+      "metamodel": "rsg-functionBlock-path-schema.json",
+      "path":     "/workspace/brics_3d_function_blocks/lib/",
+      "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
+    }
+}
+```
+
+**Troubleshooting:** If a block cannot be loaded, it either does not exist, its name is misspelled, or the path 
+is not setup correctly. The above example uses the default path as used for the [Docker](../docker/README.md) container.
+
+Example for sending a query. Note that the meta model convention is ``fbx-<blockName>-input-schema.json``:
+
+```
+{
+    "@worldmodeltype": "RSGFunctionBlock",
+    "metamodel":       "rsg-functionBlock-schema.json",
+    "name":            "posehistory",
+    "operation":       "EXECUTE",
+    "input": {
+      "metamodel": "fbx-posehistory-input-schema.json",
+	    "id": "aeb8d5a4-12e2-45ff-9218-07186297577e",
+	    "idReferenceNode": "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
+    }
+} 
+```
+
+Example for querying the data meta model of a block. This is in particular useful, if it is not clear what has to be send.
+The [meta models](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/models) are also available in the block repository.
+
+```
+{
+    "@worldmodeltype": "RSGFunctionBlock",
+    "metamodel":       "rsg-functionBlock-schema.json",
+    "name":            "posehistory",
+    "operation":       "GET_METAMODEL",
+}
+```
+
+
 
 ## Distribution
 
@@ -184,7 +256,7 @@ For debugging purposes it can be triggered manually as well via the ``sync()``
 [terminal commnad](#terminal-commands).
 
 In all distribution scenarios all World Model Agents must have UUIDs and a communication framework with or 
-without a Mediator (recommeded) has to be selected.
+without a Mediator (recommended) has to be selected.
 
 ### World Model Agent UUIDs
 
@@ -217,7 +289,7 @@ Simply leave the SWM_WMA_ID empty:
 Of course, all individual agents (with individual IDs) will have to be connected. The easiest way is to 
 define a global application ID and enable the "auto mount" capabilities of the SWM. I.e. whenever
 a new agent joins it is automatically added as child to that global application ID. In order
-to activate this functionalyly simply let the World Model Agent automatically generate one as described above
+to activate this functionality simply let the World Model Agent automatically generate one as described above
 and set the ``SWM_GLOBAL_ID`` to the global ID. E.g.   
 
 ```
@@ -282,15 +354,15 @@ Please note, when SHERPA WM 1 is stopped  all other involved SWMs cannot communi
 ### With Mediator using Zyre (*recommended*)
 
 The Communication [Mediator](https://github.com/maccradar/sherpa-com-mediator) is responsible for managing the fragility of the network between the different robots. 
-Every robot has one Mediator. All involved Madiators excange messages and depending on the message types they will
-be forwarded to a particular robot. A more detailed dectription of it inner workings can be found [here](https://github.com/maccradar/sherpa-com-mediator/blob/master/doc/msg.md).
+Every robot has one Mediator. All involved Madiators exchange messages and depending on the message types they will
+be forwarded to a particular robot. A more detailed description of it inner workings can be found [here](https://github.com/maccradar/sherpa-com-mediator/blob/master/doc/msg.md).
 The Zyre with Gossip discovery is used for interfacing to all local components on a robot including the SWM. In this
 setup the Mediator takes the role of a Gossip "master", thus it binds the communication socket.
 
 The usage of the Mediator has a some advantages over the above setups:
 
 1. It handles the network fragility e.g. by monitoring if a message was received by another robot.
-2. It binds the socket for the Zyre network. So the SWM does not need to care about wich SWM has to bind.
+2. It binds the socket for the Zyre network. So the SWM does not need to care about which SWM has to bind.
 3. It seperates local and global networks. E.g. if a client sends a query to the local network only the local SWM will answer.
    In case of a global network multiple SWMs might answer.
 
@@ -313,7 +385,7 @@ As many SWMs as desired can be deployed. Every robot has to start one Mediator a
 ## Debugging
 
 This section presents methods to understand if the SWM is working properly.
-It involves to qickly asses *what* is exactly stored and if some particular 
+It involves to quickly asses *what* is exactly stored and if some particular 
 data is missing *why* is it not stored although it is expected to be there. 
 
 
@@ -331,19 +403,19 @@ Check if:
    of the modules and the [log](#log-messages) messages. If you are expecting data
    from another World Model Agent check the connectivity of the network.
  * Parent-child relations are as expected. 
- * Connections relation are as expected (source and targed nodes could be swithed). 
+ * Connections relation are as expected (source and target nodes could be switched). 
  * Attributes contain typos, are missing or have a wrong namespace prefix. 
 
 ### Status of modules
 
-Enter ``localhost:8888`` into a web browser and check if the relavant modules are active (green font). 
+Enter ``localhost:8888`` into a web browser and check if the relevant modules are active (green font). 
 Please note, the status changes based on the used [terminal](#terminal-commands) commands. When all module 
 are inactive - did you forgot to call ``start_all()``? 
 
 
 ### Terminal commands
 
-The typical workflow is to start the SWM and then call ``start_all()`` by typing
+The typical work-flow is to start the SWM and then call ``start_all()`` by typing
 it into the interactive console and hitting enter.
 There are also other commands available that allow to go step by step. Here the 
 ``start_all()`` is a convenience function.
@@ -354,11 +426,12 @@ There are also other commands available that allow to go step by step. Here the
 | ``scene_setup()`` | Loads an RSG-JSON file as specified in the configuration. |
 | ``load_map()`` | Loads an OpenSteedMap from a file as specified in the configuration. |
 | ``sync()``     | Manually trigger to send the full RSG to all other World Model Agents. |
-| ``start_all()``| Conveninece function that calls per default ``start_wm()`` and ``load_map()``. |
+| ``start_all()`` or ``s()`` | Convenience function that calls per default ``start_wm()`` and ``load_map()``. |
+| ``dump_wm()`` or ``p()`` | Dump the current world model into a graphviz file. |
 
 
 ### Log messages
-Look for ``[ERROR]`` and ``[WARNING]`` messages printed into the intercative terminal. 
+Look for ``[ERROR]`` and ``[WARNING]`` messages printed into the interactive terminal. 
 ``[DEBUG]`` messages can be mostly ignored. 
 
 
@@ -385,7 +458,7 @@ D: 16-02-12 10:19:19 [310] {"node": {"attributes": [{"value": "myNode", "key": "
 ```
 
 This warning is fine when data is received more than once form another World Model Agent 
-or if a RSG-JSON or an OpenStreetMap file is (accidentaly) loaded multiple times.
+or if a RSG-JSON or an OpenStreetMap file is (accidentally) loaded multiple times.
 However, if you are missing a primitive that should be loaded e.g. from a RSG-JSON
 file it indicates that there is a mistake in the file. Check if it contains 
 multiple entries with the same ``id``.
