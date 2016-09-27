@@ -14,16 +14,16 @@ This manual describes the following aspects of the world model:
 ## Data model
 
 The underlying data model is a graph. Nodes can represent physical and virtual 
-objects in the environemnt. Their relations are expressed by edges. There are 
+objects in the environment. Their relations are expressed by edges. There are 
 different types of nodes and edges. We denote such a graph as *Robot Scene Graph
 (RSG)*. 
 
-Nodes are destinguished between *inner nodes* 
-and *leaf* nodes. An inner node is labelled as **Group** and a leaf as **Node**. 
+Nodes are distinguished between *inner nodes* 
+and *leaf* nodes. An inner node is labeled as **Group** and a leaf as **Node**. 
 Groups are used to model containment of objects. E.g. a room can *contain* chairs 
-and tables. Another example is a serach area in a Search And Rescue (SAR) mission that
+and tables. Another example is a search area in a Search And Rescue (SAR) mission that
 *contains* found victims. In that case the room and the search area would be represented
-as **Groups**. **Nodes** are used to model enteties in the environment that do not
+as **Groups**. **Nodes** are used to model entities in the environment that do not
 *contain* further objects like a way point on a path or a sensor measurement. 
    
 All node types i.e. inner nodes an leaf nodes share common properties:
@@ -65,13 +65,13 @@ can be found in section [Queries](#queries).
 
 The **Attributes** concept can be seen as "semantic tagging" of the elements in a scene. 
 These tags could contain generic information like a name or a node type or task specific tags.
-In order to better structure the semanic meaning of attributes we define that 
+In order to better structure the semantic meaning of attributes we define that 
 **Attributes** belong can belong to a *Semantic Context*. 
 
 A *Semantic Context* groups all possible attribute-value combinations that can be interpreted
 within a certain context. e.g. tags for the domain of geometric shapes, rigid transforms or application
 specific ones. A *Semantic Context* is formalized in a (JSON) Schema definition. Per convention 
-a unique namespace intentifier is used as a prefix to the ``attribute``, seperated by a colon ``:`` 
+a unique namespace identifier is used as a prefix to the ``attribute``, separated by a colon ``:`` 
 to reference to a specific *Semantic Context*. 
 An example is  (``tf:max_duration``,``10s``) for the *Transform* domain that uses ``tf`` as a prefix.
 
@@ -102,10 +102,10 @@ The complete list of Attributes used for a SHERPA mission can be found in the [c
 
 ### Specialized Edges
 
-So far nodes can be related via *contaiment* relations, which are modled as parent-child
-edges. However, a robotic environemnt representaion exhibits much more relations
-including topoligic relations (on, near) pose information and others. A generic 
-relation between nodes is labelled as **Connection** while pose information
+So far nodes can be related via *containment* relations, which are modeled as parent-child
+edges. However, a robotic environment representation exhibits much more relations
+including topological relations (on, near) pose information and others. A generic 
+relation between nodes is labeled as **Connection** while pose information
 is modeled with **Transforms**.   
 
 #### Connection
@@ -137,9 +137,9 @@ The following table with pseudo code illustrates the update **operations** on th
 | Create Node          	| ``addNode(id, parentId, attributes)``                                         			| ``id`` specifies the UUID. If not set the implementation will generate one. The ``parentId`` denfines the parent note. In cases of doubt use the root node id. ``attributes`` defines a set of initial Attributes. They might be updated in later steps and can be empty as well. 	|
 | Create Group         	| ``addGroup(id, parentId, attributes)``                                        			| Same for id, parentId and attributes as for Create Node operation.                                                                                                                                                                                                                                           	|
 | Create GeometricNode 	| ``addGroup(id, parentId, attributes, geometry, timeStamp)``                   			| Same for id, parentId and attributes as for Create Node operation, but the geometric shape like a box for instance has to be defined. The time stamp denotes the creation time. The geometric data is immutable. Though the GeometricNode might be deleted as a whole.                                             |
-| Create Connection    	| ``addConnection(id, parentId, attributes, sourceIds, targetIds, startTime, endTime)`` 	| Same for id, parentId and attributes as for Create Node operation. ``sourceIds`` and ``targetIds`` define sets of source/target nodes reeferred to by its IDs (ingoing/outgoing arcs) that will be set for the connection. Can be empty. ``startTime`` denots since when a connection is valid. Recommended is the time of creation. ``endTime`` denots until when a connection is valid. Recommended is an infitite time stamp. Both time stamps can be updated later. |
+| Create Connection    	| ``addConnection(id, parentId, attributes, sourceIds, targetIds, startTime, endTime)`` 	| Same for id, parentId and attributes as for Create Node operation. ``sourceIds`` and ``targetIds`` define sets of source/target nodes referred to by its IDs (ingoing/outgoing arcs) that will be set for the connection. Can be empty. ``startTime`` denots since when a connection is valid. Recommended is the time of creation. ``endTime`` denotes until when a connection is valid. Recommended is an infinite time stamp. Both time stamps can be updated later. |
 | Create Transform     	| ``addTransform(id, parentId, sourceId, targetId, attributes, transform, timeStamp)`` 		| Same for id, parentId and attributes as for Create Node operation but the initial transform has to be given with an accompanying time stamp. The data can be updated afterwards. The ``sourceId`` and ``targetId`` denote between which nodes the transform holds. Cf. [Transform](#transform) section.                    	|
-| Create Parent-Child   | ``addParent(id, parentId)`` 																| Adds an **additional** parent-child relation beween ``id`` and ``parentId``. (There is always at least one during creation of a node.)             	|
+| Create Parent-Child   | ``addParent(id, parentId)`` 																| Adds an **additional** parent-child relation between ``id`` and ``parentId``. (There is always at least one during creation of a node.)             	|
 | Update Attributes 	| ``updateAttributes(id, newAttributes)`` 													| ``id`` defines the node to be updated. ``newAttributes`` defines the new set of attributes that replaces the old one.  	|
 | Update Transform	 	| ``updateTransform(id, transform, timeStamp)`` 											| ``id`` defines the Transform to be updated. ``transform``	holds the transform data that will be inserted in to the temporal cache at the given time ``timeStamp``.   	|
 | Delete Node		 	| ``deleteNode(id)``							 											| The ``id`` the defines the node to be deleted.	|
@@ -190,7 +190,7 @@ without a Mediator (recommeded) has to be selected.
 
 Before launching a distributed scenario it is strongly advised that every World Model Agent, thus every SWM 
 has a unique UUID. It can set in the respective section in the ``sherpa_world_mode.usc`` file or as an
-environment variable. If the agent IDs are the same, the *advertisment* message that automatically synchronizes agents on start up will be ignored. 
+environment variable. If the agent IDs are the same, the *advertisement* message that automatically synchronizes agents on start up will be ignored. 
 
 
 Set the environment variable ``SWM_WMA_ID`` to the UUID to be used. E.g.:
@@ -225,10 +225,61 @@ and set the ``SWM_GLOBAL_ID`` to the global ID. E.g.
  export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1 
 ```
 
-Note in this example the ``SWM_GLOBAL_ID`` uses the same Id as in the above exambles for a fixed WMA ids. 
-This can be a helpful migration stategiy in cases some applications assume the existance of a particular (global) root Id. 
+Note in this example the ``SWM_GLOBAL_ID`` uses the same Id as in the above examples for a fixed WMA ids. 
+This can be a helpful migration strategy in cases some applications assume the existence of a particular (global) root Id. 
 
-### Without Mediator
+### Without Mediator using Zyre
+
+The SWM has a *zyre bridge* that is able to publish and receive any message to any other SWM or client. 
+A zyre network has an autodiscovery either based on *UDP beaconing* or a *Gossip* protocol. In order to use 
+Gossip the must be at least one participant in the network that has to *bind a socket*. In fact it acts as
+ a form of master in the network. This is not required for the UDP beaconing. The SWM can be configured to
+ use both setups. The below environment variables can be used:
+ 
+| Variable       |      Description   | Example  |
+|----------------|--------------------|----------|
+| SWM_USE_GOSSIP | ``1`` or using gossip and ``0`` for using UDP beaconing instead | ``export SWM_USE_GOSSIP=0`` |
+| SWM_BIND_ZYRE  | Decides whether this node binds or connects to gossip network; The must be at least on node that binds. Use ``1`` to enable it, otherwise  use ``0`` | ``export SWM_BIND_ZYRE=0`` |
+
+ 
+#### Local Zyre network with UPD beaconing 
+
+![SWM with local UDP beaconing](swm_zyre_local_udp.png)
+
+Configuration of SHERPA WM 1
+```
+ export SWM_USE_GOSSIP=0
+ export SWM_BIND_ZYRE=0
+```
+
+Configuration of SHERPA WM 2 (same)
+```
+ export SWM_USE_GOSSIP=0
+ export SWM_BIND_ZYRE=0
+```
+
+You may start as many SWMs as you wish with this configuration.
+
+#### Local Zyre network with Gossip   
+
+![SWM with local Gossip](swm_zyre_local_gossip.png)
+
+Configuration of SHERPA WM 1
+```
+ export SWM_USE_GOSSIP=1
+ export SWM_BIND_ZYRE=1
+```
+
+Configuration of SHERPA WM 2
+```
+ export SWM_USE_GOSSIP=1
+ export SWM_BIND_ZYRE=0
+```
+
+You may start as many SWMs as you wish with this configuration. As long as one SWM binds the communication socket. In this case it is SHERPA WM 1. 
+Please note, when SHERPA WM 1 is stopped  all other involved SWMs cannot communicate to each other any more.
+
+### Without Mediator using ZMQ PUB-SUB (*deprecated*)
 
 Each SWM has a ZMQ publisher and a ZMQ subscriber, while the publisher binds/owns the port. 
 I.e. the subscriber has to know where to connect to.
@@ -242,6 +293,7 @@ This is used the default setup:
  | PUB(11411)| -- ZMQ -> | SUB       |
  | SUB       | <- ZMQ -- | PUB(11511)|
  +-----------+           +-----------+
+
 ```
 
 Please note, that the ports ``11411`` and ``11511`` could be indentical as well. Still it is suggested to seperate them
@@ -320,9 +372,40 @@ This results in three individual configurations and launch commands for the robo
 
 Note, it is also possible to flip ``SWM_REMOTE_IP`` and ``SWM_REMOTE_IP_SECONDARY``. They just need to configure the IPs of the other robots.
 
-### With Mediator
 
-TBD
+
+
+
+### With Mediator using Zyre (*recommended*)
+
+The Communication [Mediator](https://github.com/maccradar/sherpa-com-mediator) is responsible for managing the fragility of the network between the different robots. 
+Every robot has one Mediator. All involved Madiators excange messages and depending on the message types they will
+be forwarded to a particular robot. A more detailed dectription of it inner workings can be found [here](https://github.com/maccradar/sherpa-com-mediator/blob/master/doc/msg.md).
+The Zyre with Gossip discovery is used for interfacing to all local components on a robot including the SWM. In this
+setup the Mediator takes the role of a Gossip "master", thus it binds the communication socket.
+
+The usage of the Mediator has a some advantages over the above setups:
+
+1. It handles the network fragility e.g. by monitoring if a message was received by another robot.
+2. It binds the socket for the Zyre network. So the SWM does not need to care about wich SWM has to bind.
+3. It seperates local and global networks. E.g. if a client sends a query to the local network only the local SWM will answer.
+   In case of a global network multiple SWMs might answer.
+
+![SWM with Mediator](swm_zyre_mediator_gossip.png)
+
+Configuration of SHERPA WM 1
+```
+ export SWM_USE_GOSSIP=1
+ export SWM_BIND_ZYRE=0
+```
+
+Configuration of SHERPA WM 2 (same)
+```
+ export SWM_USE_GOSSIP=1
+ export SWM_BIND_ZYRE=0
+```
+
+As many SWMs as desired can be deployed. Every robot has to start one Mediator and one (or more) SWMs with exactly the above configuration.
 
 ## Debugging
 
