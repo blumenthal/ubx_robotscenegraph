@@ -1,4 +1,4 @@
-RSG integration into Microblox (UBX)
+RSG integration into Microblox (UBX) [![Build Status](https://travis-ci.org/blumenthal/ubx_robotscenegraph.svg?branch=master)](https://travis-ci.org/blumenthal/ubx_robotscenegraph)
 ==========================================================
 
 ## Table of Contents
