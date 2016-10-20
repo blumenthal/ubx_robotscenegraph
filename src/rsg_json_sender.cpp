@@ -12,6 +12,7 @@
 #include <brics_3d/worldModel/sceneGraph/RootFinder.h>
 #include <brics_3d/worldModel/sceneGraph/FrequencyAwareUpdateFilter.h>
 #include <brics_3d/worldModel/sceneGraph/ISceneGraphUpdateObserver.h>
+#include <brics_3d/worldModel/sceneGraph/GraphConstraintUpdateFilter.h>
 
 
 using namespace brics_3d;
@@ -112,6 +113,7 @@ struct rsg_json_sender_info
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::SceneGraphToUpdatesTraverser* wm_resender;
 		brics_3d::rsg::FrequencyAwareUpdateFilter* frequency_filter;
+		brics_3d::rsg::GraphConstraintUpdateFilter* constraint_filter; // Supersedes the frequency_filter
 		RemoteRootNodeAdditionTrigger* remote_root_trigger;
 
         /* this is to have fast access to ports for reading and writing, without
@@ -233,13 +235,16 @@ int rsg_json_sender_init(ubx_block_t *b)
     	inf->frequency_filter->setMaxGeometricNodeUpdateFrequency(0); // everything;
     	inf->frequency_filter->setMaxTransformUpdateFrequency(*max_freq); // not more then x Hz;
 
+    	inf->constraint_filter = new brics_3d::rsg::GraphConstraintUpdateFilter(inf->wm);
+
     	/* Attach the UBX port to the world model */
     	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
     	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
     	brics_3d::rsg::JSONSerializer* wmUpdatesToJSONSerializer = new brics_3d::rsg::JSONSerializer(wmUpdatesUbxPort);
     	inf->wm->scene.attachUpdateObserver(inf->frequency_filter);
-    	inf->frequency_filter->attachUpdateObserver(wmUpdatesToJSONSerializer);
-
+    	inf->wm->scene.attachUpdateObserver(inf->constraint_filter);
+//    	inf->frequency_filter->attachUpdateObserver(wmUpdatesToJSONSerializer);
+    	inf->constraint_filter->attachUpdateObserver(wmUpdatesToJSONSerializer);
 
     	/* Set error policy of RSG */
     	inf->wm->scene.setCallObserversEvenIfErrorsOccurred(false);
@@ -309,6 +314,10 @@ void rsg_json_sender_cleanup(ubx_block_t *b)
         if(inf->frequency_filter){
         	delete inf->frequency_filter;
         	inf->frequency_filter = 0;
+        }
+        if(inf->constraint_filter){
+        	delete inf->constraint_filter;
+        	inf->constraint_filter = 0;
         }
         if(inf->remote_root_trigger){
         	delete inf->remote_root_trigger;
