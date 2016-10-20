@@ -241,7 +241,7 @@ int rsg_json_sender_init(ubx_block_t *b)
     	ubx_type_t* type =  ubx_type_get(b->ni, "unsigned char");
     	RsgToUbxPort* wmUpdatesUbxPort = new RsgToUbxPort(inf->ports.rsg_out, type);
     	brics_3d::rsg::JSONSerializer* wmUpdatesToJSONSerializer = new brics_3d::rsg::JSONSerializer(wmUpdatesUbxPort);
-    	inf->wm->scene.attachUpdateObserver(inf->frequency_filter);
+//    	inf->wm->scene.attachUpdateObserver(inf->frequency_filter);
     	inf->wm->scene.attachUpdateObserver(inf->constraint_filter);
 //    	inf->frequency_filter->attachUpdateObserver(wmUpdatesToJSONSerializer);
     	inf->constraint_filter->attachUpdateObserver(wmUpdatesToJSONSerializer);

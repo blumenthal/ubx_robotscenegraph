@@ -7,9 +7,9 @@
 #include <brics_3d/core/Logger.h>
 #include <brics_3d/worldModel/WorldModel.h>
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
-#include <brics_3d/worldModel/sceneGraph/HDF5UpdateDeserializer.h>
 #include <brics_3d/worldModel/sceneGraph/JSONDeserializer.h>
 #include <brics_3d/worldModel/sceneGraph/SemanticContextUpdateFilter.h>
+#include <brics_3d/worldModel/sceneGraph/GraphConstraintUpdateFilter.h>
 #include <brics_3d/worldModel/sceneGraph/UpdatesToSceneGraphListener.h>
 #include <brics_3d/worldModel/sceneGraph/RemoteRootNodeAutoMounter.h>
 
@@ -32,6 +32,7 @@ struct rsg_json_reciever_info
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::JSONDeserializer* wm_deserializer;
 		brics_3d::rsg::SemanticContextUpdateFilter* wm_input_filter; // optional
+		brics_3d::rsg::GraphConstraintUpdateFilter* constraint_filter; // Supersedes the wm_input_filter
 		brics_3d::rsg::UpdatesToSceneGraphListener* wm_updates_to_wm; // optional
 		brics_3d::rsg::RemoteRootNodeAutoMounter* wm_auto_mounter;
 
@@ -153,12 +154,17 @@ int rsg_json_reciever_init(ubx_block_t *b)
         /* Attach deserializer (invoked at step function) */
     	if(inputFilterIsEnabled) {
     		inf->wm_input_filter = new brics_3d::rsg::SemanticContextUpdateFilter (&inf->wm->scene); // handle use for queries
+        	inf->constraint_filter = new brics_3d::rsg::GraphConstraintUpdateFilter(inf->wm, brics_3d::rsg::GraphConstraintUpdateFilter::RECEIVER);
     		inf->wm_updates_to_wm = new brics_3d::rsg::UpdatesToSceneGraphListener();
     		inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);
-    		inf->wm_input_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
-    		inf->wm_input_filter->setNameSpaceIdentifier(semanticContextIdentifier);
-    		LOG(INFO) << "rsg_json_reciever: filter enabled for semantic context identifier = " << semanticContextIdentifier;
-            inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm, inf->wm_input_filter); // Make the deserializer to call update on the filter
+//    		inf->wm_input_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
+//    		inf->wm_input_filter->setNameSpaceIdentifier(semanticContextIdentifier);
+//    		LOG(INFO) << "rsg_json_reciever: filter enabled for semantic context identifier = " << semanticContextIdentifier;
+//            inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm, inf->wm_input_filter); // Make the deserializer to call update on the filter
+    		inf->constraint_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
+    		LOG(INFO) << "rsg_json_reciever: graph constraint filter enabled.";
+            inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm, inf->constraint_filter); // Make the deserializer to call update on the filter
+
     	} else {
     		inf->wm_deserializer = new brics_3d::rsg::JSONDeserializer(inf->wm);
     		inf->wm_input_filter = 0;
@@ -172,7 +178,7 @@ int rsg_json_reciever_init(ubx_block_t *b)
     		LOG(WARNING) << "Invalid or missing configuration for buffer_len. "
     	                    "Falling back to default value buffer_len = " << DEFAULT_HDF5_BUFFER_SIZE;
     	}
-    	LOG(DEBUG) << "HDF5 input buffer len set to " << inf->hdf_5_input_buffer_size;
+    	LOG(DEBUG) << "JSON input buffer len set to " << inf->hdf_5_input_buffer_size;
 
         if((inf->hdf_5_input_buffer = (unsigned char *)malloc(inf->hdf_5_input_buffer_size)) == NULL) {
           ERR("failed to allocate hdf5 input buffer");
@@ -230,6 +236,10 @@ void rsg_json_reciever_cleanup(ubx_block_t *b)
 		if(inf->wm_input_filter != 0) {
 			delete inf->wm_input_filter;
 			inf->wm_input_filter = 0;
+		}
+		if(inf->constraint_filter != 0) {
+			delete inf->constraint_filter;
+			inf->constraint_filter = 0;
 		}
 		if(inf->wm_updates_to_wm != 0){
 			delete inf->wm_updates_to_wm;
