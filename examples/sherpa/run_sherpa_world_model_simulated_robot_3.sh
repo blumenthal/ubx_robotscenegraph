@@ -25,6 +25,7 @@ export SWM_LOCAL_JSON_QUERY_PORT=22424  # default value = 22422
 # Filter settings (optional)
 export SWM_ENABLE_INPUT_FILTER=1 # default value = 0
 export SWM_CONSTRAINTS_FILE=constraints.lua
+#export SWM_CONSTRAINTS_FILE= #empty string turns it off
 export SWM_MAX_TRANSFORM_FREQ=5 # default value = 5
 
 # Map files settings (optional)

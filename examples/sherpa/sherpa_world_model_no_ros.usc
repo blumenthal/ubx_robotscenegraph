@@ -54,11 +54,20 @@ else
   wm = rsg.WorldModelWithId(worldModelAgentId) -- Manually specified rootId 
 end
 
-local rootId = wm:getRootId()
+rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
 wm:addNodeAttribute(rootId, "name", worldModelAgentName .. "_started_" .. os.date("%Y-%m-%d_%H-%M-%S")); -- optional; can cause crashes when modifies for a second time
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
+
+-- optionally load constraints bases on a lua file. Typcally this is:  examples/sherpa/constraints.lua
+local constraints_file = getEnvWithDefault("SWM_CONSTRAINTS_FILE", "")
+if constraints_file == "" then
+  print("No graph constraints file specified. Ignoring it")
+else
+  print("Graph constraints file specified. File is: " .. constraints_file)  
+  dofile(constraints_file)
+end
 
 ----------------------------------helper functions-----------------------------
 
