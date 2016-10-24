@@ -31,7 +31,8 @@ export SWM_REMOTE_IP_SECONDARY=192.168.1.101 # default value = 127.0.0.1
 export SWM_REMOTE_OUT_PORT_SECONDARY=11511 # default value = 11611
 
 # Filter settings (optional)
-export SWM_ENABLE_INPUT_FILTER=0 # default value = 0
+export SWM_ENABLE_INPUT_FILTER=1 # default value = 0
+export SWM_CONSTRAINTS_FILE=constraints.lua
 export SWM_INPUT_FILTER_PATTERN= # default value = os(m|g)
 export SWM_MAX_TRANSFORM_FREQ=5 # default value = 5
 

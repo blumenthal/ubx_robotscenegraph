@@ -65,7 +65,7 @@ local constraints_file = getEnvWithDefault("SWM_CONSTRAINTS_FILE", "")
 if constraints_file == "" then
   print("No graph constraints file specified. Ignoring it")
 else
-  print("Graph constraints file specified. File is :" .. constraints_file)  
+  print("Graph constraints file specified. File is: " .. constraints_file)  
   dofile(constraints_file)
 end
 
