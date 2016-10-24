@@ -8,6 +8,8 @@
 #include <brics_3d/worldModel/WorldModel.h>
 #include <brics_3d/worldModel/sceneGraph/DotVisualizer.h>
 #include <brics_3d/worldModel/sceneGraph/JSONQueryRunner.h>
+#include <brics_3d/worldModel/sceneGraph/UpdatesToSceneGraphListener.h>
+#include <brics_3d/worldModel/sceneGraph/GraphConstraintUpdateFilter.h>
 
 
 using namespace brics_3d;
@@ -28,6 +30,8 @@ struct rsg_json_query_info
 		brics_3d::WorldModel* wm;
 		brics_3d::rsg::DotVisualizer* wm_printer;
 		brics_3d::rsg::JSONQueryRunner* wm_query_runner;
+		brics_3d::rsg::GraphConstraintUpdateFilter* constraint_filter; // optional
+		brics_3d::rsg::UpdatesToSceneGraphListener* wm_updates_to_wm;  // for constraint_filter
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -73,8 +77,25 @@ int rsg_json_query_init(ubx_block_t *b)
     		inf->wm = new brics_3d::WorldModel();
         }
 
+
+        /*
+         * Work flow:
+         *  Queries:
+         *    IN port -> QueryRunner -> OUT port
+         *  Update "Queries":
+         *    IN port -> QueryRunner -> Deserializer -> constraint filter -> wm_updates_to_wm ->  wm -> OUT port
+         */
+
+        /* Setup graph constraint filter */
+        inf->constraint_filter = new brics_3d::rsg::GraphConstraintUpdateFilter(inf->wm, brics_3d::rsg::GraphConstraintUpdateFilter::RECEIVER);
+    	inf->wm_updates_to_wm = new brics_3d::rsg::UpdatesToSceneGraphListener();
+    	inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);    	inf->constraint_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
+
         /* Setup query runner module  */
-        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm);
+//        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm); // without filter for updates
+        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm, inf->constraint_filter); // with filter for updates
+
+
 
         /* Setup input buffer for JSON messages */
         inf->input_buffer_size = *((uint32_t*) ubx_config_get_data_ptr(b, "buffer_len", &clen));
@@ -138,6 +159,14 @@ void rsg_json_query_stop(ubx_block_t *b)
 void rsg_json_query_cleanup(ubx_block_t *b)
 {
         struct rsg_json_query_info *inf = (struct rsg_json_query_info*) b->private_data;
+		if(inf->constraint_filter != 0) {
+			delete inf->constraint_filter;
+			inf->constraint_filter = 0;
+		}
+		if(inf->wm_updates_to_wm != 0){
+			delete inf->wm_updates_to_wm;
+			inf->wm_updates_to_wm = 0;
+		}
         free(inf->input_buffer);
         free(b->private_data);
 }
