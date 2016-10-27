@@ -89,11 +89,12 @@ int rsg_json_query_init(ubx_block_t *b)
         /* Setup graph constraint filter */
         inf->constraint_filter = new brics_3d::rsg::GraphConstraintUpdateFilter(inf->wm, brics_3d::rsg::GraphConstraintUpdateFilter::RECEIVER);
     	inf->wm_updates_to_wm = new brics_3d::rsg::UpdatesToSceneGraphListener();
-    	inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);    	inf->constraint_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
+    	inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);
+    	inf->constraint_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
 
         /* Setup query runner module  */
-//        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm); // without filter for updates
-        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm, inf->constraint_filter); // with filter for updates
+        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm); // without filter for updates
+//        inf->wm_query_runner = new brics_3d::rsg::JSONQueryRunner(inf->wm, inf->constraint_filter); // with filter for updates
 
 
 
