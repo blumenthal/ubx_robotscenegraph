@@ -18,8 +18,8 @@ export SWM_WMA_ID= # An empty World Model Agent Id will trigger to generate one.
 export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 
 # Communication setup with ZMQ (version without mediator component)
-export SWM_USE_GOSSIP=0 # 1 use gossip; 0 use UDP beaconing;
-export SWM_BIND_ZYRE=0  # 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
+#export SWM_USE_GOSSIP=0 # 1 use gossip; 0 use UDP beaconing;
+#export SWM_BIND_ZYRE=0  # 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
 export SWM_LOCAL_JSON_QUERY_PORT=22423  # default value = 22422
 
 # Filter settings (optional)

@@ -12,16 +12,45 @@ import json
 # The port is defined by the system composition (sherpa_world_model.usc) file
 # via the ``local_json_in_port`` variable. 
 # e.g.
-# local local_json_in_port = "12911"  
-port = "12911" 
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
+# local local_json_query_port = "22422"  
+port = "22422" 
 
-# Set up the ZMQ PUB-SUB communication layer.
+# Set up the ZMQ REQ-REP communication layer.
 context = zmq.Context()
-socket = context.socket(zmq.PUB)
-socket.bind("tcp://*:%s" % port)
+
+def sendMessageToSWM(message):
+  socket = context.socket(zmq.REQ)
+  socket.connect("tcp://localhost:%s" % port) # Currently he have to reconnect for every message.
+  print("Sending update: %s " % (message))
+  socket.send_string(message)
+  result = socket.recv()
+  print("Received result: %s " % (result))
+
+
+# JSON message to CREATE a new Node. Note, that the parentId must
+# exist beforehands, otherwise this operation does not succeed.
+# in this case the "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
+# denotes the root id of the graph. It is set in the respective
+# system composition (.usc) file and initialized the SHERPA
+
+newNodeMsg = {
+  "@worldmodeltype": "RSGUpdate",
+  "operation": "CREATE",
+  "node": {
+    "@graphtype": "Node",
+    "id": "1c81d51b-e064-463c-8061-5ea822f6f74b", 
+    "attributes": [
+          {"key": "name", "value": "test_rescuer"},
+    ],
+  },
+  "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+}
+# Anatomy of the message:
+#
+# Please refere to the add_node.py example. The difference is that
+# another "id" and another set of attributes is used.
+# The transform node is used as parent Id.
+
 
 # JSON message to CREATE a new Transform. Note that the parentId must
 # exist beforehands, otherwise this operation does not succeed.
@@ -43,7 +72,7 @@ newTransformMsg = {
       "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
     ],
     "targetIds": [
-      "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+      "1c81d51b-e064-463c-8061-5ea822f6f74b",
     ],
     "history" : [
       {
@@ -54,8 +83,8 @@ newTransformMsg = {
         "transform": {
           "type": "HomogeneousMatrix44",
           "matrix": [
-            [1,0,0,1.6],
-            [0,1,0,1.5],
+            [1,0,0,0.01],
+            [0,1,0,0.015],
             [0,0,1,0],
             [0,0,0,1] 
           ],
@@ -101,7 +130,7 @@ newTransformMsg = {
 #      "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
 #    ],
 #    "targetIds": [
-#      "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+#      "1c81d51b-e064-463c-8061-5ea822f6f74b",
 #    ],
 # 
 # The actual data is stored in a temporal cache labelled as
@@ -119,8 +148,8 @@ newTransformMsg = {
 #        "transform": {
 #          "type": "HomogeneousMatrix44",
 #          "matrix": [
-#            [1,0,0,1.6],
-#            [0,1,0,1.5],
+#            [1,0,0,0.01],
+#            [0,1,0,0.015],
 #            [0,0,1,0],
 #            [0,0,0,1] 
 #          ],
@@ -146,37 +175,13 @@ newTransformMsg = {
 
 
 
-# JSON message to CREATE a new Node. Note, that the parentId must
-# exist beforehands, otherwise this operation does not succeed.
-# in this case the "parentId": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b"
-# denotes the Trasform that has hust been created.
-#
-newNodeMsg = {
-  "@worldmodeltype": "RSGUpdate",
-  "operation": "CREATE",
-  "node": {
-    "@graphtype": "Node",
-    "id": "1c81d51b-e064-463c-8061-5ea822f6f74b", 
-    "attributes": [
-          {"key": "name", "value": "rescuer"},
-    ],
-  },
-  "parentId": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
-}
-# Anatomy of the message:
-#
-# Please refere to the add_node.py example. The difference is that
-# another "id" and another set of attributes is used.
-# The transform node is used as parent Id.
 
 
 # Send message.
-time.sleep(1)
-print (json.dumps(newTransformMsg))
-socket.send_string(json.dumps(newTransformMsg))  
-time.sleep(1) 
 print (json.dumps(newNodeMsg))
-socket.send_string(json.dumps(newNodeMsg))  
-time.sleep(1) 
+sendMessageToSWM(json.dumps(newNodeMsg))  
+print (json.dumps(newTransformMsg))
+sendMessageToSWM(json.dumps(newTransformMsg))  
+
 
 

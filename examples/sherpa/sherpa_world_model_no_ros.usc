@@ -60,8 +60,8 @@ wm:addNodeAttribute(rootId, "name", worldModelAgentName .. "_started_" .. os.dat
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
 wm:setLogLevel(0)
 
--- optionally load constraints bases on a lua file. Typcally this is:  examples/sherpa/constraints.lua
-local constraints_file = getEnvWithDefault("SWM_CONSTRAINTS_FILE", "")
+-- optionally load constraints bases on a lua file. Typcally this is:  "examples/sherpa/constraints.lua" use "" to disable this feature
+local constraints_file = getEnvWithDefault("SWM_CONSTRAINTS_FILE", "examples/sherpa/constraints.lua")
 if constraints_file == "" then
   print("No graph constraints file specified. Ignoring it")
 else
