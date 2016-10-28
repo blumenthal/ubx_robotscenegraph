@@ -196,6 +196,49 @@ int decode_json(char* message, json_msg_t *result) {
     return 0;
 }
 
+char* send_json_message(component_t* self, char* message_file) {
+
+    json_error_t error;
+    json_t * pl;
+    // create the payload, i.e., the query
+    pl = json_load_file(message_file, JSON_ENSURE_ASCII, &error);
+
+    // extract queryId
+	if(json_object_get(pl,"queryId") == 0) { // no queryIt in message, so we skip it here
+		printf("send_json_message No queryId found, adding one.");
+		zuuid_t *uuid = zuuid_new ();
+		assert(uuid);
+	    json_object_set(pl, "queryId", json_string(zuuid_str_canonical(uuid)));
+	    json_decref(uuid);
+	}
+
+	char query_id = json_string_value(json_object_get(pl,"queryId"));
+	printf("[%s] send_json_message: query_id = %s:\n", self->name, query_id);
+
+	// pack it into the standard msg envelope
+	json_t *env;
+    env = json_object();
+	json_object_set(env, "metamodel", json_string("SHERPA"));
+	json_object_set(env, "model", json_string("RSGQuery"));
+	json_object_set(env, "type", json_string("RSGQuery"));
+	json_object_set(env, "payload", pl);
+
+	// add it to the query list
+	json_msg_t *msg = (json_msg_t *) zmalloc (sizeof (json_msg_t));
+	msg->metamodel = strdup("SHERPA");
+	msg->model = strdup("RSGQuery");
+	msg->type = strdup("RSGQuery");
+	msg->payload = strdup(json_dumps(pl, JSON_ENCODE_ANY));
+	query_t * q = query_new(query_id, zyre_uuid(self->local), msg, NULL);
+	zlist_append(self->query_list, q);
+
+    char* ret = json_dumps(env, JSON_ENCODE_ANY);
+
+	json_decref(env);
+    json_decref(pl);
+    return ret;
+}
+
 char* send_query(component_t* self, char* query_type, json_t* query_params) {
 	/**
 	 * creates a query msg for the world model and adds it to the query list

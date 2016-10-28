@@ -51,6 +51,13 @@ json_t * load_config_file(char* file);
 
 int decode_json(char* message, json_msg_t *result);
 
+/**
+ * Send a messages as payload. The method will try to extract a queryId.
+ * @self Communication component
+ * @message_file file a RAW RSG-JSON message. It must include a proper quiryId!
+ */
+char* send_json_message(component_t* self, char* message_file);
+
 char* send_query(component_t* self, char* query_type, json_t* query_params);
 
 char* send_update(component_t* self, char* operation, json_t* update_params);
