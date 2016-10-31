@@ -69,15 +69,30 @@ int main(int argc, char *argv[]) {
     }
     zlist_destroy(&tmp);
 
-    /* Query */
-    printf("\n");
-	printf("#########################################\n");
-	printf("[%s] Sending Query for RSG Root Node\n",self->name);
-	printf("#########################################\n");
-	printf("\n");
-	json_t* query_params = NULL;
-	char *msg = send_query(self,"GET_ROOT_NODE",query_params);
-	zyre_shouts(self->local, self->localgroup, "%s", msg);
+    char *msg;
+    if (argc == 2) {
+        printf("\n");
+    	printf("#########################################\n");
+    	printf("[%s] Sending Generic Query\n",self->name);
+    	printf("#########################################\n");
+    	printf("\n");
+
+    	msg = send_json_message(self, argv[1]);
+
+    	return 0;
+    } else {
+
+		/* Query */
+		printf("\n");
+		printf("#########################################\n");
+		printf("[%s] Sending Query for RSG Root Node\n",self->name);
+		printf("#########################################\n");
+		printf("\n");
+		json_t* query_params = NULL;
+		msg = send_query(self,"GET_ROOT_NODE",query_params);
+    }
+
+    zyre_shouts(self->local, self->localgroup, "%s", msg);
 	printf("[%s] Sent msg: %s \n",self->name,msg);
 	if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
 		printf("[%s] Could not assign time stamp!\n",self->name);
@@ -128,6 +143,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	return 0;
+
 
 /**TODO:
  * * test why there is no query result with sebastian

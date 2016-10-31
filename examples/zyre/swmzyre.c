@@ -202,10 +202,15 @@ char* send_json_message(component_t* self, char* message_file) {
     json_t * pl;
     // create the payload, i.e., the query
     pl = json_load_file(message_file, JSON_ENSURE_ASCII, &error);
+    printf("[%s] message file: %s\n", message_file, json_dumps(pl, JSON_ENCODE_ANY));
+    if(!pl) {
+   	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+    	return NULL;
+    }
 
     // extract queryId
 	if(json_object_get(pl,"queryId") == 0) { // no queryIt in message, so we skip it here
-		printf("send_json_message No queryId found, adding one.");
+		printf("send_json_message No queryId found, adding one.\n");
 		zuuid_t *uuid = zuuid_new ();
 		assert(uuid);
 	    json_object_set(pl, "queryId", json_string(zuuid_str_canonical(uuid)));
