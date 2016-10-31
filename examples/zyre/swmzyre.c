@@ -217,7 +217,7 @@ char* send_json_message(component_t* self, char* message_file) {
 	    json_decref(uuid);
 	}
 
-	char query_id = json_string_value(json_object_get(pl,"queryId"));
+	char* query_id = json_string_value(json_object_get(pl,"queryId"));
 	printf("[%s] send_json_message: query_id = %s:\n", self->name, query_id);
 
 	// pack it into the standard msg envelope
@@ -238,6 +238,7 @@ char* send_json_message(component_t* self, char* message_file) {
 	zlist_append(self->query_list, q);
 
     char* ret = json_dumps(env, JSON_ENCODE_ANY);
+	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
 
 	json_decref(env);
     json_decref(pl);
@@ -270,6 +271,7 @@ char* send_query(component_t* self, char* query_type, json_t* query_params) {
 			json_object_set(pl, key, value);
 		}
 	}
+
 	// pack it into the standard msg envelope
 	json_t *env;
     env = json_object();

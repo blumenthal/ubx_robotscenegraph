@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 
     	msg = send_json_message(self, argv[1]);
 
-    	return 0;
+
     } else {
 
 		/* Query */
