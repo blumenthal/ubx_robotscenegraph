@@ -1,7 +1,7 @@
 # Example on how to add a new object with an associated pose.
 # 
 # The examples use the JSON API that sends a messages via
-# ZMQ to the SHERPA WM.  
+# ZMQ REQ-REP to or Zyre the SHERPA WM.  
 
 import zmq
 import random
