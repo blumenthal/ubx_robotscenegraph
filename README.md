@@ -234,11 +234,11 @@ Changelog
 
 ### 0.3.0 (02.11.2016)
 
-* Added [Zyre client example](./exmples/zyre/README.md) in C and Python. 
+* Added [Zyre client example](./examples/zyre/README.md) in C and Python. 
   The existing Python examples can seamlessly used with the new Zyre back-end
-* Added [Zyre](./doc/manual.md#distribution) as communication back-end between SWMs and removed ZMQ PUB-SUB sockets
+* Added Zyre [with](./doc/manual.md#with-mediator-using-zyre-recommended) and optinally [without](./doc/manual.md#without-mediator-using-zyre) SHERPA Mediator as communication back-end between SWMs and removed ZMQ PUB-SUB sockets
 * Added function block query API, mechanism and examples for [advanced queries](./doc/manual.md#queries) 
-* Replaced semantic context and frequency filter by graph [constraint](./examples/sherpa/constaints.lua) mechanism
+* Replaced semantic context and frequency filter by graph [constraint](./examples/sherpa/constraints.lua) mechanism
 * Added simulated mission to be used to test the Knowrob-RSG bridge, including battery and ARTVA signals 
 * Added optional OSG visualizer (as function block)
 * Added Docker generation to Travis-CI
