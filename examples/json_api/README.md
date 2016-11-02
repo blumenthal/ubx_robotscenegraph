@@ -29,7 +29,7 @@ This example requires the [SHERPA World Model](../../README.md) and Python3 with
 	pip3 install cffi pyzmq	
 ```
 
-The examples that use Zyre further require  the [Zyre client communication example](../tyre/REDME.md) to be installed.  
+The examples that use Zyre further require  the [Zyre client communication example](../zyre/README.md) to be installed.  
 
 
 
