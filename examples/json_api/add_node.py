@@ -13,16 +13,19 @@ import json
 # The port is defined by the system composition (sherpa_world_model.usc) file
 # via the ``local_json_in_port`` variable. 
 # e.g.
-# local local_json_in_port = "12911"  
-port = "12911" 
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
+# local local_json_query_port = "22422"  
+port = "22422" 
 
-# Set up the ZMQ PUB-SUB communication layer.
+# Set up the ZMQ REQ-REP communication layer.
 context = zmq.Context()
-socket = context.socket(zmq.PUB)
-socket.bind("tcp://*:%s" % port)
+
+def sendMessageToSWM(message):
+  socket = context.socket(zmq.REQ)
+  socket.connect("tcp://localhost:%s" % port) # Currently he have to reconnect for every message.
+  print("Sending update: %s " % (message))
+  socket.send_string(message)
+  result = socket.recv()
+  print("Received result: %s " % (result))
 
 # JSON message to CREATE a new Node. Note that the parentId must
 # exist beforehands, otherwise this operation does not succeed.
@@ -99,9 +102,6 @@ newNodeMsg = {
 # this example.   
 
 # Send message.
-time.sleep(1)
-print (json.dumps(newNodeMsg))
-socket.send_string(json.dumps(newNodeMsg))  
-time.sleep(1) 
+sendMessageToSWM(json.dumps(newNodeMsg))
 
 
