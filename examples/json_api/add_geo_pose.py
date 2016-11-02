@@ -8,6 +8,26 @@ import random
 import sys
 import time
 import json
+import ctypes
+
+###################### Zyre ##################################
+
+### Setup Zyre helper library: swmzyrelib
+swmzyrelib = ctypes.CDLL('../zyre/build/libswmzyre.so')
+swmzyrelib.wait_for_reply.restype = ctypes.c_char_p
+cfg = swmzyrelib.load_config_file('../zyre/swm_zyre_config.json')
+component = swmzyrelib.new_component(cfg)
+
+### Define helper method to send a single messagne and receive its reply 
+def sendZyreMessageToSWM(message):
+  print("Sending message: %s " % (message))
+  jsonMsg = swmzyrelib.encode_json_message_from_string(component, message);
+  err = swmzyrelib.shout_message(component, jsonMsg);
+  result = swmzyrelib.wait_for_reply(component);
+  print("Received result: %s " % (result))
+  return result
+
+################ ZMQ REQ-REP as alternative ##################
 
 # The port is defined by the system composition (sherpa_world_model.usc) file
 # via the ``local_json_in_port`` variable. 
@@ -18,13 +38,21 @@ port = "22422"
 # Set up the ZMQ REQ-REP communication layer.
 context = zmq.Context()
 
-def sendMessageToSWM(message):
+def sendZMQMessageToSWM(message):
   socket = context.socket(zmq.REQ)
   socket.connect("tcp://localhost:%s" % port) # Currently he have to reconnect for every message.
   print("Sending update: %s " % (message))
   socket.send_string(message)
   result = socket.recv()
   print("Received result: %s " % (result))
+  return result
+
+### Choose the comminucation backend by (un)commentign the prefered method:
+def sendMessageToSWM(message):
+  #return sendZMQMessageToSWM(message)
+  return sendZyreMessageToSWM(message)
+
+##############################################################
 
 # JSON message to CREATE a an origin Node. (As child to thr root node.)
 
@@ -104,18 +132,9 @@ newTransformMsg = {
   "parentId": "853cb0f0-e587-4880-affe-90001da1262d",
 }
 
-
-
-
-
-
-
 # Send message.
-print (json.dumps(newOriginMsg))
-sendMessageToSWM(json.dumps(newOriginMsg))  
-print (json.dumps(newNodeMsg))
-sendMessageToSWM(json.dumps(newNodeMsg))  
-print (json.dumps(newTransformMsg))
-sendMessageToSWM(json.dumps(newTransformMsg)) 
+reply = sendMessageToSWM(json.dumps(newOriginMsg))  
+reply = sendMessageToSWM(json.dumps(newNodeMsg))  
+reply = sendMessageToSWM(json.dumps(newTransformMsg)) 
 
 

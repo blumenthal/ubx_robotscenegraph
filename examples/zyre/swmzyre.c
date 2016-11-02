@@ -245,7 +245,7 @@ char* encode_json_message(component_t* self, json_t* message) {
 	}
 
 	char* query_id = json_string_value(json_object_get(pl,"queryId"));
-	printf("[%s] send_json_message: query_id = %s:\n", self->name, query_id);
+	//printf("[%s] send_json_message: query_id = %s:\n", self->name, query_id);
 
 	// pack it into the standard msg envelope
 	json_t *env;
@@ -306,7 +306,6 @@ char* wait_for_reply(component_t* self) {
 					handle_exit (self, msg);
 				} else if (streq (event, "SHOUT")) {
 					handle_shout (self, msg, &ret);
-					printf("[%s] handle_shout ret = %x %s\n ", self->name, ret, ret);
 				} else if (streq (event, "WHISPER")) {
 					handle_whisper (self, msg);
 				} else if (streq (event, "JOIN")) {
@@ -334,7 +333,7 @@ char* wait_for_reply(component_t* self) {
 			}
 		}
 
-	printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
+	//printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
 	return ret;
 }
 
@@ -490,7 +489,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 	printf ("[%s] SHOUT %s %s %s %s\n", self->name, peerid, name, group, message);
 	json_msg_t *result = (json_msg_t *) zmalloc (sizeof (json_msg_t));
 	if (decode_json(message, result) == 0) {
-		printf ("[%s] message type %s\n", self->name, result->type);
+//		printf ("[%s] message type %s\n", self->name, result->type);
 		if (streq (result->type, "RSGUpdateResult")) {
 			// load the payload as json
 			json_t *payload;
