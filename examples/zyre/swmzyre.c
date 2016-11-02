@@ -455,6 +455,10 @@ void handle_shout(component_t *self, zmsg_t *msg) {
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
+					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
+						printf("Skipping RSGFunctionBlockResult message without queryId");
+						break;
+					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s ", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						query_t *dummy = it;
