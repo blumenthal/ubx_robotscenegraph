@@ -54,13 +54,23 @@ int decode_json(char* message, json_msg_t *result);
 /**
  * Send a messages as payload. The method will try to extract a queryId.
  * @self Communication component
- * @message_file file a RAW RSG-JSON message. It must include a proper quiryId!
+ * @message_file file a RAW RSG-JSON message. Missing quiryIds are filled in automatically
  */
-char* send_json_message(component_t* self, char* message_file);
+char* encode_json_message_from_file(component_t* self, char* message_file);
 
+char* encode_json_message_from_string(component_t* self, char* message);
+
+char* encode_json_message(component_t* self, json_t* message);
+
+char* wait_for_reply(component_t* self);
+
+int shout_message(component_t* self, char* message);
+
+/* Convenience functions */
 char* send_query(component_t* self, char* query_type, json_t* query_params);
 
 char* send_update(component_t* self, char* operation, json_t* update_params);
+
 
 /* Handlers */
 
@@ -70,7 +80,7 @@ void handle_exit(component_t *self, zmsg_t *msg);
 
 void handle_whisper (component_t *self, zmsg_t *msg);
 
-void handle_shout(component_t *self, zmsg_t *msg);
+void handle_shout(component_t *self, zmsg_t *msg, char **reply);
 
 void handle_join (component_t *self, zmsg_t *msg);
 

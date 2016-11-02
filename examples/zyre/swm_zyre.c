@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     	printf("#########################################\n");
     	printf("\n");
 
-    	msg = send_json_message(self, argv[1]);
+    	msg = encode_json_message_from_file(self, argv[1]);
 
 
     } else {
@@ -92,7 +92,8 @@ int main(int argc, char *argv[]) {
 		msg = send_query(self,"GET_ROOT_NODE",query_params);
     }
 
-    zyre_shouts(self->local, self->localgroup, "%s", msg);
+//    zyre_shouts(self->local, self->localgroup, "%s", msg);
+    shout_message(self, msg);
 	printf("[%s] Sent msg: %s \n",self->name,msg);
 	if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
 		printf("[%s] Could not assign time stamp!\n",self->name);
@@ -114,7 +115,7 @@ int main(int argc, char *argv[]) {
 			} else if (streq (event, "EXIT")) {
 				handle_exit (self, msg);
 			} else if (streq (event, "SHOUT")) {
-				handle_shout (self, msg);
+				handle_shout (self, msg, NULL);
 			} else if (streq (event, "WHISPER")) {
 				handle_whisper (self, msg);
 			} else if (streq (event, "JOIN")) {
