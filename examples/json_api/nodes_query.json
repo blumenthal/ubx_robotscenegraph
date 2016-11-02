@@ -2,6 +2,6 @@
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "type", "value": "Transform"},
+    {"key": "type", "value": "Transform"}
   ]
 }
