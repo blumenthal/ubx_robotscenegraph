@@ -112,7 +112,7 @@ else: # no, we have to add one
 # denotes the origin node. Though this is a rather arbitrary chioce.
 # The root node should be fine as well.
 imageNodeId = str(uuid.uuid4())
-observationGroupId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
+observationGroupId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" # TODO quiry if it exists already
 newImageNodeMsg = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "CREATE",

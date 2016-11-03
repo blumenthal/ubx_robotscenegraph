@@ -1,0 +1,98 @@
+{    
+  "metamodel": "rsg-core-schema.json",  
+  "@worldmodeltype": "WorldModelAgent",
+  "remoteRootNodes": [
+    {
+	    "@graphtype": "Group",
+	    "id": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+	    "attributes": [
+	    	{"key": "rsg:dbg", "value": "added_by_rsg_model_file"},	    	
+	    ],
+	    "childs": [	   
+			{
+	      		"@childtype": "Child",
+	      		"child": {		
+				    "@graphtype": "Group",
+	    	 	   	"id": "767a13be-55b9-4b35-a7d5-8b00bfd70075",
+				    "attributes": [
+				    	{"key": "name", "value": "swm"},
+				    	{"key": "comment", "value": "This is the SHERPA World Model (SWM) of the DCM."}
+				    ],
+				    "childs": [				  
+						{
+				      		"@childtype": "Child",
+			          		"child": {		
+							    "@graphtype": "Group",
+							    "attributes": [
+							    	{"key": "name", "value": "mission"},
+							    	{"key": "comment", "value": "This is the node of the objects included in the SWM during a mission."},
+							    	{"key": "comment", "value": "Also called objects in earlier versions od the SWM."}
+							    ],
+							    "childs": [				  
+									{
+							      		"@childtype": "Child",
+						          		"child": {		
+										    "@graphtype": "Group",
+										    "attributes": [
+										    	{"key": "name", "value": "animals"},
+										    	{"key": "comment", "value": "This is the node of the animals, i.e. agents of the SHERPA team."}
+										    ],
+										    "childs": [				  
+						
+										    ]   
+									    }
+								    },
+									{
+							      		"@childtype": "Child",
+						          		"child": {		
+										    "@graphtype": "Group",
+										    "attributes": [
+										    	{"key": "name", "value": "enviroment"},
+										    	{"key": "comment", "value": "This is the node of the scenario environment objects."}
+										    ],
+										    "childs": [				  
+						
+										    ]   
+									    }
+								    },	
+								   	{
+							      		"@childtype": "Child",
+						          		"child": {		
+										    "@graphtype": "Group",
+										    "attributes": [
+										    	{"key": "name", "value": "observations"},
+										    ],
+										    "childs": [				  
+						
+										    ]   
+									    }
+								    },	 
+							    ]   
+						    }
+						},	 
+						{
+				      		"@childtype": "Child",
+			          		"child": {		
+							    "@graphtype": "Group",
+							    "attributes": [
+							        {"key": "gis:origin", "value": "wgs84"},
+							        {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
+							    ],
+							    "childs": [		
+							    		  
+							    ]   
+						    }
+						},
+				
+	
+				    ]   
+			    }
+		    },
+	      
+			
+	    ]   
+    }
+  
+  ]
+   	    
+}
