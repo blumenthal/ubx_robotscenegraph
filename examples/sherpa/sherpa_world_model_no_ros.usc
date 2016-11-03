@@ -167,7 +167,7 @@ local input_filter_pattern = getEnvWithDefault("SWM_INPUT_FILTER_PATTERN", "os(m
 local max_transform_freq = tonumber(getEnvWithDefault("SWM_MAX_TRANSFORM_FREQ", 5.0))
 
 -- Map files
-local rsg_map_file = getEnvWithDefault("SWM_RSG_MAP_FILE", "examples/maps/rsg/cesena_lab.json")
+local rsg_map_file = getEnvWithDefault("SWM_RSG_MAP_FILE", "examples/maps/rsg/sherpa_basic_mission_setup.json")
 local osm_map_file = getEnvWithDefault("SWM_OSM_MAP_FILE", "examples/maps/osm/map_micro_champoluc.osm") 
 
 -- Debug visualization

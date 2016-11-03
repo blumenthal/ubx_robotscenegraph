@@ -29,7 +29,7 @@ export SWM_CONSTRAINTS_FILE=constraints.lua
 export SWM_MAX_TRANSFORM_FREQ=5 # default value = 5
 
 # Map files settings (optional)
-export SWM_RSG_MAP_FILE=../maps/rsg/cesena_lab.json # default value = examples/maps/rsg/cesena_lab.json
+export SWM_RSG_MAP_FILE=../maps/rsg/sherpa_basic_mission_setup.json # default value = examples/maps/rsg/cesena_lab.json
 export SWM_OSM_MAP_FILE=../maps/osm/map_micro_champoluc.osm # default value = examples/maps/osm/map_micro_champoluc.osm
 
 # Start the ubx system
