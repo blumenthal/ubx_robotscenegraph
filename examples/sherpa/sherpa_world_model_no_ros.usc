@@ -296,7 +296,7 @@ return bd.system
       { name="zyre_local_bridge", 
         config = { 
           max_send=5 ,                -- Max number of msgs that are sent during step fcn." 
-          max_msg_length=2000,        -- Max length of msg coming from RSG
+          max_msg_length=90000,        -- Max length of msg coming from RSG
           wm_name="SWM_zyre_bridge" , -- Mame of the bridge in the zyre network." 
           group="local",              -- Zyre group to join
           gossip_flag = use_gossip, -- 0,            -- 1 for using gossip locally; 0 for using UDP beaconing instead
