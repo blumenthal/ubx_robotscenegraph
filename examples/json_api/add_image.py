@@ -68,7 +68,7 @@ z=0
 fileName="/tmp/img0001.jpg"
 mediatorPeerId="e3afad01-62e5-4bcc-93e0-0858df2cc58f" # TODO: obtain by query to Mediator
 URI=mediatorPeerId+":"+fileName
-
+author="donkey"
 
 ##############################################################
 
@@ -127,9 +127,10 @@ else: # no, we use the application wide root node as fall back
 
 # JSON message to CREATE a new Node for an observation. 
 # Here we use an image file, but other options are:
-#
+# dem, image, point_cloud, video or artva
 #
 # 
+currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 imageNodeId = str(uuid.uuid4())
 newImageNodeMsg = {
   "@worldmodeltype": "RSGUpdate",
@@ -140,6 +141,8 @@ newImageNodeMsg = {
     "attributes": [
           {"key": "sherpa:observation_type", "value": "image"},
           {"key": "sherpa:uri", "value": URI},
+          {"key": "sherpa:stamp", "value": currentTimeStamp},
+          {"key": "sherpa:author", "value": author},
     ],
   },
   "parentId": observationGroupId,
