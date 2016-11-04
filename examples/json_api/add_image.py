@@ -59,17 +59,20 @@ def sendMessageToSWM(message):
 
 ##############################################################
 
-# variables
+# Variables used for this example
 x=44.153278
 y=12.241426
 z=0
 
-# specification of a URI =  peer_id:/path/filename
+# Specification of a URI =  peer_id:/path/filename
 fileName="/tmp/img0001.jpg"
 mediatorPeerId="e3afad01-62e5-4bcc-93e0-0858df2cc58f" # TODO: obtain by query to Mediator
 URI=mediatorPeerId+":"+fileName
 
-# Check if an origin node exists already.
+
+##############################################################
+
+# Check if an "origin" node exists already.
 getOrigin = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
@@ -104,15 +107,30 @@ else: # no, we have to add one
     "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
   }
   reply = sendMessageToSWM(json.dumps(newOriginMsg))
-  
 
-# JSON message to CREATE a new Node. Note, that the parentId must
-# exist beforehands, otherwise this operation does not succeed.
-# in this case the "parentId": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b"
-# denotes the origin node. Though this is a rather arbitrary chioce.
-# The root node should be fine as well.
+# Check if a group for all "observations" exists already. An image shall be added as child of such a Group 
+getObservationGroup = {
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_NODES",
+  "attributes": [
+      {"key": "name", "value": "observations"},
+  ]
+}
+result = json.loads(sendMessageToSWM(json.dumps(getObservationGroup)))
+ids = result["ids"]
+print("ids = %s " % ids)
+
+if (len(ids) > 0): # yes, it exists
+  observationGroupId = ids[0]
+else: # no, we use the application wide root node as fall back 
+  observationGroupId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" 
+
+# JSON message to CREATE a new Node for an observation. 
+# Here we use an image file, but other options are:
+#
+#
+# 
 imageNodeId = str(uuid.uuid4())
-observationGroupId = "e379121f-06c6-4e21-ae9d-ae78ec1986a1" # TODO quiry if it exists already
 newImageNodeMsg = {
   "@worldmodeltype": "RSGUpdate",
   "operation": "CREATE",
