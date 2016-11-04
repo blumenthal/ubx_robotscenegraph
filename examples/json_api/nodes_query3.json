@@ -2,6 +2,6 @@
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-    {"key": "^osm:.*", "value": "^.*"},
+    {"key": "^osm:.*", "value": "^.*"}
   ]
 }

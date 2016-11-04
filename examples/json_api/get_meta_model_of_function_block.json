@@ -1,0 +1,6 @@
+{
+    "@worldmodeltype": "RSGFunctionBlock",
+    "metamodel":       "rsg-functionBlock-schema.json",
+    "name":            "roifilter",
+    "operation":       "GET_METAMODEL",
+}

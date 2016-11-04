@@ -89,6 +89,7 @@ function start_wm() -- no particular order assumed here
   ni:b("bytestreambuffer6"):do_start()
   ni:b("bytestreambuffer7"):do_start()
   ni:b("bytestreambuffer8"):do_start()
+  ni:b("bytestreambuffer9"):do_start()
   ni:b("bytestreambuffer_query_req"):do_start()
   ni:b("bytestreambuffer_query_rep"):do_start()
   ni:b("cyclic_io_trigger"):do_start() 
@@ -131,10 +132,11 @@ end
 -- This has to be done manually (currently).
 -- Feel free to make further aplication specific adjustments. 
 function start_all()
-  scene_setup()
+--  scene_setup()
 --  load_map()
   start_wm()
-  dump_wm()
+  sync()
+--  dump_wm()
 end
 
 

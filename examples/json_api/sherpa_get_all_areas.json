@@ -2,6 +2,6 @@
 "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes":[
-	  {"key": "geo:area", "value": "*"},
+	  {"key": "geo:area", "value": "*"}
 	]
 }

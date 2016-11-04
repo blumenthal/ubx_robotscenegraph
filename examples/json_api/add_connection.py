@@ -12,16 +12,19 @@ import json
 # The port is defined by the system composition (sherpa_world_model.usc) file
 # via the ``local_json_in_port`` variable. 
 # e.g.
-# local local_json_in_port = "12911"  
-port = "12911" 
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
+# local local_json_query_port = "22422"  
+port = "22422" 
 
-# Set up the ZMQ PUB-SUB communication layer.
+# Set up the ZMQ REQ-REP communication layer.
 context = zmq.Context()
-socket = context.socket(zmq.PUB)
-socket.bind("tcp://*:%s" % port)
+
+def sendMessageToSWM(message):
+  socket = context.socket(zmq.REQ)
+  socket.connect("tcp://localhost:%s" % port) # Currently he have to reconnect for every message.
+  print("Sending update: %s " % (message))
+  socket.send_string(message)
+  result = socket.recv()
+  print("Received result: %s " % (result))
 
 ## Assumed the cesena_lab has been loaded before.
 newConnectionMsg = {
@@ -50,9 +53,7 @@ newConnectionMsg = {
 }
 
 # Send message.
-time.sleep(1)
-print (json.dumps(newConnectionMsg))
-socket.send_string(json.dumps(newConnectionMsg))  
-time.sleep(1) 
+sendMessageToSWM(json.dumps(newConnectionMsg))
+
 
 

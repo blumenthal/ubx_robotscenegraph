@@ -9,6 +9,10 @@ bin
 *.svg
 *.gv
 *.log
+*.pdf
+*.gv
+*.~
+*.pyc
 
 # ignoreing all the build stuff frominstallation script
 Lua*

@@ -22,5 +22,5 @@ socket.connect("tcp://localhost:22422")
 print("Sending query: %s " % (message))
 socket.send_string(message)
 result = socket.recv()
-print("Received reult: %s " % (result))
+print("Received result: %s " % (result))
 

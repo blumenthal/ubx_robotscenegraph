@@ -7,7 +7,7 @@
     "attributes": [
           {"key": "name", "value": "myNode"},
           {"key": "comment", "value": "Some human readable comment on the node."}
-    ],
+    ]
   },
-  "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+  "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1"
 }

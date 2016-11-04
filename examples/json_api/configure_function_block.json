@@ -1,0 +1,12 @@
+{
+    "@worldmodeltype": "RSGFunctionBlock",
+    "metamodel":       "rsg-functionBlock-schema.json",
+    "name":            "roifilter",
+    "operation":       "CONFIGURE",
+    "input": [
+      {"key": "min_x", "value": "2.4"},
+      {"key": "max_y", "value": "1.5"},
+      {"key": "comment", "value": "This comment will be ignored."}
+    ]
+
+}

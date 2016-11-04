@@ -18,26 +18,19 @@ export SWM_WMA_ID= # An empty World Model Agent Id will trigger to generate one.
 export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 
 # Communication setup with ZMQ (version without mediator component)
-export SWM_LOCAL_IP=localhost   # default value = localhost
-export SWM_LOCAL_OUT_PORT=11411 # default value = 11411
-export SWM_REMOTE_IP=192.168.1.101   #default value = 127.0.0.1
-export SWM_REMOTE_OUT_PORT=11411  # default value = 11511
-export SWM_LOCAL_JSON_IP=127.0.0.1   #default value = 127.0.0.1
-export SWM_LOCAL_JSON_IN_PORT=12911  #default value = 12911
-export SWM_LOCAL_JSON_IN_PORT_SECONDARY=13911  #default value = 13911
-export SWM_LOCAL_JSON_OUT_PORT=12912   #  default value = 12912
-export SWM_LOCAL_JSON_QUERY_PORT=22422  # default value = 22422
-export SWM_REMOTE_IP_SECONDARY=192.168.1.101 # default value = 127.0.0.1
-export SWM_REMOTE_OUT_PORT_SECONDARY=11511 # default value = 11611
+export SWM_USE_GOSSIP=0 # 1 use gossip; 0 use UDP beaconing;
+export SWM_BIND_ZYRE=0  # 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
+export SWM_LOCAL_JSON_QUERY_PORT=22424  # default value = 22422
 
 # Filter settings (optional)
-export SWM_ENABLE_INPUT_FILTER=0 # default value = 0
-export SWM_INPUT_FILTER_PATTERN= # default value = os(m|g)
+export SWM_ENABLE_INPUT_FILTER=1 # default value = 0
+export SWM_CONSTRAINTS_FILE=constraints.lua
+#export SWM_CONSTRAINTS_FILE= #empty string turns it off
 export SWM_MAX_TRANSFORM_FREQ=5 # default value = 5
 
 # Map files settings (optional)
-export SWM_RSG_MAP_FILE=../maps/rsg/cesena_lab.json # default value = examples/maps/rsg/cesena_lab.json
+export SWM_RSG_MAP_FILE=../maps/rsg/sherpa_basic_mission_setup.json # default value = examples/maps/rsg/cesena_lab.json
 export SWM_OSM_MAP_FILE=../maps/osm/map_micro_champoluc.osm # default value = examples/maps/osm/map_micro_champoluc.osm
 
 # Start the ubx system
-exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model_no_ros.usc	
+exec $UBX_ROOT/tools/ubx_launch -webif 8890 -c sherpa_world_model_no_ros.usc	

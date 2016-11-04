@@ -111,7 +111,7 @@ def getNodeId(queryMessage):
     socket.connect("tcp://localhost:22422")
     socket.send_string(json.dumps(queryMessage))
     queryResult = socket.recv_json()
-    time.sleep(sleep_amount)
+    #time.sleep(sleep_amount)
     #print "Query: " + str(queryMessage)
     #print "Query result: " + str(queryResult)
     if queryResult['ids']:
@@ -124,7 +124,7 @@ def query(queryMessage):
     socket.connect("tcp://localhost:22422")
     socket.send_string(json.dumps(queryMessage))
     queryResult = socket.recv_json()
-    time.sleep(sleep_amount)
+    #time.sleep(sleep_amount)
     #print "Query: " + str(queryMessage)
     #print "Query result: " + str(queryResult)
     if queryResult['querySuccess']:
@@ -148,9 +148,10 @@ def updateSWM(updateMessage):
     socket.send_string(json.dumps(updateMessage))
     updateResult = socket.recv_json()
     #time.sleep(sleep_amount)
-    print "Update: " + str(updateMessage)
-    print "Update result: " + str(updateResult)
+#    print "Update: " + str(updateMessage)
+#    print "Update result: " + str(updateResult)
     if updateResult['updateSuccess']:
+        print "[DCM updateSWM:] updateSuccess = " + str(updateResult['updateSuccess'])
         return updateResult 
     else:
         return ""
@@ -237,7 +238,7 @@ def DCM2quat(matrix):
 
 def addGroupNode(nodeName, nodeDescription, nodeParentId):
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
-    pubSWM({
+    result = updateSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -249,12 +250,15 @@ def addGroupNode(nodeName, nodeDescription, nodeParentId):
       },
       "parentId": nodeParentId,
     })
-    print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
+    if(result == True):
+      print "[DCM Interface:] the %s node could not be added!" % (nodeName)
+    else:
+      print "[DCM Interface:] the %s node was successfully added!" % (nodeName)
 	
 def addAgentNode(nodeName, nodeDescription, nodeParentId):
     #TODO check if the node was really published??
     print "[DCM Interface:] adding the %s node ..." % (nodeName)
-    pubSWM({
+    updateSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -271,7 +275,7 @@ def addAgentNode(nodeName, nodeDescription, nodeParentId):
 def addGeoPoint(pointParent, pointName, pointParentId, pointLat, pointLon, pointAlt):
     print "[DCM Interface:] adding the point %s of %s ..." % (pointName, pointParent)
     pointFullName = pointParent + "_" + pointName
-    pubSWM({
+    updateSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -438,7 +442,7 @@ def initialiseSWM():
     originID = getNodeId(originQueryMsg)
     if not originID:
       print "[DCM Interface:] adding the geoposes reference frame node ..."
-      pubSWM({
+      updateSWM({
         "@worldmodeltype": "RSGUpdate",
         "operation": "CREATE",
         "node": {
@@ -585,7 +589,7 @@ def addPictureNode(pictureAuthor, pictureUrl, pictureLat, pictureLon, pictureAlt
         initialiseSWM()
     pictureTime = time.strftime("%Y-%m-%dT%H:%M:%S%Z")
     print "[DCM Interface:] adding the picture taken from agent %s at time %s ..." % (pictureAuthor, pictureTime)
-    pubSWM({
+    updateSWM({
       "@worldmodeltype": "RSGUpdate",
       "operation": "CREATE",
       "node": {
@@ -628,7 +632,7 @@ def addRiverNode(riverName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the river %s ..." % (riverName)
-        pubSWM({
+        updateSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -657,7 +661,7 @@ def addWoodNode(woodName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the wood %s ..." % (woodName)
-        pubSWM({
+        updateSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -686,7 +690,7 @@ def addHouseNode(houseName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the house %s ..." % (houseName)
-        pubSWM({
+        updateSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -715,7 +719,7 @@ def addMountainNode(mountainName):
             print "[DCM Interface:] SWM was not created: starting initialisation procedure for SWM ..."
             initialiseSWM()
         print "[DCM Interface:] adding the mountain %s ..." % (mountainName)
-        pubSWM({
+        updateSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {
@@ -769,7 +773,7 @@ def connectRiver(riverName):
                 {"key": "type", "value": "river"},                    
               ]
             }
-            pubSWM({
+            updateSWM({
               "@worldmodeltype": "RSGUpdate",
               "operation": "CREATE",
               "node": {     
@@ -823,7 +827,7 @@ def connectWood(woodName):
                 {"key": "osm:natural", "value": "wood"},                      
               ]
             }
-            pubSWM({
+            updateSWM({
               "@worldmodeltype": "RSGUpdate",
               "operation": "CREATE",
               "node": {     
@@ -877,7 +881,7 @@ def connectHouse(houseName):
                 {"key": "osm:building", "value": "house"},                      
               ]
             }
-            pubSWM({
+            updateSWM({
               "@worldmodeltype": "RSGUpdate",
               "operation": "CREATE",
               "node": {     
@@ -931,7 +935,7 @@ def connectMountain(mountainName):
             {"key": "osm:natural", "value": "mountain"},                      
           ]
         }
-        pubSWM({
+        updateSWM({
           "@worldmodeltype": "RSGUpdate",
           "operation": "CREATE",
           "node": {     

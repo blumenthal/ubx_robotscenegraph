@@ -50,11 +50,11 @@
 # In a nutshell the following dependencies need to be satisfied:
 # 
 # * the BRICS_3D library with all its dependencies including
-#   Boost, Eigen3, HDF5, Libvariant for JSON, graphviz for debugging (optional)
+#   Boost, Eigen3, HDF5 (deprecated), Libvariant for JSON, graphviz for debugging (optional)
 # * the UBX framework
 # * the BRICS_3D integration into the UBX framework (brics_3d_function_blocks 
 #   and ubx_robotscenegraph)
-# * UBX modules for ZMQ including dependencies (CZMQ)
+# * UBX modules for ZMQ and Zyre including dependencies (CZMQ)
 # * UBX modules for ROS (optional)  
 #
 #
@@ -273,7 +273,10 @@ ${SUDO} apt-get install -y libxerces-c-dev
 echo "Lib yaml" #Reqired for installation on SHERPA Wasp (Odroid U3) 
 ${SUDO} apt-get install -y libyaml-dev
 
-echo "HDF5: "
+echo "JSON library for the Mediator and Zyre UBX bridge"
+${SUDO} apt-get install -y libjansson-dev
+
+echo "HDF5: " # (deprecated)
 # This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
 # So far tested with verisons 1.8.9(minimum), 1.8.12 and 1.8.13.
@@ -472,6 +475,32 @@ cd ..
 cd ..
 cd ..
 
+echo "ZYRE-UBX bridge"
+# In case ZMQ or CZMQ libraries are alredy pre-installed
+# in another location you can use the environment
+# variables ZMQ_ROOT or CZMQ_ROOT to point to other
+# intallation locations
+if [ ! -d ubx ]; then 
+  git clone https://github.com/blumenthal/ubx
+  cd ubx/zyre_bridge
+else
+  cd ubx/zyre_bridge
+  git pull origin master
+fi
+mkdir build -p
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ..
+make ${J}
+# Per default the UBX modules are installed to /usr/local
+# this can be adjusted be setting the CMake variable
+# CMAKE_INSTALL_PREFIX to another folder. Of course the
+# the UBX_MODULES environment variable has to be adopted 
+# to this new prefix: <my_install_prefix_path>/ubx/lib.
+# Please install all UBX modules into one folder.
+${SUDO} make install
+cd ..
+cd ..
+cd ..
 
 ####################### ROS (optional) #######################
 if [ "$USE_ROS" = "TRUE" ]; then

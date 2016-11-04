@@ -1,4 +1,4 @@
-RSG integration into Microblox (UBX)
+RSG integration into Microblox (UBX) [![Build Status](https://travis-ci.org/blumenthal/ubx_robotscenegraph.svg?branch=master)](https://travis-ci.org/blumenthal/ubx_robotscenegraph)
 ==========================================================
 
 ## Table of Contents
@@ -9,10 +9,11 @@ RSG integration into Microblox (UBX)
 * [Usage](#usage)
 * [User Manual](doc/manual.md)
  * The [data model](doc/manual.md#data-model)
- * The [update](doc/manual.md#updates) capapilities
- * The [query](doc/manual.md#queries) capapilities 
- * The [distribution](doc/manual.md#distribution) capapilities  
- * World model [debugging](doc/manual.md#debugging) techiques
+ * The [update](doc/manual.md#updates) capabilities
+ * The [query](doc/manual.md#queries) capabilities 
+ * The [distribution](doc/manual.md#distribution) capabilities  
+ * World model [debugging](doc/manual.md#debugging) techniques
+* [Changelog](#changelog)
 * [Licensing](#licensing)
 
 
@@ -28,16 +29,16 @@ models for the **SHERPA World Model**.
 In a nutshell, a **SHERPA World Model** as typically deployed on a robot has one 
 so called *World Model Agent* plus a set of communication components like ZMQ or ROS.
 The components are realized with the Microblox (UBX) framework that allows to represent
-the SHERPA World Model in a single system coposition model (.utc file). 
+the SHERPA World Model in a single system composition model (.utc file). 
 
 The World Model Agent is written in **C++** and can be 
 [queried](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphQuery.html) and 
 [updated](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphUpdate.html) 
 with its respective API. In order to use that C++ API in your own program a dedicated 
 *World Model Agent* has to be spawned, the communication infrastructure (ZMQ or ROS) 
-has to be added manually and it has to be connected to the other World Model Agent wihtin **SHERPA World Model**.   
+has to be added manually and it has to be connected to the other World Model Agent wihtin **SHERPA World Model**.
 
-As an alternative, the SHERPA World Model provides a **JSON API** that allows to send graph operatins via ZMQ. 
+As an alternative, the SHERPA World Model provides a **JSON API** that allows to send graph operations via Zyre or ZMQ. 
 Examples for using the JSON API can be found for a [Task Specification Tree](examples/tst/README.md) 
 and [here](examples/json_api)
 
@@ -76,12 +77,12 @@ to retrive the folllowing usage information:
     --no-sudo              In case the system has no sudo command available. 
     --no-ros               In case the system has no ROS (Hydro/Indigo) installation.
     --workspace-path=PATH  Path to where libraries and bulild. Default is ../
-    --install-path=PATH    Path to where libraries and modeles are installed (make install) into.
+    --install-path=PATH    Path to where libraries and modules are installed (make install) into.
                            (except for brics_3d). Default is /usr/local 
     -j=VALUE               used for make -jVAULE 
 ```
 
-The script will automatically summarize which environment varaible have to permenently saved. Please follow the instructios. E.g.
+The script will automatically summarize which environment variable have to permanently saved. Please follow the instructions. E.g.
 ```
 ############################ATTENTION###############################
  ATTENTION: Please add the following environment variables:
@@ -99,8 +100,8 @@ source ~/.bashrc .
 
 ### Manual installation
 
-All detailed steps on how to install the dependencies can be cound in the [install.sh](install.sh) script. 
-The relevant environment variables for the installation procedured are listed in the [section](#environment-variables) below. 
+All detailed steps on how to install the dependencies can be found in the [install.sh](install.sh) script. 
+The relevant environment variables for the installation procedure are listed in the [section](#environment-variables) below. 
 
 #### Dependencies
 
@@ -161,7 +162,7 @@ For convenience please use the following [update.sh](update.sh) script:
 	./update.sh
 ```
 
-Similar to install script the fowllowing options are available:
+Similar to install script the following options are available:
 
 ```
 	./update.sh --no-sudo
@@ -172,7 +173,7 @@ In case the system has no sudo command available. Usefull for Docker based insta
 ```
 	./update.sh --no-git
 ```
-In case no git pull sould be invoked. 
+In case no git pull should be invoked. 
 
 
 Usage
@@ -221,13 +222,43 @@ In general there are __three__ possibilities to interact with the *SHERPA World 
    and it has to be connected to the other *World Model Agent* of the *SHERPA World Model*.
 
 2. By using the [JSON API](examples/json_api/README.md). It allows to send graph operations 
-   encoded as JSON messages via ZMQ. The distribution of the [Task Specification Tree](examples/tst/README.md)
+   encoded as JSON messages via Zyre or ZMQ. The distribution of the [Task Specification Tree](examples/tst/README.md)
    makes use of this API.	 
 
 3. By creation of a dedicated *bridge* as done for ROS [TF](https://github.com/blumenthal/sherpa_world_model_tf_bridge) 
-   trees. Please note, that the implementation of the TF bridge embedds a *World 
+   trees. Please note, that the implementation of the TF bridge embeds a *World 
    Model Agent* as stated my method 1 and serves as a good reference example.
 
+Changelog
+---------
+
+### 0.3.0 (02.11.2016)
+
+* Added [Zyre client example](./examples/zyre/README.md) in C and Python. 
+  The existing Python examples can seamlessly used with the new Zyre back-end
+* Added Zyre [with](./doc/manual.md#with-mediator-using-zyre-recommended) and optinally [without](./doc/manual.md#without-mediator-using-zyre) SHERPA Mediator as communication back-end between SWMs and removed ZMQ PUB-SUB sockets
+* Added function block query API, mechanism and examples for [advanced queries](./doc/manual.md#complex-queries-based-on-query-function-blocks) 
+* Replaced semantic context and frequency filter by graph [constraint](./examples/sherpa/constraints.lua) mechanism
+* Added simulated mission to be used to test the Knowrob-RSG bridge, including battery and ARTVA signals 
+* Added optional OSG visualizer (as function block)
+* Added Docker generation to Travis-CI
+* Added handling of areas
+
+
+### 0.2.0 (13.04.2016)
+
+* Added support for automatic self synchronization
+* Added reply status messages for updates and queries.
+* Added one shot launch script
+* Added semantic context and frequency filter 
+* Added Champoluc semantic map and scripts
+* Added further Python examples
+* Revised install script
+
+
+### 0.1.0 (01.03.2016) 
+
+* Initial version
 
 Licensing
 ---------
@@ -246,7 +277,7 @@ Impressum
 ---------
 
 Written by Sebastian Blumenthal (blumenthal@locomotec.com)
-Last update: 25.01.2015
+Last update: 02.11.2016
  
 
 

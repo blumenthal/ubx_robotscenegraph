@@ -1,0 +1,10 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "osgvisualizer",
+  "operation":       "EXECUTE",
+  "input": {
+    "metamodel": "fbx-osgvisualizer-input-schema.json",
+		"command": "START"
+  }
+}
