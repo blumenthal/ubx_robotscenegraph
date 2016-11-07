@@ -159,7 +159,8 @@ local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22
 -- Gossip related configuration:
 local use_gossip= tonumber(getEnvWithDefault("SWM_USE_GOSSIP", 0)) -- 1 use gossip; 0 use UDB beaconing; 1 id default since the Mediator is usiong ot 
 local bind_zyre = tonumber(getEnvWithDefault("SWM_BIND_ZYRE", 0)) -- 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
-
+local gossip_endpoint =    getEnvWithDefault("SWM_GOSSIP_ENDPOINT", "ipc:///tmp/local-hub") -- Gossip endpoint; use this default value unless you want to have multiple Gossip networks
+local zyre_group =         getEnvWithDefault("SWM_ZYRE_GROUP", "local") 
 
 -- Filter settings
 local enable_input_filter = tonumber(getEnvWithDefault("SWM_ENABLE_INPUT_FILTER", 0)) 
@@ -298,9 +299,9 @@ return bd.system
           max_send=5 ,                -- Max number of msgs that are sent during step fcn." 
           max_msg_length=90000,       -- Max length of msg coming from RSG
           wm_name="SWM_zyre_bridge" , -- Mame of the bridge in the zyre network." 
-          group="local",              -- Zyre group to join
+          group = zyre_group,              -- Zyre group to join. Default is "local".
           gossip_flag = use_gossip, -- 0,            -- 1 for using gossip locally; 0 for using UDP beaconing instead
-          gossip_endpoint="ipc:///tmp/local-hub" , -- Endpoint for zyre gossip discovery"
+          gossip_endpoint = gossip_endpoint  , -- Endpoint for zyre gossip discovery. Default is "ipc:///tmp/local-hub"
           bind = bind_zyre, -- 0,         -- Decides whether this node binds or connects to gossip network; The must be at least on node that binds. 
           local_endpoint="ipc:///tmp/sherpa_wm" -- currently unused; local endpoint for zyre network;"
 
