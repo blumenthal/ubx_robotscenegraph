@@ -71,7 +71,12 @@ char* send_query(component_t* self, char* query_type, json_t* query_params);
 
 char* send_update(component_t* self, char* operation, json_t* update_params);
 
-bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, char *author);
+bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, char *author, char* configFile);
+
+bool add_agent(double x, double y, double z, double utcTimeStampInMiliSec, char *agentName, char* configFile);
+
+bool update_pose(double x, double y, double z, double utcTimeStampInMiliSec, char *agentName, char* configFile);
+
 
 /* Handlers */
 
