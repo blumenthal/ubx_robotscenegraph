@@ -71,6 +71,7 @@ char* send_query(component_t* self, char* query_type, json_t* query_params);
 
 char* send_update(component_t* self, char* operation, json_t* update_params);
 
+bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, char *author);
 
 /* Handlers */
 

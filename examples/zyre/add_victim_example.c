@@ -18,6 +18,10 @@ int main(int argc, char *argv[]) {
 	double z = 405;
 	double utcTimeInMiliSec = 0.0;
 
+	add_victim(x,y,z,utcTimeInMiliSec, "hawk");
+
+	return 0;
+
     /* Load configuration file for communication setup */
     char config_folder[255] = { SWM_ZYRE_CONFIG_DIR };
     char config_name[] = "swm_zyre_config.json";
