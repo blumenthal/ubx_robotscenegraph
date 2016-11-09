@@ -21,8 +21,15 @@ include_directories(
 add_library(swmzyre SHARED swmzyre.c)
 target_link_libraries(swmzyre ${ZYRE_LIBRARIES} ${JANSSON_LIBRARIES})
 
+# Install into system default
+install(TARGETS swmzyre DESTINATION "lib" EXPORT swmzyre)
+install(FILES swmzyre.h DESTINATION "include")
+
+# Compile examples
 add_executable(swm_zyre swm_zyre.c)
 target_link_libraries(swm_zyre swmzyre ${CZMQ_LIBRARIES} ${ZYRE_LIBRARIES} ${JANSSON_LIBRARIES})
 
 add_executable(add_victim_example add_victim_example.c)
 target_link_libraries(add_victim_example swmzyre ${CZMQ_LIBRARIES} ${ZYRE_LIBRARIES} ${JANSSON_LIBRARIES})
+
+
