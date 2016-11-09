@@ -18,6 +18,13 @@ int main(int argc, char *argv[]) {
     char config_file[512] = {0};
     snprintf(config_file, sizeof(config_file), "%s/%s", config_folder, config_name);
 
+    if (argc == 1) {
+    	printf("To few argumnets. Pleas use swm_zyre ./swm_zyre <path_to_json_file> [<path_to_config_file>]\n");
+    	return -1;
+    } else if (argc == 3) { // override default config
+    	snprintf(config_file, sizeof(config_file), "%s", argv[2]);
+    }
+
     json_t * config = load_config_file(&config_file);//"swm_zyre_config.json");
     if (config == NULL) {
       return -1;
@@ -31,30 +38,41 @@ int main(int argc, char *argv[]) {
     printf("[%s] component initialized!\n", self->name);
 
 
+    /* Query as specified by a file */
+    printf("\n");
+    printf("#########################################\n");
+    printf("[%s] Sending Generic Query\n",self->name);
+    printf("#########################################\n");
+    printf("\n");
+
     char *msg;
-    if (argc == 2) {
+    msg = encode_json_message_from_file(self, argv[1]);
 
-    	/* Query as specified by a file */
-    	printf("\n");
-    	printf("#########################################\n");
-    	printf("[%s] Sending Generic Query\n",self->name);
-    	printf("#########################################\n");
-    	printf("\n");
 
-    	msg = encode_json_message_from_file(self, argv[1]);
 
-    } else {
-
-		/* Query for root node */
-		printf("\n");
-		printf("#########################################\n");
-		printf("[%s] Sending Query for RSG Root Node\n",self->name);
-		printf("#########################################\n");
-		printf("\n");
-
-		json_t* query_params = NULL;
-		msg = send_query(self,"GET_ROOT_NODE",query_params);
-    }
+//    if (argc == 2) {
+//
+//    	/* Query as specified by a file */
+//    	printf("\n");
+//    	printf("#########################################\n");
+//    	printf("[%s] Sending Generic Query\n",self->name);
+//    	printf("#########################################\n");
+//    	printf("\n");
+//
+//    	msg = encode_json_message_from_file(self, argv[1]);
+//
+//    } else {
+//
+//		/* Query for root node */
+//		printf("\n");
+//		printf("#########################################\n");
+//		printf("[%s] Sending Query for RSG Root Node\n",self->name);
+//		printf("#########################################\n");
+//		printf("\n");
+//
+//		json_t* query_params = NULL;
+//		msg = send_query(self,"GET_ROOT_NODE",query_params);
+//    }
 
     /* Send the message */
     shout_message(self, msg);
