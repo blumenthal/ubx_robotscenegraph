@@ -594,27 +594,34 @@ void handle_evasive (component_t *self, zmsg_t *msg) {
 	zstr_free(&name);
 }
 
-bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, char* author, char* configFile) {
+bool add_victim(component_t *self, double x, double y , double z, double utcTimeStampInMiliSec, char* author) {
 
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
 
-	   /* Load configuration file for communication setup */
-//	    char config_folder[255] = { SWM_ZYRE_CONFIG_DIR };
-//	    char config_name[] = "swm_zyre_config.json";
-//	    char config_file[512] = {0};
-//	    snprintf(config_file, sizeof(config_file), "%s/%s", config_folder, config_name);
+	char *msg;
 
-	    json_t * config = load_config_file(configFile);//"swm_zyre_config.json");
-	    if (config == NULL) {
-	      return -1;
-	    }
-
-	    /* Spawn new communication component */
-	    component_t *self = new_component(config);
-	    if (self == NULL) {
-	    	return -1;
-	    }
-	    printf("[%s] component initialized!\n", self->name);
-	    char *msg;
+//		json_t* tmpString = 0;
+//	   /* Load configuration file for communication setup */
+////	    char config_folder[255] = { SWM_ZYRE_CONFIG_DIR };
+////	    char config_name[] = "swm_zyre_config.json";
+////	    char config_file[512] = {0};
+////	    snprintf(config_file, sizeof(config_file), "%s/%s", config_folder, config_name);
+//
+//	    json_t * config = load_config_file(configFile);//"swm_zyre_config.json");
+//	    if (config == NULL) {
+//	      return -1;
+//	    }
+//
+//	    /* Spawn new communication component */
+//	    component_t *self = new_component(config);
+//	    if (self == NULL) {
+//	    	return -1;
+//	    }
+//	    printf("[%s] component initialized!\n", self->name);
+//	    char *msg;
 
 	    /* Get observationGroupId */
 	//    getObservationGroup = {
@@ -624,8 +631,11 @@ bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, cha
 	//          {"key": "name", "value": "observations"},
 	//      ]
 	//    }
+		json_t* tmpString = 0;
 		json_t *getObservationGroupMsg = json_object();
-		json_object_set(getObservationGroupMsg, "@worldmodeltype", json_string("RSGQuery"));
+		tmpString = json_string("RSGQuery");
+		json_object_set(getObservationGroupMsg, "@worldmodeltype", tmpString);
+		json_decref(tmpString);
 		json_object_set(getObservationGroupMsg, "query", json_string("GET_NODES"));
 		json_t *queryAttribute = json_object();
 		json_object_set(queryAttribute, "key", json_string("name"));
@@ -642,8 +652,8 @@ bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, cha
 	    printf("#########################################\n");
 	    printf("[%s] Got reply: %s \n", self->name, reply);
 
-	    json_decref(attributes);
 	    json_decref(queryAttribute);
+	    json_decref(attributes);
 	    json_decref(getObservationGroupMsg);
 
 	    json_error_t error;
@@ -904,23 +914,30 @@ bool add_victim(double x, double y , double z, double utcTimeStampInMiliSec, cha
 	    printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
 	    /* Clean up */
-	    destroy_component(&self);
-	    printf ("SHUTDOWN\n");
+	    json_decref(newTfNodeMsg);
+	    json_decref(newTfConnection);
+	    json_decref(targetIds);
+	    json_decref(sourceIds);
+	    json_decref(poseAttribute);
+	    json_decref(poseAttributes);
+	    json_decref(stampedPose);
+	    json_decref(stamp);
+	    json_decref(history);
+	    json_decref(matrix);
+	    json_decref(row0);
+	    json_decref(row1);
+	    json_decref(row2);
+	    json_decref(row3);
+
+	    return true;
 }
 
-bool add_agent(double x, double y, double z, double utcTimeStampInMiliSec, char *agentName, char* configFile) {
+bool add_agent(component_t *self, double x, double y, double z, double utcTimeStampInMiliSec, char *agentName) {
 
-	json_t * config = load_config_file(configFile);//"swm_zyre_config.json");
-	if (config == NULL) {
-		return -1;
-	}
-
-	/* Spawn new communication component */
-	component_t *self = new_component(config);
 	if (self == NULL) {
-		return -1;
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
 	}
-	printf("[%s] component initialized!\n", self->name);
 	char *msg;
 
 	/*
@@ -1214,26 +1231,15 @@ bool add_agent(double x, double y, double z, double utcTimeStampInMiliSec, char 
 	    printf("#########################################\n");
 	    printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
-	    /* Clean up */
-	    destroy_component(&self);
-	    printf ("SHUTDOWN\n");
-
 	    return true;
 }
 
-bool update_pose(double x, double y, double z, double utcTimeStampInMiliSec, char *agentName, char* configFile) {
+bool update_pose(component_t *self, double x, double y, double z, double utcTimeStampInMiliSec, char *agentName) {
 
-	json_t * config = load_config_file(configFile);//"swm_zyre_config.json");
-	if (config == NULL) {
-		return -1;
-	}
-
-	/* Spawn new communication component */
-	component_t *self = new_component(config);
 	if (self == NULL) {
-		return -1;
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
 	}
-	printf("[%s] component initialized!\n", self->name);
 	char *msg;
 
 	/*
@@ -1277,7 +1283,7 @@ bool update_pose(double x, double y, double z, double utcTimeStampInMiliSec, cha
 			return false;
 		}
 	}
-
+	free(reply);
 
 	/*
 	 * Send update
@@ -1345,6 +1351,7 @@ bool update_pose(double x, double y, double z, double utcTimeStampInMiliSec, cha
     json_object_set(newTfConnection, "history", history);
     json_object_set(newTfNodeMsg, "node", newTfConnection);
 
+
     /* Send message and wait for reply */
     msg = encode_json_message(self, newTfNodeMsg);
     shout_message(self, msg);
@@ -1353,8 +1360,16 @@ bool update_pose(double x, double y, double z, double utcTimeStampInMiliSec, cha
     printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
     /* Clean up */
-    destroy_component(&self);
-    printf ("SHUTDOWN\n");
+    json_decref(newTfNodeMsg);
+    json_decref(newTfConnection);
+    json_decref(stampedPose);
+    json_decref(stamp);
+    json_decref(history);
+    json_decref(matrix);
+    json_decref(row0);
+    json_decref(row1);
+    json_decref(row2);
+    json_decref(row3);
 
     return true;
 }
