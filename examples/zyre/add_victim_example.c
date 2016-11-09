@@ -37,13 +37,16 @@ int main(int argc, char *argv[]) {
 	double z = 405;
 	double utcTimeInMiliSec = 0.0;
 
-	printf("###################### VICTIM #########################\n");
-	add_victim(self, x,y,z,utcTimeInMiliSec, "hawk");
+	int i;
+
+	for (i = 0; i < 10; ++i) {
+		printf("###################### VICTIM #########################\n");
+		add_victim(self, x,y,z,utcTimeInMiliSec, "hawk");
+	}
+
 	printf("###################### AGENT #########################\n");
 	add_agent(self,  x,y,z,utcTimeInMiliSec, "hawk"); //TODO rotation/transform as 4x4 column-major matrix
 
-
-	int i;
 	for (i = 0; i < 10; ++i) {
 			printf("######################  POSE  #########################\n");
 			struct timeval tp;

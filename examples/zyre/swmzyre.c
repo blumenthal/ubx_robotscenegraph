@@ -652,9 +652,9 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    printf("#########################################\n");
 	    printf("[%s] Got reply: %s \n", self->name, reply);
 
-	    json_decref(queryAttribute);
-	    json_decref(attributes);
-	    json_decref(getObservationGroupMsg);
+//	    json_decref(queryAttribute);
+//	    json_decref(attributes);
+//	    json_decref(getObservationGroupMsg);
 
 	    json_error_t error;
 	    json_t *observationGroupIdReply = json_loads(reply, 0, &error);
@@ -742,14 +742,14 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    printf("[%s] Got reply: %s \n", self->name, reply);
 
 		// Clean up
-	    json_decref(attributes);
-	    json_decref(attribute1);
-	//    json_decref(attribute2);
-	    json_decref(attribute3);
-	    json_decref(attribute4);
-	    json_decref(newImageNodeMsg);
-	    json_decref(newImageNode);
-	    json_decref(uuid);
+//	    json_decref(attributes);
+//	    json_decref(attribute1);
+//	//    json_decref(attribute2);
+//	    json_decref(attribute3);
+//	    json_decref(attribute4);
+//	    json_decref(newImageNodeMsg);
+//	    json_decref(newImageNode);
+//	    json_decref(uuid);
 
 
 	    /*
@@ -785,9 +785,9 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    }
 
 	    /* Clean up */
-	    json_decref(attributes);
-	    json_decref(originAttribute);
-	    json_decref(getOriginMsg);
+//	    json_decref(attributes);
+//	    json_decref(originAttribute);
+//	    json_decref(getOriginMsg);
 
 	    /*
 	     * Pose
@@ -914,20 +914,20 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
 	    /* Clean up */
-	    json_decref(newTfNodeMsg);
-	    json_decref(newTfConnection);
-	    json_decref(targetIds);
-	    json_decref(sourceIds);
-	    json_decref(poseAttribute);
-	    json_decref(poseAttributes);
-	    json_decref(stampedPose);
-	    json_decref(stamp);
-	    json_decref(history);
-	    json_decref(matrix);
-	    json_decref(row0);
-	    json_decref(row1);
-	    json_decref(row2);
-	    json_decref(row3);
+//	    json_decref(newTfNodeMsg);
+//	    json_decref(newTfConnection);
+//	    json_decref(targetIds);
+//	    json_decref(sourceIds);
+//	    json_decref(poseAttribute);
+//	    json_decref(poseAttributes);
+//	    json_decref(stampedPose);
+//	    json_decref(stamp);
+//	    json_decref(history);
+//	    json_decref(matrix);
+//	    json_decref(row0);
+//	    json_decref(row1);
+//	    json_decref(row2);
+//	    json_decref(row3);
 
 	    return true;
 }
