@@ -38,14 +38,17 @@ int main(int argc, char *argv[]) {
 	double utcTimeInMiliSec = 0.0;
 
 	printf("###################### VICTIM #########################\n");
-	//add_victim(self, x,y,z,utcTimeInMiliSec, "hawk");
+	add_victim(self, x,y,z,utcTimeInMiliSec, "hawk");
 	printf("###################### AGENT #########################\n");
-	//add_agent(self,  x,y,z,utcTimeInMiliSec, "hawk"); //TODO rotation/transform as 4x4 column-major matrix
+	add_agent(self,  x,y,z,utcTimeInMiliSec, "hawk"); //TODO rotation/transform as 4x4 column-major matrix
 
 
 	int i;
 	for (i = 0; i < 10; ++i) {
 			printf("######################  POSE  #########################\n");
+			struct timeval tp;
+			gettimeofday(&tp, NULL);
+			utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
 			update_pose(self, x,y,z+i,utcTimeInMiliSec+i, "hawk");
 	}
 

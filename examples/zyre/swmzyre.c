@@ -961,9 +961,9 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
-	json_decref(attributes);
-	json_decref(agentAttribute);
-	json_decref(getAgentMsg);
+//	json_decref(attributes);
+//	json_decref(agentAttribute);
+//	json_decref(getAgentMsg);
 
 
 	json_error_t error;
@@ -1095,11 +1095,11 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	    printf("[%s] Got reply: %s \n", self->name, reply);
 
 	    // Clean up
-	    json_decref(attributes);
-	    json_decref(attribute1);
-	    json_decref(newAgentNodeMsg);
-	    json_decref(newAgentNode);
-	    json_decref(uuid);
+//	    json_decref(attributes);
+//	    json_decref(attribute1);
+//	    json_decref(newAgentNodeMsg);
+//	    json_decref(newAgentNode);
+//	    json_decref(uuid);
 
 	    /*
 	     * Finally add a pose ;-)
@@ -1265,9 +1265,9 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
-	json_decref(attributes);
-	json_decref(poseIdAttribute);
-	json_decref(getPoseIdMsg);
+//	json_decref(attributes);
+//	json_decref(poseIdAttribute);
+//	json_decref(getPoseIdMsg);
 
 
 	json_error_t error;
@@ -1360,16 +1360,16 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
     /* Clean up */
-    json_decref(newTfNodeMsg);
-    json_decref(newTfConnection);
-    json_decref(stampedPose);
-    json_decref(stamp);
-    json_decref(history);
-    json_decref(matrix);
-    json_decref(row0);
-    json_decref(row1);
-    json_decref(row2);
-    json_decref(row3);
+//    json_decref(newTfNodeMsg);
+//    json_decref(newTfConnection);
+//    json_decref(stampedPose);
+//    json_decref(stamp);
+//    json_decref(history);
+//    json_decref(matrix);
+//    json_decref(row0);
+//    json_decref(row1);
+//    json_decref(row2);
+//    json_decref(row3);
 
     return true;
 }
