@@ -36,7 +36,7 @@ Usage
 Synopsis:
 
 ```
-./swm_zyre <path_to_json_file>
+./swm_zyre <path_to_json_file> [<path_to_config_file>]
 ```
 
 E.g.
