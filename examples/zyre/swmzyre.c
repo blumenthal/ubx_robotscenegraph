@@ -777,7 +777,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    json_t* originIdAsJSON = 0;
 	    array = json_object_get(originIdReply, "ids");
 	    if (array) {
-	    	printf("[%s] result array found: %s \n", self->name);
+	    	printf("[%s] result array found: \n", self->name);
 	    	if( json_array_size(array) > 0 ) {
 	    		originIdAsJSON = json_array_get(array, 0);
 	        	printf("[%s] ID is: %s \n", self->name, json_dumps(originIdAsJSON, JSON_ENCODE_ANY));
