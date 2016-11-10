@@ -303,7 +303,8 @@ return bd.system
           gossip_flag = use_gossip, -- 0,            -- 1 for using gossip locally; 0 for using UDP beaconing instead
           gossip_endpoint = gossip_endpoint  , -- Endpoint for zyre gossip discovery. Default is "ipc:///tmp/local-hub"
           bind = bind_zyre, -- 0,         -- Decides whether this node binds or connects to gossip network; The must be at least on node that binds. 
-          local_endpoint="ipc:///tmp/sherpa_wm" -- currently unused; local endpoint for zyre network;"
+          local_endpoint="ipc:///tmp/sherpa_wm", -- currently unused; local endpoint for zyre network;"
+          mediator=use_gossip -- 1 for unsing mediator, 0 for not using it
 
         } 
       },
