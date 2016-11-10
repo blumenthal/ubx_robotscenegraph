@@ -141,11 +141,12 @@ json_t * load_config_file(char* file) {
     json_error_t error;
     json_t * root;
     root = json_load_file(file, JSON_ENSURE_ASCII, &error);
-    printf("[%s] config file: %s\n", json_string_value(json_object_get(root, "short-name")), json_dumps(root, JSON_ENCODE_ANY));
-    if(!root) {
-   	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+	if(!root) {
+		printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
     	return NULL;
     }
+    printf("[%s] config file: %s\n", json_string_value(json_object_get(root, "short-name")), json_dumps(root, JSON_ENCODE_ANY));
+
     return root;
 }
 
@@ -1048,7 +1049,7 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	    json_t* originIdAsJSON = 0;
 	    array = json_object_get(originIdReply, "ids");
 	    if (array) {
-	    	printf("[%s] result array found: %s \n", self->name);
+	    	printf("[%s] result array found. \n", self->name);
 	    	if( json_array_size(array) > 0 ) {
 	    		originIdAsJSON = json_array_get(array, 0);
 	        	printf("[%s] ID is: %s \n", self->name, json_dumps(originIdAsJSON, JSON_ENCODE_ANY));
