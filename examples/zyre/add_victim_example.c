@@ -18,13 +18,13 @@ int main(int argc, char *argv[]) {
 	char config_file[512] = {0};
 	snprintf(config_file, sizeof(config_file), "%s/%s", config_folder, config_name);
 
+    if (argc == 2) { // override default config
+    	snprintf(config_file, sizeof(config_file), "%s", argv[1]);
+    }
+    
     json_t * config = load_config_file(config_file);//"swm_zyre_config.json");
     if (config == NULL) {
       return -1;
-    }
-
-    if (argc == 2) { // override default config
-    	snprintf(config_file, sizeof(config_file), "%s", argv[1]);
     }
 
     /* Spawn new communication component */
