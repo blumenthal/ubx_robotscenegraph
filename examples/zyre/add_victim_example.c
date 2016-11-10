@@ -23,6 +23,10 @@ int main(int argc, char *argv[]) {
       return -1;
     }
 
+    if (argc == 2) { // override default config
+    	snprintf(config_file, sizeof(config_file), "%s", argv[1]);
+    }
+
     /* Spawn new communication component */
     component_t *self = new_component(config);
     if (self == NULL) {
@@ -39,7 +43,7 @@ int main(int argc, char *argv[]) {
 
 	int i;
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 1; ++i) {
 		printf("###################### VICTIM #########################\n");
 		add_victim(self, x,y,z,utcTimeInMiliSec, "hawk");
 	}
