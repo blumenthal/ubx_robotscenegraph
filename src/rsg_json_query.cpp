@@ -90,6 +90,7 @@ int rsg_json_query_init(ubx_block_t *b)
         inf->constraint_filter = new brics_3d::rsg::GraphConstraintUpdateFilter(inf->wm, brics_3d::rsg::GraphConstraintUpdateFilter::RECEIVER);
     	inf->wm_updates_to_wm = new brics_3d::rsg::UpdatesToSceneGraphListener();
     	inf->wm_updates_to_wm->attachSceneGraph(&inf->wm->scene);
+    	inf->wm_updates_to_wm->setForcedIdPolicy(false);
     	inf->constraint_filter->attachUpdateObserver(inf->wm_updates_to_wm); // handle used for updates
 
         /* Setup query runner module  */
