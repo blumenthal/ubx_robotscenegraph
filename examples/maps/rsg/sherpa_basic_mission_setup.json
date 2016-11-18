@@ -23,6 +23,7 @@
 				      		"@childtype": "Child",
 			          		"child": {		
 							    "@graphtype": "Group",
+							    "id": "c12442bb-072d-4c1f-9797-82fe0b118ccc",
 							    "attributes": [
 							    	{"key": "name", "value": "mission"},
 							    	{"key": "comment", "value": "This is the node of the objects included in the SWM during a mission."},
@@ -33,6 +34,7 @@
 							      		"@childtype": "Child",
 						          		"child": {		
 										    "@graphtype": "Group",
+										    "id": "af0611b0-c449-413d-a8b8-382edd44644a",
 										    "attributes": [
 										    	{"key": "name", "value": "animals"},
 										    	{"key": "comment", "value": "This is the node of the animals, i.e. agents of the SHERPA team."}
@@ -46,6 +48,7 @@
 							      		"@childtype": "Child",
 						          		"child": {		
 										    "@graphtype": "Group",
+										    "id": "da04c670-7d3c-4f56-b73a-d67ce7d33499",
 										    "attributes": [
 										    	{"key": "name", "value": "enviroment"},
 										    	{"key": "comment", "value": "This is the node of the scenario environment objects."}
@@ -59,6 +62,7 @@
 							      		"@childtype": "Child",
 						          		"child": {		
 										    "@graphtype": "Group",
+										    "id": "41bba5aa-ebab-45ec-86a9-c37524afd550",										    
 										    "attributes": [
 										    	{"key": "name", "value": "observations"},
 										    ],
@@ -74,6 +78,7 @@
 				      		"@childtype": "Child",
 			          		"child": {		
 							    "@graphtype": "Group",
+							    "id": "84e7bcd9-a797-464c-a916-61bc2f9279ef",
 							    "attributes": [
 							        {"key": "gis:origin", "value": "wgs84"},
 							        {"key": "comment", "value": "Reference frame for geo poses. Use this ID for Transform queries."},
