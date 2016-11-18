@@ -42,8 +42,9 @@ int main(int argc, char *argv[]) {
 	double utcTimeInMiliSec = 0.0;
 
 	int i;
+	struct timeval tp;
 
-	for (i = 0; i < 1; ++i) {
+	for (i = 0; i < 0; ++i) {
 		printf("###################### VICTIM #########################\n");
 		add_victim(self, x,y,z,utcTimeInMiliSec, "hawk");
 	}
@@ -51,13 +52,22 @@ int main(int argc, char *argv[]) {
 	printf("###################### AGENT #########################\n");
 	add_agent(self,  x,y,z,utcTimeInMiliSec, "hawk"); //TODO rotation/transform as 4x4 column-major matrix
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 0; ++i) {
 			printf("######################  POSE  #########################\n");
-			struct timeval tp;
 			gettimeofday(&tp, NULL);
 			utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
 			update_pose(self, x,y,z+i,utcTimeInMiliSec+i, "hawk");
 	}
+
+	printf("######################  GET POSITON  #########################\n");
+	x = 0;
+	y = 0;
+	z = 0;
+	gettimeofday(&tp, NULL);
+	utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
+	get_position(self, &x, &y, &z, utcTimeInMiliSec, "hawk");
+	printf ("Latest position of hawk = (%f,%f,%f)\n", x,y,z);
+
 
 	printf("######################  DONE  #########################\n");
     /* Clean up */

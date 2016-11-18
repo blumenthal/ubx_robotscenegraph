@@ -1375,3 +1375,142 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     return true;
 }
 
+bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utcTimeStampInMiliSec, char *agentName) {
+	char *msg;
+
+	/*
+	 * Get ID of agent by name
+	 */
+	json_t *getAgentMsg = json_object();
+	json_object_set(getAgentMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set(getAgentMsg, "query", json_string("GET_NODES"));
+	json_t *agentAttribute = json_object();
+	json_object_set(agentAttribute, "key", json_string("sherpa:agent_name"));
+	json_object_set(agentAttribute, "value", json_string(agentName));
+	json_t *attributes = json_array();
+	json_array_append(attributes, agentAttribute);
+	//	json_object_set(attributes, "attributes", queryAttribute);
+	json_object_set(getAgentMsg, "attributes", attributes);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getAgentMsg);
+	shout_message(self, msg);
+	char* reply = wait_for_reply(self);
+	printf("#########################################\n");
+	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
+
+//	json_decref(attributes);
+//	json_decref(agentAttribute);
+//	json_decref(getAgentMsg);
+
+	json_error_t error;
+	json_t *agentIdReply = json_loads(reply, 0, &error);
+	json_t* agentIdAsJSON = 0;
+	json_t* agentArray = json_object_get(agentIdReply, "ids");
+	if (agentArray) {
+		if( json_array_size(agentArray) > 0 ) {
+			agentIdAsJSON = json_array_get(agentArray, 0);
+			printf("[%s] Agent ID is: %s \n", self->name, strdup( json_dumps(json_array_get(agentArray, 0), JSON_ENCODE_ANY) ));
+		} else {
+			printf("[%s] [ERROR] Agent does not exist. Pose query skipped.\n", self->name);
+			return false;
+		}
+	}
+
+
+	/*
+	 * Get origin ID
+	 */
+	json_t *getOriginMsg = json_object();
+	json_object_set(getOriginMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set(getOriginMsg, "query", json_string("GET_NODES"));
+	json_t * originAttribute = json_object();
+	json_object_set(originAttribute, "key", json_string("gis:origin"));
+	json_object_set(originAttribute, "value", json_string("wgs84"));
+	attributes = json_array();
+	json_array_append(attributes, originAttribute);
+	json_object_set(getOriginMsg, "attributes", attributes);
+
+	/* Send message and wait for reply */
+    msg = encode_json_message(self, getOriginMsg);
+    shout_message(self, msg);
+    reply = wait_for_reply(self); // TODO free older reply
+    printf("#########################################\n");
+    printf("[%s] Got reply: %s \n", self->name, reply);
+
+    /* Parse reply */
+    json_t *originIdReply = json_loads(reply, 0, &error);
+    json_t* originIdAsJSON = 0;
+    json_t* originArray = json_object_get(originIdReply, "ids");
+    if (originArray) {
+    	printf("[%s] result array found. \n", self->name);
+    	if( json_array_size(originArray) > 0 ) {
+    		originIdAsJSON = json_array_get(originArray, 0);
+        	printf("[%s] Origin ID is: %s \n", self->name, json_dumps(originIdAsJSON, JSON_ENCODE_ANY));
+    	} else {
+			printf("[%s] [ERROR] Origin does not exist. Pose query skipped.\n", self->name);
+			return false;
+		}
+    }
+	/*
+	 * Get pose at time utcTimeStampInMiliSec
+	 */
+//    {
+//      "@worldmodeltype": "RSGQuery",
+//      "query": "GET_TRANSFORM",
+//      "id": "3304e4a0-44d4-4fc8-8834-b0b03b418d5b",
+//      "idReferenceNode": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+//      "timeStamp": {
+//        "@stamptype": "TimeStampDate",
+//        "stamp": "2015-11-09T16:16:44Z"
+//      }
+//    }
+	json_t *getTransformMsg = json_object();
+	json_object_set(getTransformMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set(getTransformMsg, "query", json_string("GET_TRANSFORM"));
+	json_object_set(getTransformMsg, "id", agentIdAsJSON);
+	json_object_set(getTransformMsg, "idReferenceNode", originIdAsJSON);
+	// stamp
+	json_t *stamp = json_object();
+	json_object_set(stamp, "@stamptype", json_string("TimeStampUTCms"));
+	json_object_set(stamp, "stamp", json_real(utcTimeStampInMiliSec));
+	json_object_set(getTransformMsg, "timeStamp", stamp);
+
+	/* Send message and wait for reply */
+    msg = encode_json_message(self, getOriginMsg);
+    shout_message(self, msg);
+    reply = wait_for_reply(self); // TODO free older reply
+    printf("#########################################\n");
+    printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/*
+	 * Parse result
+	 */
+
+    /* Parse reply */
+    json_t *transformReply = json_loads(reply, 0, &error);
+    json_t* transform = json_object_get(originIdReply, "transform");
+    if(transform) {
+    	json_t* matrix = json_object_get(originIdReply, "matrix");
+    	xOut = json_integer_value(json_array_get(json_array_get(matrix, 0), 4));
+    	printf("X= %f\n", xOut);
+    } else {
+    	return false;
+    }
+//    json_t* originIdAsJSON = 0;
+//    json_t* originArray = json_object_get(originIdReply, "ids");
+//    if (originArray) {
+//    	printf("[%s] result array found. \n", self->name);
+//    	if( json_array_size(originArray) > 0 ) {
+//    		originIdAsJSON = json_array_get(originArray, 0);
+//        	printf("[%s] Origin ID is: %s \n", self->name, json_dumps(originIdAsJSON, JSON_ENCODE_ANY));
+//    	} else {
+//			printf("[%s] [ERROR] Origin does not exist. Pose query skipped.\n", self->name);
+//			return false;
+//		}
+//    }
+
+
+
+	return false;
+}

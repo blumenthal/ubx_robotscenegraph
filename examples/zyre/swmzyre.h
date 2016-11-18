@@ -77,6 +77,7 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 
 bool update_pose(component_t *self, double x, double y, double z, double utcTimeStampInMiliSec, char *agentName);
 
+bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utcTimeStampInMiliSec, char *agentName);
 
 /* Handlers */
 

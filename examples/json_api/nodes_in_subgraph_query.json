@@ -1,0 +1,8 @@
+{
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_NODES",
+  "subgraphId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+  "attributes": [
+    {"key": "name", "value": "^.*"}
+  ]
+}
