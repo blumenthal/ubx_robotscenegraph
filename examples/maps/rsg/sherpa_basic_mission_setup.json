@@ -1,6 +1,27 @@
 {    
   "metamodel": "rsg-core-schema.json",  
   "@worldmodeltype": "WorldModelAgent",
+  "rootNode": {
+    "@graphtype": "Group",
+    "attributes": [
+    	{"key": "rsg:dbg", "value": "added_by_rsg_model_file"},	  
+    ],
+    "childs": [
+		{
+	  		"@childtype": "Child",
+	  		"child": {		
+			    "@graphtype": "Group",
+			    "attributes": [
+			    	{"key": "name", "value": "observations"},
+			    	{"key": "comment", "value": "Observations that belong to an individual agent."}
+			    ],
+			    "childs": [				  
+	
+			    ]   
+		    }
+	    }
+    ]
+  },
   "remoteRootNodes": [
     {
 	    "@graphtype": "Group",
@@ -64,7 +85,8 @@
 										    "@graphtype": "Group",
 										    "id": "41bba5aa-ebab-45ec-86a9-c37524afd550",										    
 										    "attributes": [
-										    	{"key": "name", "value": "observations"},
+										    	{"key": "name", "value": "global_observations"},
+										    	{"key": "comment", "value": "Add non robot specific obervations here."}
 										    ],
 										    "childs": [				  
 						
