@@ -1466,8 +1466,8 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 //      }
 //    }
 	json_t *getTransformMsg = json_object();
-	json_object_set(getTransformMsg, "@worldmodeltype", json_string("RSGQuery"));
-	json_object_set(getTransformMsg, "query", json_string("GET_TRANSFORM"));
+	json_object_set_new(getTransformMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getTransformMsg, "query", json_string("GET_TRANSFORM"));
 	json_object_set(getTransformMsg, "id", agentIdAsJSON);
 	json_object_set(getTransformMsg, "idReferenceNode", originIdAsJSON);
 	// stamp
@@ -1477,7 +1477,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	json_object_set(getTransformMsg, "timeStamp", stamp);
 
 	/* Send message and wait for reply */
-    msg = encode_json_message(self, getOriginMsg);
+    msg = encode_json_message(self, getTransformMsg);
     shout_message(self, msg);
     reply = wait_for_reply(self); // TODO free older reply
     printf("#########################################\n");
@@ -1489,11 +1489,13 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 
     /* Parse reply */
     json_t *transformReply = json_loads(reply, 0, &error);
-    json_t* transform = json_object_get(originIdReply, "transform");
+    json_t* transform = json_object_get(transformReply, "transform");
     if(transform) {
-    	json_t* matrix = json_object_get(originIdReply, "matrix");
-    	xOut = json_integer_value(json_array_get(json_array_get(matrix, 0), 4));
-    	printf("X= %f\n", xOut);
+    	json_t* matrix = json_object_get(transform, "matrix");
+    	*xOut = json_real_value(json_array_get(json_array_get(matrix, 0), 3));
+    	*yOut = json_real_value(json_array_get(json_array_get(matrix, 1), 3));
+    	*zOut = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
+
     } else {
     	return false;
     }
