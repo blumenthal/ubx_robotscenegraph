@@ -251,9 +251,9 @@ char* encode_json_message(component_t* self, json_t* message) {
 	// pack it into the standard msg envelope
 	json_t *env;
     env = json_object();
-	json_object_set(env, "metamodel", json_string("SHERPA"));
-	json_object_set(env, "model", json_string("RSGQuery"));
-	json_object_set(env, "type", json_string("RSGQuery"));
+	json_object_set_new(env, "metamodel", json_string("SHERPA"));
+	json_object_set_new(env, "model", json_string("RSGQuery"));
+	json_object_set_new(env, "type", json_string("RSGQuery"));
 	json_object_set(env, "payload", pl);
 
 	// add it to the query list
@@ -945,15 +945,15 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	 * Check if an agent exist already
 	 */
 	json_t *getAgentMsg = json_object();
-	json_object_set(getAgentMsg, "@worldmodeltype", json_string("RSGQuery"));
-	json_object_set(getAgentMsg, "query", json_string("GET_NODES"));
+	json_object_set_new(getAgentMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getAgentMsg, "query", json_string("GET_NODES"));
 	json_t *agentAttribute = json_object();
-	json_object_set(agentAttribute, "key", json_string("sherpa:agent_name"));
-	json_object_set(agentAttribute, "value", json_string(agentName));
+	json_object_set_new(agentAttribute, "key", json_string("sherpa:agent_name"));
+	json_object_set_new(agentAttribute, "value", json_string(agentName));
 	json_t *attributes = json_array();
-	json_array_append(attributes, agentAttribute);
+	json_array_append_new(attributes, agentAttribute);
 	//	json_object_set(attributes, "attributes", queryAttribute);
-	json_object_set(getAgentMsg, "attributes", attributes);
+	json_object_set_new(getAgentMsg, "attributes", attributes);
 
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getAgentMsg);
@@ -964,7 +964,7 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 
 //	json_decref(attributes);
 //	json_decref(agentAttribute);
-//	json_decref(getAgentMsg);
+	json_decref(getAgentMsg);
 
 
 	json_error_t error;
@@ -1247,17 +1247,17 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 	 * Get ID of pose to be updates (can be made more efficient)
 	 */
 	json_t *getPoseIdMsg = json_object();
-	json_object_set(getPoseIdMsg, "@worldmodeltype", json_string("RSGQuery"));
-	json_object_set(getPoseIdMsg, "query", json_string("GET_NODES"));
+	json_object_set_new(getPoseIdMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getPoseIdMsg, "query", json_string("GET_NODES"));
 	json_t *poseIdAttribute = json_object();
-	json_object_set(poseIdAttribute, "key", json_string("name"));
+	json_object_set_new(poseIdAttribute, "key", json_string("name"));
     char poseName[512] = {0};
     snprintf(poseName, sizeof(poseName), "%s%s", agentName, "_geopose");
-	json_object_set(poseIdAttribute, "value", json_string(poseName));
+	json_object_set_new(poseIdAttribute, "value", json_string(poseName));
 	json_t *attributes = json_array();
-	json_array_append(attributes, poseIdAttribute);
+	json_array_append_new(attributes, poseIdAttribute);
 	//	json_object_set(attributes, "attributes", queryAttribute);
-	json_object_set(getPoseIdMsg, "attributes", attributes);
+	json_object_set_new(getPoseIdMsg, "attributes", attributes);
 
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getPoseIdMsg);
@@ -1285,6 +1285,7 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 		}
 	}
 	free(reply);
+	json_decref(poseIdReply);
 
 	/*
 	 * Send update
@@ -1292,12 +1293,12 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 
     // top level message
     json_t *newTfNodeMsg = json_object();
-    json_object_set(newTfNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
-    json_object_set(newTfNodeMsg, "operation", json_string("UPDATE_TRANSFORM"));
+    json_object_set_new(newTfNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+    json_object_set_new(newTfNodeMsg, "operation", json_string("UPDATE_TRANSFORM"));
     json_object_set(newTfNodeMsg, "parentId", poseIdAsJSON);
     json_t *newTfConnection = json_object();
-    json_object_set(newTfConnection, "@graphtype", json_string("Connection"));
-    json_object_set(newTfConnection, "@semanticContext", json_string("Transform"));
+    json_object_set_new(newTfConnection, "@graphtype", json_string("Connection"));
+    json_object_set_new(newTfConnection, "@semanticContext", json_string("Transform"));
     zuuid_t *poseUuid = zuuid_new ();
     json_object_set(newTfConnection, "id", poseIdAsJSON);
     // Attributes
@@ -1361,7 +1362,7 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
     /* Clean up */
-//    json_decref(newTfNodeMsg);
+    json_decref(newTfNodeMsg);
 //    json_decref(newTfConnection);
 //    json_decref(stampedPose);
 //    json_decref(stamp);
@@ -1371,6 +1372,7 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 //    json_decref(row1);
 //    json_decref(row2);
 //    json_decref(row3);
+    json_decref(poseIdAsJSON);
 
     return true;
 }

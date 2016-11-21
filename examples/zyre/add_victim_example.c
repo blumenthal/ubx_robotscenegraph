@@ -54,14 +54,15 @@ int main(int argc, char *argv[]) {
 	printf("###################### AGENT #########################\n");
 	add_agent(self,  x,y,z,utcTimeInMiliSec, agent_name); //TODO rotation/transform as 4x4 column-major matrix
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 30; ++i) {
 			printf("######################  POSE  #########################\n");
 			gettimeofday(&tp, NULL);
 			utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
 			update_pose(self, x,y,z+i,utcTimeInMiliSec+i, agent_name);
+			usleep(100/*[ms]*/ * 1000);
 	}
 
-	printf("######################  GET POSITON  #########################\n");
+	printf("######################  GET POSITION  #########################\n");
 	x = 0;
 	y = 0;
 	z = 0;
