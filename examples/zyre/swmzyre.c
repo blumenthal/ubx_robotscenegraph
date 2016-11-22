@@ -511,6 +511,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
+					    json_decref(payload);
 						break;
 					}
 				}
@@ -535,6 +536,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
+					    json_decref(payload);
 						break;
 					}
 				}
@@ -559,6 +561,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
+					    json_decref(payload);
 						break;
 					}
 				}
@@ -1266,10 +1269,6 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
-//	json_decref(attributes);
-//	json_decref(poseIdAttribute);
-//	json_decref(getPoseIdMsg);
-
 
 	json_error_t error;
 	json_t *poseIdReply = json_loads(reply, 0, &error);
@@ -1278,14 +1277,14 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 	if (poseIdArray) {
 		if( json_array_size(poseIdArray) > 0 ) {
 			poseIdAsJSON = json_array_get(poseIdArray, 0);
-			printf("[%s] Pose ID is: %s \n", self->name, strdup( json_dumps(json_array_get(poseIdArray, 0), JSON_ENCODE_ANY) ));
+			printf("[%s] Pose ID is: %s \n", self->name, strdup( json_dumps(poseIdAsJSON, JSON_ENCODE_ANY) ));
 		} else {
 			printf("[%s] [ERROR] Pose does not exist!\n", self->name);
 			return false;
 		}
 	}
+	free(msg);
 	free(reply);
-	json_decref(poseIdReply);
 
 	/*
 	 * Send update
@@ -1295,11 +1294,10 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     json_t *newTfNodeMsg = json_object();
     json_object_set_new(newTfNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
     json_object_set_new(newTfNodeMsg, "operation", json_string("UPDATE_TRANSFORM"));
-    json_object_set(newTfNodeMsg, "parentId", poseIdAsJSON);
+//    printf("[%s] Pose ID is: %s \n", self->name, strdup( json_dumps(poseIdAsJSON, JSON_ENCODE_ANY) ));
     json_t *newTfConnection = json_object();
     json_object_set_new(newTfConnection, "@graphtype", json_string("Connection"));
     json_object_set_new(newTfConnection, "@semanticContext", json_string("Transform"));
-    zuuid_t *poseUuid = zuuid_new ();
     json_object_set(newTfConnection, "id", poseIdAsJSON);
     // Attributes
 
@@ -1310,69 +1308,60 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     json_t *pose = json_object();
 
     // stamp
-    json_object_set(stamp, "@stamptype", json_string("TimeStampUTCms"));
-    //    struct timespec curr_time = {0,0};
-    //    clock_gettime(CLOCK_MONOTONIC,&curr_time); // TODO check for utc time; e.g. from the ROS header. To be tested!
-    //    double ts_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
-    json_object_set(stamp, "stamp", json_real(utcTimeStampInMiliSec));
+    json_object_set_new(stamp, "@stamptype", json_string("TimeStampUTCms"));
+    json_object_set_new(stamp, "stamp", json_real(utcTimeStampInMiliSec));
 
     //pose
-    json_object_set(pose, "type", json_string("HomogeneousMatrix44"));
-    json_object_set(pose, "unit", json_string("latlon"));
+    json_object_set_new(pose, "type", json_string("HomogeneousMatrix44"));
+    json_object_set_new(pose, "unit", json_string("latlon"));
     json_t *matrix = json_array();
     json_t *row0 = json_array();
-    json_array_append(row0, json_real(1));
-    json_array_append(row0, json_real(0));
-    json_array_append(row0, json_real(0));
-    json_array_append(row0, json_real(x));
+    json_array_append_new(row0, json_real(1));
+    json_array_append_new(row0, json_real(0));
+    json_array_append_new(row0, json_real(0));
+    json_array_append_new(row0, json_real(x));
     json_t *row1 = json_array();
-    json_array_append(row1, json_real(0));
-    json_array_append(row1, json_real(1));
-    json_array_append(row1, json_real(0));
-    json_array_append(row1, json_real(y));
+    json_array_append_new(row1, json_real(0));
+    json_array_append_new(row1, json_real(1));
+    json_array_append_new(row1, json_real(0));
+    json_array_append_new(row1, json_real(y));
     json_t *row2 = json_array();
-    json_array_append(row2, json_real(0));
-    json_array_append(row2, json_real(0));
-    json_array_append(row2, json_real(1));
-    json_array_append(row2, json_real(z));
+    json_array_append_new(row2, json_real(0));
+    json_array_append_new(row2, json_real(0));
+    json_array_append_new(row2, json_real(1));
+    json_array_append_new(row2, json_real(z));
     json_t *row3 = json_array();
-    json_array_append(row3, json_real(0));
-    json_array_append(row3, json_real(0));
-    json_array_append(row3, json_real(0));
-    json_array_append(row3, json_real(1));
-    json_array_append(matrix, row0);
-    json_array_append(matrix, row1);
-    json_array_append(matrix, row2);
-    json_array_append(matrix, row3);
+    json_array_append_new(row3, json_real(0));
+    json_array_append_new(row3, json_real(0));
+    json_array_append_new(row3, json_real(0));
+    json_array_append_new(row3, json_real(1));
+    json_array_append_new(matrix, row0);
+    json_array_append_new(matrix, row1);
+    json_array_append_new(matrix, row2);
+    json_array_append_new(matrix, row3);
 
-    json_object_set(pose, "matrix", matrix);
+    json_object_set_new(pose, "matrix", matrix);
 
-    json_object_set(stampedPose, "stamp", stamp);
-    json_object_set(stampedPose, "transform", pose);
-    json_array_append(history, stampedPose);
-    json_object_set(newTfConnection, "history", history);
-    json_object_set(newTfNodeMsg, "node", newTfConnection);
+    json_object_set_new(stampedPose, "stamp", stamp);
+    json_object_set_new(stampedPose, "transform", pose);
+    json_array_append_new(history, stampedPose);
+    json_object_set_new(newTfConnection, "history", history);
+    json_object_set_new(newTfNodeMsg, "node", newTfConnection);
 
 
     /* Send message and wait for reply */
     msg = encode_json_message(self, newTfNodeMsg);
     shout_message(self, msg);
-    reply = wait_for_reply(self); // TODO free older reply
+    reply = wait_for_reply(self);
     printf("#########################################\n");
     printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
     /* Clean up */
     json_decref(newTfNodeMsg);
-//    json_decref(newTfConnection);
-//    json_decref(stampedPose);
-//    json_decref(stamp);
-//    json_decref(history);
-//    json_decref(matrix);
-//    json_decref(row0);
-//    json_decref(row1);
-//    json_decref(row2);
-//    json_decref(row3);
+    json_decref(poseIdReply); // this has to be deleted late, since its ID is used within other queries
     json_decref(poseIdAsJSON);
+	free(msg);
+    free(reply);
 
     return true;
 }
@@ -1384,15 +1373,14 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	 * Get ID of agent by name
 	 */
 	json_t *getAgentMsg = json_object();
-	json_object_set(getAgentMsg, "@worldmodeltype", json_string("RSGQuery"));
-	json_object_set(getAgentMsg, "query", json_string("GET_NODES"));
+	json_object_set_new(getAgentMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getAgentMsg, "query", json_string("GET_NODES"));
 	json_t *agentAttribute = json_object();
-	json_object_set(agentAttribute, "key", json_string("sherpa:agent_name"));
-	json_object_set(agentAttribute, "value", json_string(agentName));
+	json_object_set_new(agentAttribute, "key", json_string("sherpa:agent_name"));
+	json_object_set_new(agentAttribute, "value", json_string(agentName));
 	json_t *attributes = json_array();
-	json_array_append(attributes, agentAttribute);
-	//	json_object_set(attributes, "attributes", queryAttribute);
-	json_object_set(getAgentMsg, "attributes", attributes);
+	json_array_append_new(attributes, agentAttribute);
+	json_object_set_new(getAgentMsg, "attributes", attributes);
 
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getAgentMsg);
@@ -1401,9 +1389,8 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
-//	json_decref(attributes);
-//	json_decref(agentAttribute);
-//	json_decref(getAgentMsg);
+//	free(msg);//?!?
+	json_decref(getAgentMsg);
 
 	json_error_t error;
 	json_t *agentIdReply = json_loads(reply, 0, &error);
@@ -1418,20 +1405,20 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 			return false;
 		}
 	}
-
+	free(reply);
 
 	/*
 	 * Get origin ID
 	 */
 	json_t *getOriginMsg = json_object();
-	json_object_set(getOriginMsg, "@worldmodeltype", json_string("RSGQuery"));
-	json_object_set(getOriginMsg, "query", json_string("GET_NODES"));
+	json_object_set_new(getOriginMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getOriginMsg, "query", json_string("GET_NODES"));
 	json_t * originAttribute = json_object();
-	json_object_set(originAttribute, "key", json_string("gis:origin"));
-	json_object_set(originAttribute, "value", json_string("wgs84"));
+	json_object_set_new(originAttribute, "key", json_string("gis:origin"));
+	json_object_set_new(originAttribute, "value", json_string("wgs84"));
 	attributes = json_array();
-	json_array_append(attributes, originAttribute);
-	json_object_set(getOriginMsg, "attributes", attributes);
+	json_array_append_new(attributes, originAttribute);
+	json_object_set_new(getOriginMsg, "attributes", attributes);
 
 	/* Send message and wait for reply */
     msg = encode_json_message(self, getOriginMsg);
@@ -1439,6 +1426,8 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     reply = wait_for_reply(self); // TODO free older reply
     printf("#########################################\n");
     printf("[%s] Got reply: %s \n", self->name, reply);
+
+    json_decref(getOriginMsg);
 
     /* Parse reply */
     json_t *originIdReply = json_loads(reply, 0, &error);
@@ -1470,13 +1459,13 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	json_t *getTransformMsg = json_object();
 	json_object_set_new(getTransformMsg, "@worldmodeltype", json_string("RSGQuery"));
 	json_object_set_new(getTransformMsg, "query", json_string("GET_TRANSFORM"));
-	json_object_set(getTransformMsg, "id", agentIdAsJSON);
-	json_object_set(getTransformMsg, "idReferenceNode", originIdAsJSON);
+	json_object_set_new(getTransformMsg, "id", agentIdAsJSON);
+	json_object_set_new(getTransformMsg, "idReferenceNode", originIdAsJSON);
 	// stamp
 	json_t *stamp = json_object();
-	json_object_set(stamp, "@stamptype", json_string("TimeStampUTCms"));
-	json_object_set(stamp, "stamp", json_real(utcTimeStampInMiliSec));
-	json_object_set(getTransformMsg, "timeStamp", stamp);
+	json_object_set_new(stamp, "@stamptype", json_string("TimeStampUTCms"));
+	json_object_set_new(stamp, "stamp", json_real(utcTimeStampInMiliSec));
+	json_object_set_new(getTransformMsg, "timeStamp", stamp);
 
 	/* Send message and wait for reply */
     msg = encode_json_message(self, getTransformMsg);
@@ -1499,6 +1488,9 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     	*zOut = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
 
     } else {
+        json_decref(agentIdReply); // this has to be deleted late, since its ID is used within other queries
+        json_decref(originIdReply);
+        json_decref(transformReply);
     	return false;
     }
 //    json_t* originIdAsJSON = 0;
@@ -1514,7 +1506,9 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 //		}
 //    }
 
+    json_decref(agentIdReply); // this has to be deleted late, since its ID is used within other queries
+    json_decref(originIdReply);
+    json_decref(transformReply);
 
-
-	return false;
+	return true;
 }
