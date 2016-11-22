@@ -13,6 +13,14 @@ void query_destroy (query_t **self_p) {
         }
 }
 
+void destroy_message(json_msg_t *msg) {
+	free(msg->metamodel);
+	free(msg->model);
+	free(msg->type);
+	free(msg->payload);
+	free(msg);
+}
+
 void destroy_component (component_t **self_p) {
     assert (self_p);
     if(*self_p) {
@@ -241,8 +249,8 @@ char* encode_json_message(component_t* self, json_t* message) {
 		printf("send_json_message No queryId found, adding one.\n");
 		zuuid_t *uuid = zuuid_new ();
 		assert(uuid);
-	    json_object_set(pl, "queryId", json_string(zuuid_str_canonical(uuid)));
-	    json_decref(uuid);
+	    json_object_set_new(pl, "queryId", json_string(zuuid_str_canonical(uuid)));
+	    free(uuid);
 	}
 
 	char* query_id = json_string_value(json_object_get(pl,"queryId"));
@@ -269,7 +277,7 @@ char* encode_json_message(component_t* self, json_t* message) {
 	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
 
 	json_decref(env);
-    json_decref(pl);
+
     return ret;
 }
 
@@ -508,6 +516,8 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s:\n %s\n ", self->name,it->uid,result->payload);
 						*reply = strdup(result->payload);
+//						free(it->msg->payload);
+						query_destroy(&it->msg);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -572,10 +582,11 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 	} else {
 		printf ("[%s] message could not be decoded\n", self->name);
 	}
-	free(result);
+	destroy_message(result);
 	zstr_free(&peerid);
 	zstr_free(&name);
 	zstr_free(&group);
+	zstr_free(&message);
 }
 
 void handle_join (component_t *self, zmsg_t *msg) {
@@ -670,7 +681,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	//    	printf("[%s] result array found: \n", self->name);
 	    	if( json_array_size(array) > 0 ) {
 	    		observationGroupIdAsJSON = json_array_get(array, 0);
-	        	observationGroupId = strdup( json_dumps(json_array_get(array, 0), JSON_ENCODE_ANY) );
+	        	observationGroupId =  json_dumps(json_array_get(array, 0), JSON_ENCODE_ANY);
 	        	printf("[%s] ID is: %s \n", self->name, observationGroupId);
 	    	}
 	    }
@@ -977,7 +988,7 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	if (agentArray) {
 		if( json_array_size(agentArray) > 0 ) {
 			agentIdAsJSON = json_array_get(agentArray, 0);
-			printf("[%s] Agent ID is: %s \n", self->name, strdup( json_dumps(json_array_get(agentArray, 0), JSON_ENCODE_ANY) ));
+			printf("[%s] Agent ID is: %s \n", self->name,  json_dumps(json_array_get(agentArray, 0), JSON_ENCODE_ANY) );
 			printf("[%s] Agent exists. Skipping creation of it\n", self->name);
 			return false;
 		}
@@ -1269,6 +1280,7 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
+	json_decref(getPoseIdMsg);
 
 	json_error_t error;
 	json_t *poseIdReply = json_loads(reply, 0, &error);
@@ -1283,8 +1295,8 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 			return false;
 		}
 	}
-	free(msg);
-	free(reply);
+//	free(msg);
+//	free(reply);
 
 	/*
 	 * Send update
@@ -1359,7 +1371,7 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     /* Clean up */
     json_decref(newTfNodeMsg);
     json_decref(poseIdReply); // this has to be deleted late, since its ID is used within other queries
-    json_decref(poseIdAsJSON);
+    //json_decref(poseIdAsJSON);
 	free(msg);
     free(reply);
 
@@ -1389,7 +1401,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
-//	free(msg);//?!?
+	free(msg);//?!?
 	json_decref(getAgentMsg);
 
 	json_error_t error;
@@ -1399,7 +1411,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	if (agentArray) {
 		if( json_array_size(agentArray) > 0 ) {
 			agentIdAsJSON = json_array_get(agentArray, 0);
-			printf("[%s] Agent ID is: %s \n", self->name, strdup( json_dumps(json_array_get(agentArray, 0), JSON_ENCODE_ANY) ));
+			printf("[%s] Agent ID is: %s \n", self->name, json_dumps(json_array_get(agentArray, 0), JSON_ENCODE_ANY) );
 		} else {
 			printf("[%s] [ERROR] Agent does not exist. Pose query skipped.\n", self->name);
 			return false;
@@ -1428,6 +1440,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     printf("[%s] Got reply: %s \n", self->name, reply);
 
     json_decref(getOriginMsg);
+    free(msg);
 
     /* Parse reply */
     json_t *originIdReply = json_loads(reply, 0, &error);
@@ -1488,9 +1501,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     	*zOut = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
 
     } else {
-        json_decref(agentIdReply); // this has to be deleted late, since its ID is used within other queries
-        json_decref(originIdReply);
-        json_decref(transformReply);
+
     	return false;
     }
 //    json_t* originIdAsJSON = 0;

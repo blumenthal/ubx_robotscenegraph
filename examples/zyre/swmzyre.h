@@ -41,6 +41,8 @@ typedef struct _component_t {
 
 void query_destroy (query_t **self_p);
 
+void destroy_message(json_msg_t *msg);
+
 void destroy_component (component_t **self_p);
 
 query_t * query_new (const char *uid, const char *requester, json_msg_t *msg, zactor_t *loop);
