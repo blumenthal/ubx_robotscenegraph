@@ -43,12 +43,21 @@ int main(int argc, char *argv[]) {
 	double z = 405;
 	double utcTimeInMiliSec = 0.0;
 
+
 	int i;
 	struct timeval tp;
 
+	printf("###################### ORIGIN #########################\n");
+	char* originId = 0;
+	assert(get_gis_origin_id(self, &originId));
+	printf ("Origin ID = %s \n", originId);
+	free(originId);
+
 	for (i = 0; i < 2; ++i) {
 		printf("###################### VICTIM #########################\n");
-		add_victim(self, x,y,z,utcTimeInMiliSec, agent_name);
+		gettimeofday(&tp, NULL);
+		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		assert(add_victim(self, x,y,z,utcTimeInMiliSec, agent_name));
 	}
 
 	printf("###################### AGENT #########################\n");
