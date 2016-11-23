@@ -8,6 +8,7 @@ void query_destroy (query_t **self_p) {
         assert (self_p);
         if(*self_p) {
             query_t *self = *self_p;
+            destroy_message(self->msg);
             free (self);
             *self_p = NULL;
         }
@@ -17,8 +18,8 @@ void destroy_message(json_msg_t *msg) {
 	free(msg->metamodel);
 	free(msg->model);
 	free(msg->type);
-	zstr_free(&msg->payload);
-//	free(msg->payload);
+//	zstr_free(msg->payload);
+	free(msg->payload);
 	free(msg);
 }
 
@@ -197,7 +198,7 @@ int decode_json(char* message, json_msg_t *result) {
 		return -1;
 	}
     if (json_object_get(root, "payload")) {
-    	result->payload = strdup(json_dumps(json_object_get(root, "payload"), JSON_ENCODE_ANY));
+    	result->payload = /*strdup(*/json_dumps(json_object_get(root, "payload"), JSON_ENCODE_ANY)/*)*/;
 	} else {
 		printf("Error parsing JSON string! Does not conform to msg model.\n");
 		return -1;
@@ -250,7 +251,9 @@ char* encode_json_message(component_t* self, json_t* message) {
 		printf("send_json_message No queryId found, adding one.\n");
 		zuuid_t *uuid = zuuid_new ();
 		assert(uuid);
-	    json_object_set_new(pl, "queryId", json_string(zuuid_str_canonical(uuid)));
+		char* uuid_as_string = zuuid_str_canonical(uuid);
+	    json_object_set_new(pl, "queryId", json_string(uuid_as_string));
+	    free(uuid_as_string);
 	    free(uuid);
 	}
 
@@ -270,7 +273,7 @@ char* encode_json_message(component_t* self, json_t* message) {
 	msg->metamodel = strdup("SHERPA");
 	msg->model = strdup("RSGQuery");
 	msg->type = strdup("RSGQuery");
-	msg->payload = strdup(json_dumps(pl, JSON_ENCODE_ANY));
+	msg->payload = json_dumps(pl, JSON_ENCODE_ANY);
 	query_t * q = query_new(query_id, zyre_uuid(self->local), msg, NULL);
 	zlist_append(self->query_list, q);
 
@@ -467,6 +470,7 @@ void handle_enter(component_t *self, zmsg_t *msg) {
 	zstr_free(&peerid);
 	zstr_free(&name);
 	zframe_destroy(&headers_packed);
+	zhash_destroy(&headers);
 	zstr_free(&address);
 }
 
@@ -518,10 +522,10 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 						printf("[%s] received answer to query %s:\n %s\n ", self->name,it->uid,result->payload);
 						*reply = strdup(result->payload);
 //						free(it->msg->payload);
-						query_destroy(&it->msg);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
+						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
 					}
@@ -544,10 +548,10 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						*reply = strdup(result->payload);
-						query_destroy(&it->msg);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
+						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
 					}
@@ -570,10 +574,10 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s ", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						*reply = strdup(result->payload);
-						query_destroy(&it->msg);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
+						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
 					}
@@ -664,6 +668,8 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    	}
 	    }
 
+	    free(reply);
+
 	    if(!observationGroupIdAsJSON) {
 	    	printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
 	    	return -1;
@@ -695,7 +701,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 		json_t *newImageNodeMsg = json_object();
 		json_object_set_new(newImageNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
 		json_object_set_new(newImageNodeMsg, "operation", json_string("CREATE"));
-		json_object_set_new(newImageNodeMsg, "parentId", observationGroupIdAsJSON);
+		json_object_set(newImageNodeMsg, "parentId", observationGroupIdAsJSON);
 		json_t *newImageNode = json_object();
 		json_object_set_new(newImageNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();
@@ -735,7 +741,6 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    printf("[%s] Got reply: %s \n", self->name, reply);
 
 		// Clean up
-//	    json_decref(newImageNodeMsg); //?
 	    free(msg);
 	    free(reply);
 
@@ -821,7 +826,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 		json_t *newTfNodeMsg = json_object();
 		json_object_set_new(newTfNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
 		json_object_set_new(newTfNodeMsg, "operation", json_string("CREATE"));
-		json_object_set_new(newTfNodeMsg, "parentId", observationGroupIdAsJSON);
+		json_object_set(newTfNodeMsg, "parentId", observationGroupIdAsJSON);
 		json_t *newTfConnection = json_object();
 		json_object_set_new(newTfConnection, "@graphtype", json_string("Connection"));
 		json_object_set_new(newTfConnection, "@semanticContext", json_string("Transform"));
@@ -836,7 +841,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 		json_object_set_new(newTfConnection, "attributes", poseAttributes);
 		// sourceIds
 		json_t *sourceIds = json_array();
-		json_array_append_new(sourceIds, originIdAsJSON); // ID of origin node
+		json_array_append(sourceIds, originIdAsJSON); // ID of origin node
 		json_object_set_new(newTfConnection, "sourceIds", sourceIds);
 		// sourceIds
 		json_t *targetIds = json_array();
@@ -900,13 +905,13 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	    /* Clean up */
 	    free(msg);
 	    free(reply);
-//	    json_decref(newTfNodeMsg);
+    	free(observationGroupId);
 		free(uuid);
 		free(poseUuid);
-//	    json_decref(observationGroupIdAsJSON);
+	    json_decref(newTfNodeMsg);
+	    json_decref(newImageNodeMsg);
 	    json_decref(observationGroupIdReply);
 	    json_decref(originIdReply);
-
 
 	    return true;
 }
@@ -940,13 +945,13 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
-//	json_decref(attributes);
-//	json_decref(agentAttribute);
 	json_decref(getAgentMsg);
 
 
 	json_error_t error;
 	json_t *agentIdReply = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
 	json_t* agentIdAsJSON = 0;
 	json_t* agentArray = json_object_get(agentIdReply, "ids");
 	if (agentArray) {
@@ -957,9 +962,6 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 			return false;
 		}
 	}
-
-
-
 
 	/*
 	 * Agent(animals) group
@@ -987,6 +989,8 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	json_decref(getAgentsGroupMsg);
 
 	json_t *agentGroupIdReply = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
 	json_t* agentGroupIdAsJSON = 0;
 	json_t* array = json_object_get(agentGroupIdReply, "ids");
 	if (array) {
@@ -1210,6 +1214,8 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	    printf("#########################################\n");
 	    printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
+	    json_decref(agentIdReply);
+
 	    return true;
 }
 
@@ -1253,7 +1259,9 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
 	if (poseIdArray) {
 		if( json_array_size(poseIdArray) > 0 ) {
 			poseIdAsJSON = json_array_get(poseIdArray, 0);
-			printf("[%s] Pose ID is: %s \n", self->name,  json_dumps(poseIdAsJSON, JSON_ENCODE_ANY) );
+			char* dump = json_dumps(poseIdAsJSON, JSON_ENCODE_ANY);
+			printf("[%s] Pose ID is: %s \n", self->name, dump);
+			free(dump);
 		} else {
 			printf("[%s] [ERROR] Pose does not exist!\n", self->name);
 			return false;
@@ -1404,10 +1412,11 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     printf("[%s] Got reply: %s \n", self->name, reply);
 
     json_decref(getOriginMsg);
-    free(msg);
 
     /* Parse reply */
     json_t *originIdReply = json_loads(reply, 0, &error);
+    free(msg);
+    free(reply);
     json_t* originIdAsJSON = 0;
     json_t* originArray = json_object_get(originIdReply, "ids");
     if (originArray) {
@@ -1436,8 +1445,8 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	json_t *getTransformMsg = json_object();
 	json_object_set_new(getTransformMsg, "@worldmodeltype", json_string("RSGQuery"));
 	json_object_set_new(getTransformMsg, "query", json_string("GET_TRANSFORM"));
-	json_object_set_new(getTransformMsg, "id", agentIdAsJSON);
-	json_object_set_new(getTransformMsg, "idReferenceNode", originIdAsJSON);
+	json_object_set(getTransformMsg, "id", agentIdAsJSON);
+	json_object_set(getTransformMsg, "idReferenceNode", originIdAsJSON);
 	// stamp
 	json_t *stamp = json_object();
 	json_object_set_new(stamp, "@stamptype", json_string("TimeStampUTCms"));
@@ -1458,6 +1467,8 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     /* Parse reply */
     json_t *transformReply = json_loads(reply, 0, &error);
     json_t* transform = json_object_get(transformReply, "transform");
+    free(msg);
+    free(reply);
     if(transform) {
     	json_t* matrix = json_object_get(transform, "matrix");
     	*xOut = json_real_value(json_array_get(json_array_get(matrix, 0), 3));
@@ -1469,6 +1480,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     	return false;
     }
 
+    json_decref(getTransformMsg);
     json_decref(agentIdReply); // this has to be deleted late, since its ID is used within other queries
     json_decref(originIdReply);
     json_decref(transformReply);
