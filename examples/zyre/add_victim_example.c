@@ -57,17 +57,51 @@ int main(int argc, char *argv[]) {
 		printf("###################### VICTIM #########################\n");
 		gettimeofday(&tp, NULL);
 		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
-		assert(add_victim(self, x,y,z,utcTimeInMiliSec, agent_name));
+		/* column-major layout:
+		 * 0 4 8  12
+		 * 1 5 9  13
+		 * 2 6 10 14
+		 * 3 7 11 15
+		 *
+		 *  <=>
+		 *
+		 * r11 r12 r13  x
+		 * r21 r22 r23  y
+		 * r31 r32 r33  z
+		 * 3    7   11  15
+		 */
+		double matrix[16] = { 1, 0, 0, 0,
+				               0, 1, 0, 0,
+				               0, 0, 1, 0,
+				               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
+		matrix[12] = x;
+		matrix[13] = y;
+		matrix[14] = z;
+		assert(add_victim(self, matrix, utcTimeInMiliSec, agent_name));
 	}
 
 	printf("###################### AGENT #########################\n");
-	add_agent(self,  x,y,z,utcTimeInMiliSec, agent_name); //TODO rotation/transform as 4x4 column-major matrix
+	double matrix[16] = { 1, 0, 0, 0,
+			               0, 1, 0, 0,
+			               0, 0, 1, 0,
+			               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
+	matrix[12] = x;
+	matrix[13] = y;
+	matrix[14] = z;
+	add_agent(self, matrix, utcTimeInMiliSec, agent_name); //TODO rotation/transform as 4x4 column-major matrix
 
 	for (i = 0; i < 30; ++i) {
 			printf("######################  POSE  #########################\n");
 			gettimeofday(&tp, NULL);
 			utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
-			update_pose(self, x,y,z+i,utcTimeInMiliSec+i, agent_name);
+			double matrix[16] = { 1, 0, 0, 0,
+					               0, 1, 0, 0,
+					               0, 0, 1, 0,
+					               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
+			matrix[12] = x;
+			matrix[13] = y;
+			matrix[14] = z+i;
+			update_pose(self, matrix, utcTimeInMiliSec+i, agent_name);
 			usleep(100/*[ms]*/ * 1000);
 	}
 

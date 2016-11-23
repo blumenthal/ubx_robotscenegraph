@@ -874,7 +874,7 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 }
 
 
-bool add_victim(component_t *self, double x, double y , double z, double utcTimeStampInMiliSec, char* author) {
+bool add_victim(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author) {
 
 	if (self == NULL) {
 		return false;
@@ -971,11 +971,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 
 
 	char* poseId;
-	double matrix[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	matrix[12] = x;
-	matrix[13] = y;
-	matrix[14] = z;
-	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, matrix, utcTimeStampInMiliSec, 0, 0);
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utcTimeStampInMiliSec, 0, 0);
 
 
 	/* Clean up */
@@ -989,7 +985,7 @@ bool add_victim(component_t *self, double x, double y , double z, double utcTime
 	return succsess;
 }
 
-bool add_agent(component_t *self, double x, double y, double z, double utcTimeStampInMiliSec, char *agentName) {
+bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName) {
 
 	if (self == NULL) {
 		return false;
@@ -1248,25 +1244,25 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	    json_object_set(pose, "unit", json_string("latlon"));
 	    json_t *matrix = json_array();
 	    json_t *row0 = json_array();
-	    json_array_append(row0, json_real(1));
-	    json_array_append(row0, json_real(0));
-	    json_array_append(row0, json_real(0));
-	    json_array_append(row0, json_real(x));
-	    json_t *row1 = json_array();
-	    json_array_append(row1, json_real(0));
-	    json_array_append(row1, json_real(1));
-	    json_array_append(row1, json_real(0));
-	    json_array_append(row1, json_real(y));
-	    json_t *row2 = json_array();
-	    json_array_append(row2, json_real(0));
-	    json_array_append(row2, json_real(0));
-	    json_array_append(row2, json_real(1));
-	    json_array_append(row2, json_real(z));
-	    json_t *row3 = json_array();
-	    json_array_append(row3, json_real(0));
-	    json_array_append(row3, json_real(0));
-	    json_array_append(row3, json_real(0));
-	    json_array_append(row3, json_real(1));
+		json_array_append_new(row0, json_real(transform_matrix[0]));
+		json_array_append_new(row0, json_real(transform_matrix[4]));
+		json_array_append_new(row0, json_real(transform_matrix[8]));
+		json_array_append_new(row0, json_real(transform_matrix[12]));
+		json_t *row1 = json_array();
+		json_array_append_new(row1, json_real(transform_matrix[1]));
+		json_array_append_new(row1, json_real(transform_matrix[5]));
+		json_array_append_new(row1, json_real(transform_matrix[9]));
+		json_array_append_new(row1, json_real(transform_matrix[13]));
+		json_t *row2 = json_array();
+		json_array_append_new(row2, json_real(transform_matrix[2]));
+		json_array_append_new(row2, json_real(transform_matrix[6]));
+		json_array_append_new(row2, json_real(transform_matrix[10]));
+		json_array_append_new(row2, json_real(transform_matrix[14]));
+		json_t *row3 = json_array();
+		json_array_append_new(row3, json_real(transform_matrix[3]));
+		json_array_append_new(row3, json_real(transform_matrix[7]));
+		json_array_append_new(row3, json_real(transform_matrix[11]));
+		json_array_append_new(row3, json_real(transform_matrix[15]));
 	    json_array_append(matrix, row0);
 	    json_array_append(matrix, row1);
 	    json_array_append(matrix, row2);
@@ -1293,7 +1289,7 @@ bool add_agent(component_t *self, double x, double y, double z, double utcTimeSt
 	    return true;
 }
 
-bool update_pose(component_t *self, double x, double y, double z, double utcTimeStampInMiliSec, char *agentName) {
+bool update_pose(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName) {
 
 	if (self == NULL) {
 		return false;
@@ -1374,25 +1370,25 @@ bool update_pose(component_t *self, double x, double y, double z, double utcTime
     json_object_set_new(pose, "unit", json_string("latlon"));
     json_t *matrix = json_array();
     json_t *row0 = json_array();
-    json_array_append_new(row0, json_real(1));
-    json_array_append_new(row0, json_real(0));
-    json_array_append_new(row0, json_real(0));
-    json_array_append_new(row0, json_real(x));
-    json_t *row1 = json_array();
-    json_array_append_new(row1, json_real(0));
-    json_array_append_new(row1, json_real(1));
-    json_array_append_new(row1, json_real(0));
-    json_array_append_new(row1, json_real(y));
-    json_t *row2 = json_array();
-    json_array_append_new(row2, json_real(0));
-    json_array_append_new(row2, json_real(0));
-    json_array_append_new(row2, json_real(1));
-    json_array_append_new(row2, json_real(z));
-    json_t *row3 = json_array();
-    json_array_append_new(row3, json_real(0));
-    json_array_append_new(row3, json_real(0));
-    json_array_append_new(row3, json_real(0));
-    json_array_append_new(row3, json_real(1));
+	json_array_append_new(row0, json_real(transform_matrix[0]));
+	json_array_append_new(row0, json_real(transform_matrix[4]));
+	json_array_append_new(row0, json_real(transform_matrix[8]));
+	json_array_append_new(row0, json_real(transform_matrix[12]));
+	json_t *row1 = json_array();
+	json_array_append_new(row1, json_real(transform_matrix[1]));
+	json_array_append_new(row1, json_real(transform_matrix[5]));
+	json_array_append_new(row1, json_real(transform_matrix[9]));
+	json_array_append_new(row1, json_real(transform_matrix[13]));
+	json_t *row2 = json_array();
+	json_array_append_new(row2, json_real(transform_matrix[2]));
+	json_array_append_new(row2, json_real(transform_matrix[6]));
+	json_array_append_new(row2, json_real(transform_matrix[10]));
+	json_array_append_new(row2, json_real(transform_matrix[14]));
+	json_t *row3 = json_array();
+	json_array_append_new(row3, json_real(transform_matrix[3]));
+	json_array_append_new(row3, json_real(transform_matrix[7]));
+	json_array_append_new(row3, json_real(transform_matrix[11]));
+	json_array_append_new(row3, json_real(transform_matrix[15]));
     json_array_append_new(matrix, row0);
     json_array_append_new(matrix, row1);
     json_array_append_new(matrix, row2);
