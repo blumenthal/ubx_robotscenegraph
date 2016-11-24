@@ -993,6 +993,13 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 	return querySuccess;
 }
 
+bool get_mediator_id(component_t *self, char** mediator_id) {
+
+	// https://github.com/maccradar/sherpa-com-mediator/blob/mediator/doc/msg.md#type-query_mediator_uuid
+	// NOTE, we have to use a slightly different envelope...
+
+	return false; // TBD
+}
 
 bool add_victim(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author) {
 

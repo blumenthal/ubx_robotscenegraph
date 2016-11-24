@@ -212,7 +212,7 @@ bool get_observations_group_id(component_t *self, char** observations_id);
  * @param[out] node_id Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
  * @param[in] key Attribute key.
  * @param[in] value Attribute value.
- * @return c
+ * @return True if node was sucesfully found, otherwise false.
  */
 bool get_node_by_attribute(component_t *self, char** node_id, const char* key, const char* value);
 
@@ -244,7 +244,13 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
  */
 bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value);
 
-
+/**
+ * Get the UUID of the Mediator component by using "query_mediator_uuid" query type.
+ * @param[in] self Handle to the communication component.
+ * @param[out] mediator_id Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
+ * @return True if node was sucesfully found, otherwise false. Typically the case when no Mediator is used.
+ */
+bool get_mediator_id(component_t *self, char** mediator_id);
 
 /* Internal handlers */
 void handle_enter(component_t *self, zmsg_t *msg);
