@@ -10,6 +10,8 @@
 #include <uuid/uuid.h>
 #include <string.h>
 
+// (Internal) Helper stucts
+
 typedef struct _json_msg_t {
     char *metamodel;
     char *model;
@@ -38,6 +40,8 @@ typedef struct _component_t {
 	int no_of_fcn_block_calls;
 	int alive;
 } component_t;
+
+// Internal helper methods
 
 void query_destroy (query_t **self_p);
 
@@ -74,15 +78,69 @@ char* send_query(component_t* self, char* query_type, json_t* query_params);
 char* send_update(component_t* self, char* operation, json_t* update_params);
 
 /* Convenience functions for a SHERPA mission*/
-bool add_victim(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author);
 
-bool add_image(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author, char* file_name);
+/**
+ * Add an agent (SHARPA animal) to the world model.
+ * Can be safely called multiple times, since it checks if it exists already.
+ * In case it exists it will (just) update the pose.
+ * @param[in] self Handle to the communication component.
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
+ * @param[in] utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
+ * @param[in] agent_name Name of the agent. e.g. "fw0", "operator0", or "wasp2", ...
+ * @return True if agent was successfully added or existed already. In case of an error false.
+ */
+bool add_agent(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name);
 
-bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName);
+/**
+ * An an observation of a (potential) victim.
+ * Every observation is represented as a single node.
+ * @param[in] self Handle to the communication component.
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
+ * @param[in] utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
+ * @param[in] author Agent that created the observation. Same as agent_name in other methods. e.g. "fw0", "operator0", or "wasp2", ...
+ * @return True if victim was sucesfully added, otherwise false.
+ */
+bool add_victim(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author);
 
-bool update_pose(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName);
+/**
+ * An an observation image.
+ * Every observation is represented as a single node.
+ * @param[in] self Handle to the communication component.
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
+ * @param[in] utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
+ * @param[in] author Agent that created the observation. Same as agent_name in other methods. e.g. "fw0", "operator0", or "wasp2", ...
+ * @param[in] file_name File name of the locally stored image. Use absolute paths. e.g.  /tmp/sherpa/image0001.jpg
+ * @return True if image was sucesfully added, otherwise false.
+ */
+bool add_image(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author, char* file_name);
 
-bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utcTimeStampInMiliSec, char *agentName);
+/**
+ * Update pose of agent.
+ * The agent must exist before hands.
+ * Note, this is a more light weight version off add_agent() since it performs less checks.
+ * @param[in] self Handle to the communication component.
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
+ * @param[in] utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
+ * @param[in] author Agent that created the observation. Same as agent_name in other methods. e.g. "fw0", "operator0", or "wasp2", ...
+ * @return True if pose was sucesfully updated, otherwise false. The latter is the case e.g. when the agent was not created beforehand.
+ */
+bool update_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name);
+
+
+/**
+ * Get the position x,y,z (lat,lon,att) of an agent.
+ *
+ * @param self Handle to the communication component.
+ * @param xOut
+ * @param yOut
+ * @param zOut
+ * @param utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
+ *        Used to determine at which point in time the position shall be return.
+ *        Use a current time stamp to retrieve the latest postition.
+ * @param agent_name Name of the agent. e.g. "fw0", "operator0", or "wasp2", ...
+ * @return
+ */
+bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name);
 
 /**
  * Get the ID of the origin node, based on an attribute look up.
@@ -115,7 +173,7 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
  * @param[in] self Handle to the communication component.
  * @param[in] node_id ID that specifies to whom the geopose should point.
  * @param[out] new_geopose_id Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
- * @param transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen)
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen)
  *
  * column-major layout:
  * 0 4 8  12
@@ -134,10 +192,11 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
  * @param value Optional attribute value. Ignored on NULL
  * @return Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
  */
-bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utcTimeStampInMiliSec, const char* key, const char* value);
+bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value);
 
-/* Handlers */
 
+
+/* Internal handlers */
 void handle_enter(component_t *self, zmsg_t *msg);
 
 void handle_exit(component_t *self, zmsg_t *msg);

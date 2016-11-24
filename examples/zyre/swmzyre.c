@@ -691,7 +691,7 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 	return true;
 }
 
-bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utcTimeStampInMiliSec, const char* key, const char* value) {
+bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value) {
 	assert(self);
 	*new_geopose_id = NULL;
 	char *msg;
@@ -789,7 +789,7 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 
 	// stamp
 	json_object_set_new(stamp, "@stamptype", json_string("TimeStampUTCms"));
-	json_object_set_new(stamp, "stamp", json_real(utcTimeStampInMiliSec));
+	json_object_set_new(stamp, "stamp", json_real(utc_time_stamp_in_mili_sec));
 
 	/* column-major layout:
 	 * 0 4 8  12
@@ -874,7 +874,7 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 }
 
 
-bool add_victim(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author) {
+bool add_victim(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author) {
 
 	if (self == NULL) {
 		return false;
@@ -948,7 +948,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utcTimeStamp
 	//	json_array_append(attributes, attribute2);
 	json_t *attribute3 = json_object();
 	json_object_set_new(attribute3, "key", json_string("sherpa:stamp"));
-	json_object_set_new(attribute3, "value", json_real(utcTimeStampInMiliSec));
+	json_object_set_new(attribute3, "value", json_real(utc_time_stamp_in_mili_sec));
 	json_array_append_new(newObservationAttributes, attribute3);
 	json_t *attribute4 = json_object();
 	json_object_set_new(attribute4, "key", json_string("sherpa:author"));
@@ -971,7 +971,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utcTimeStamp
 
 
 	char* poseId;
-	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utcTimeStampInMiliSec, 0, 0);
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
 
 
 	/* Clean up */
@@ -985,7 +985,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utcTimeStamp
 	return succsess;
 }
 
-bool add_image(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author, char* file_name) {
+bool add_image(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author, char* file_name) {
 	if (self == NULL) {
 		return false;
 		printf("[ERROR] Communication component is not yet initialized.\n");
@@ -1063,7 +1063,7 @@ bool add_image(component_t *self, double* transform_matrix, double utcTimeStampI
 	json_array_append_new(newObservationAttributes, attribute2);
 	json_t *attribute3 = json_object();
 	json_object_set_new(attribute3, "key", json_string("sherpa:stamp"));
-	json_object_set_new(attribute3, "value", json_real(utcTimeStampInMiliSec));
+	json_object_set_new(attribute3, "value", json_real(utc_time_stamp_in_mili_sec));
 	json_array_append_new(newObservationAttributes, attribute3);
 	json_t *attribute4 = json_object();
 	json_object_set_new(attribute4, "key", json_string("sherpa:author"));
@@ -1086,7 +1086,7 @@ bool add_image(component_t *self, double* transform_matrix, double utcTimeStampI
 
 
 	char* poseId;
-	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utcTimeStampInMiliSec, 0, 0);
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
 
 
 	/* Clean up */
@@ -1100,7 +1100,7 @@ bool add_image(component_t *self, double* transform_matrix, double utcTimeStampI
 	return succsess;
 }
 
-bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName) {
+bool add_agent(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 
 	if (self == NULL) {
 		return false;
@@ -1124,7 +1124,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampI
 
 
 	char* agentId = 0;
-	if (!get_node_by_attribute(self, &agentId, "sherpa:agent_name", agentName)) { // agent does not exist yet, so we will add it here
+	if (!get_node_by_attribute(self, &agentId, "sherpa:agent_name", agent_name)) { // agent does not exist yet, so we will add it here
 
 		/* Get observationGroupId */
 		char* agentsGroupId = 0;
@@ -1153,7 +1153,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampI
 		json_t* attributes = json_array();
 		json_t* attribute1 = json_object();
 		json_object_set_new(attribute1, "key", json_string("sherpa:agent_name"));
-		json_object_set_new(attribute1, "value", json_string(agentName));
+		json_object_set_new(attribute1, "value", json_string(agent_name));
 		json_array_append_new(attributes, attribute1);
 		json_object_set_new(newAgentNode, "attributes", attributes);
 		json_object_set_new(newAgentNodeMsg, "node", newAgentNode);
@@ -1194,7 +1194,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampI
 
 	char* poseId = 0;
 	char poseName[512] = {0};
-	snprintf(poseName, sizeof(poseName), "%s%s", agentName, "_geopose");
+	snprintf(poseName, sizeof(poseName), "%s%s", agent_name, "_geopose");
 	if (!get_node_by_attribute(self, &poseId, "name", poseName)) { // pose does not exist yet, so we will add it here
 
 		/*
@@ -1210,14 +1210,14 @@ bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampI
 		/*
 		 * Finally add a pose ;-)
 		 */
-		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utcTimeStampInMiliSec, "name", poseName)) {
+		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "name", poseName)) {
 			printf("[%s] [ERROR] Cannot add agent pose  \n", self->name);
 			return false;
 		}
 		printf("[%s] agent pose Id = %s \n", self->name, poseId);
 
 	} else { // update instead
-		if(!update_pose(self, transform_matrix, utcTimeStampInMiliSec, agentName)) {
+		if(!update_pose(self, transform_matrix, utc_time_stamp_in_mili_sec, agent_name)) {
 			printf("[%s] [ERROR] add_agent: Cannot update pose of agent  \n", self->name);
 			return false;
 		}
@@ -1229,7 +1229,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampI
 	return true;
 }
 
-bool update_pose(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName) {
+bool update_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agentName) {
 
 	if (self == NULL) {
 		return false;
@@ -1303,7 +1303,7 @@ bool update_pose(component_t *self, double* transform_matrix, double utcTimeStam
 
     // stamp
     json_object_set_new(stamp, "@stamptype", json_string("TimeStampUTCms"));
-    json_object_set_new(stamp, "stamp", json_real(utcTimeStampInMiliSec));
+    json_object_set_new(stamp, "stamp", json_real(utc_time_stamp_in_mili_sec));
 
     //pose
     json_object_set_new(pose, "type", json_string("HomogeneousMatrix44"));
@@ -1360,7 +1360,7 @@ bool update_pose(component_t *self, double* transform_matrix, double utcTimeStam
     return true;
 }
 
-bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utcTimeStampInMiliSec, char *agentName) {
+bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agentName) {
 	char *msg;
 
 	/*
@@ -1440,7 +1440,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 		}
     }
 	/*
-	 * Get pose at time utcTimeStampInMiliSec
+	 * Get pose at time utc_time_stamp_in_mili_sec
 	 */
 //    {
 //      "@worldmodeltype": "RSGQuery",
@@ -1460,7 +1460,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	// stamp
 	json_t *stamp = json_object();
 	json_object_set_new(stamp, "@stamptype", json_string("TimeStampUTCms"));
-	json_object_set_new(stamp, "stamp", json_real(utcTimeStampInMiliSec));
+	json_object_set_new(stamp, "stamp", json_real(utc_time_stamp_in_mili_sec));
 	json_object_set_new(getTransformMsg, "timeStamp", stamp);
 
 	/* Send message and wait for reply */
