@@ -1,15 +1,27 @@
 Zyre client communication example
 =================================
 
-* A C library ``libswmzyre`` that can be used to realize Zyre based message passing. 
-  It encapsulates the following use case:
+Overview
+--------
+
+* A C library ``libswmzyre`` that can be used to realize Zyre based *message passing* or a set of *convenience methods* for a SHERPA mission.
+* The *message passing* encapsulates the following use case:
   1. Take a valid JSON message for the SWM
-  2. If necessary add a randomly generated ``queryId`` field to the message
+  2. If necessary add a randomly generated ``queryId`` field to the message 
   3. Add the appropriate envelope
   4. Send the message with envelope via a Zyre *shout* command to the SWM
   5. Receive Zyre messages until either a timeout occurs or a result message with the same ``queryId`` arrives
   6. If a reply was received than, remove the envelop and return the payload - a SWM JSON message -  as response
-* A C [example program](swm_zyre.c) that accepts a JSON file as argument and will return the reply by the SWM. 
+* As *convenience methods* are available:
+  1. add_agent()
+  2. add_victim()
+  3. add_image()
+  4. add_artva()
+  5. add_battery()
+  6. update_pose()
+  7. get_position() 
+* A [simple example program](swm_zyre.c) that accepts a JSON file as argument and will return the reply by the SWM. 
+* A more [sophisticated example program](sherpa_example.c) highlighting a set of convenience methods to be used for a SHERPA mission.
 * A [Python wrapper](../json_api/zyre_add.py) for ``libswmzyre`` to be used as a drop in replacement for the existing [Python examples](../json_api).
   The [add_geo_pose.py](../json_api/add_geo_pose.py) example shows how seamlessly switch between Zyre based massaging and ZMQ REQ-REP that has been
   used in older examples. 
@@ -30,6 +42,7 @@ make
 
 Usage
 -----
+
 
 ### C example
 
@@ -55,6 +68,21 @@ Example output:
  {"queryId": "fda98006-5d63-b4c9-3246-6c1995c40330", "@worldmodeltype": "RSGUpdateResult", "updateSuccess": true}
 ...
 ``` 
+
+
+### C example for convenience methods
+
+Synopsis:
+
+```
+./sherpa_example [<path_to_config_file>]
+```
+
+E.g.
+
+```
+./sherpa_example
+```
 
 ### Python wrapper example
 
