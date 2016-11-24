@@ -77,7 +77,12 @@ char* send_query(component_t* self, char* query_type, json_t* query_params);
 
 char* send_update(component_t* self, char* operation, json_t* update_params);
 
-/* Convenience functions for a SHERPA mission*/
+/*
+ * Convenience functions for a SHERPA mission
+ *
+ * Conventions on used data types can be found here:
+ * https://github.com/blumenthal/sherpa_world_model_knowrob_bridge/blob/master/doc/codebook.md
+ */
 
 /**
  * Add an agent (SHARPA animal) to the world model.
@@ -113,6 +118,10 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
  * @return True if image was sucesfully added, otherwise false.
  */
 bool add_image(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author, char* file_name);
+
+bool add_artva(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author,
+		double artva0, double artva1, double artva2, double artva3);
+
 
 /**
  * Update pose of agent.

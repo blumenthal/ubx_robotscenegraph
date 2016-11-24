@@ -10,6 +10,15 @@
 
 #include "swmzyre.h"
 
+/*
+ * This example shows how to use the C "client" API.
+ * It essentially wraps a subset of the JSON API,
+ * relevant for a SHERPA mission.
+ *
+ * For communication zyre is used.
+ * Please make ensure a correct zyre configuration file
+ * is passed.
+ */
 int main(int argc, char *argv[]) {
 
 	char agent_name[] = "fw0"; // or wasp1, operator0, ... donkey0, sherpa_box0. Please use the same as SWM_AGENT_NAME environment variable.
@@ -81,7 +90,9 @@ int main(int argc, char *argv[]) {
 	assert(add_agent(self, matrix, utcTimeInMiliSec, agent_name));
 	assert(add_agent(self, matrix, utcTimeInMiliSec, agent_name)); // twice is not a problem, sine it checks for existance
 
-
+	/*
+	 * Add new observations for potential victims
+	 */
 	for (i = 0; i < 2; ++i) {
 		printf("###################### VICTIM #########################\n");
 		gettimeofday(&tp, NULL);
@@ -96,6 +107,9 @@ int main(int argc, char *argv[]) {
 		assert(add_victim(self, matrix, utcTimeInMiliSec, agent_name));
 	}
 
+	/*
+	 * Add new image observations
+	 */
 	for (i = 0; i < 2; ++i) {
 		printf("###################### IMAGE #########################\n");
 		gettimeofday(&tp, NULL);
@@ -110,6 +124,26 @@ int main(int argc, char *argv[]) {
 		assert(add_image(self, matrix, utcTimeInMiliSec, agent_name, "/tmp/image001.jpg"));
 	}
 
+	/*
+	 * Add new ARTVA observations (Only relevant for the WASPS)
+	 */
+	for (i = 0; i < 2; ++i) {
+		printf("###################### ARTVA #########################\n");
+		gettimeofday(&tp, NULL);
+		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
+		double matrix[16] = { 1, 0, 0, 0,
+				               0, 1, 0, 0,
+				               0, 0, 1, 0,
+				               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
+		matrix[12] = x;
+		matrix[13] = y;
+		matrix[14] = z;
+		assert(add_artva(self, matrix, utcTimeInMiliSec, agent_name, 77, 12, 0, 0));
+	}
+
+	/*
+	 * Update pose of this agent
+	 */
 	for (i = 0; i < 30; ++i) {
 			printf("######################  POSE  #########################\n");
 			gettimeofday(&tp, NULL);
@@ -125,6 +159,9 @@ int main(int argc, char *argv[]) {
 			usleep(100/*[ms]*/ * 1000);
 	}
 
+	/*
+	 * Get current position
+	 */
 	printf("######################  GET POSITION  #########################\n");
 	x = 0;
 	y = 0;
@@ -132,7 +169,7 @@ int main(int argc, char *argv[]) {
 	gettimeofday(&tp, NULL);
 	utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
 	get_position(self, &x, &y, &z, utcTimeInMiliSec, agent_name);
-	printf ("Latest position of hawk = (%f,%f,%f)\n", x,y,z);
+	printf ("Latest position of agent = (%f,%f,%f)\n", x,y,z);
 
 
 	printf("######################  DONE  #########################\n");

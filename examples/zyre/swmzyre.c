@@ -730,6 +730,7 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 			printf("[%s] get_node_by_attribute ID is: %s \n", self->name, *node_id);
 		} else {
 			json_decref(nodeIdReply);
+			json_decref(getNodeMsg);
 			return false;
 		}
 	} else {
@@ -1153,6 +1154,134 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 
 	return succsess;
 }
+
+bool add_artva(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author,
+		double artva0, double artva1, double artva2, double artva3) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+	/* Get observationGroupId */
+	char* observationGroupId = 0;
+    if(!get_observations_group_id(self, &observationGroupId)) {
+    	printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+    	return false;
+    }
+	printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+    /*
+     * Get the "origin" node. It is relevant to specify a new pose.
+     */
+	char* originId = 0;
+    if(!get_gis_origin_id(self, &originId)) {
+    	printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
+    	return false;
+    }
+	printf("[%s] origin Id = %s \n", self->name, originId);
+
+	/*
+	 * The actual "observation" node. Here for an an artva signal.
+	 */
+
+	//    currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+	//    imageNodeId = str(uuid.uuid4())
+	//    newImageNodeMsg = {
+	//      "@worldmodeltype": "RSGUpdate",
+	//      "operation": "CREATE",
+	//      "node": {
+	//        "@graphtype": "Node",
+	//        "id": imageNodeId,
+	//        "attributes": [
+	//              {"key": "sherpa:observation_type", "value": "artva"},
+    //              {"key": "sherpa:artva_signal0", "value": "77"},
+    //              {"key": "sherpa:artva_signal1", "value": "12"},
+    //              {"key": "sherpa:artva_signal2", "value": "0"},
+    //              {"key": "sherpa:artva_signal3", "value": "0"},
+	// OPTIONAL:
+	//              {"key": "sherpa:stamp", "value": currentTimeStamp},
+	//              {"key": "sherpa:author", "value": author},
+	//        ],
+	//      },
+	//      "parentId": observationGroupId,
+	//    }
+
+	// top level message
+	json_t *newARTVANodeMsg = json_object();
+	json_object_set_new(newARTVANodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(newARTVANodeMsg, "operation", json_string("CREATE"));
+	json_object_set_new(newARTVANodeMsg, "parentId", json_string(observationGroupId));
+	json_t *newImageNode = json_object();
+	json_object_set_new(newImageNode, "@graphtype", json_string("Node"));
+	zuuid_t *uuid = zuuid_new ();
+	json_object_set_new(newImageNode, "id", json_string(zuuid_str_canonical(uuid)));
+
+	// attributes
+	json_t *newObservationAttributes = json_array();
+	json_t *attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "value", json_string("image"));
+	json_array_append_new(newObservationAttributes, attribute1);
+	json_t *attribute2a = json_object();
+	json_object_set_new(attribute2a, "key", json_string("sherpa:artva_signal0"));
+	json_object_set_new(attribute2a, "value", json_real(artva0));
+	json_array_append_new(newObservationAttributes, attribute2a);
+	json_t *attribute2b = json_object();
+	json_object_set_new(attribute2b, "key", json_string("sherpa:artva_signal1"));
+	json_object_set_new(attribute2b, "value", json_real(artva1));
+	json_array_append_new(newObservationAttributes, attribute2b);
+	json_t *attribute2c = json_object();
+	json_object_set_new(attribute2c, "key", json_string("sherpa:artva_signal2"));
+	json_object_set_new(attribute2c, "value", json_real(artva2));
+	json_array_append_new(newObservationAttributes, attribute2c);
+	json_t *attribute2d = json_object();
+	json_object_set_new(attribute2d, "key", json_string("sherpa:artva_signal3"));
+	json_object_set_new(attribute2d, "value", json_real(artva3));
+	json_array_append_new(newObservationAttributes, attribute2d);
+	json_t *attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa:stamp"));
+	json_object_set_new(attribute3, "value", json_real(utc_time_stamp_in_mili_sec));
+	json_array_append_new(newObservationAttributes, attribute3);
+	json_t *attribute4 = json_object();
+	json_object_set_new(attribute4, "key", json_string("sherpa:author"));
+	json_object_set_new(attribute4, "value", json_string(author));
+	json_array_append_new(newObservationAttributes, attribute4);
+
+
+	json_object_set_new(newImageNode, "attributes", newObservationAttributes);
+	json_object_set_new(newARTVANodeMsg, "node", newImageNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, newARTVANodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+
+	char* poseId;
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
+
+
+	/* Clean up */
+	free(msg);
+	free(reply);
+	free(observationGroupId);
+	free(originId);
+	free(uuid);
+	json_decref(newARTVANodeMsg);
+
+	return succsess;
+}
+
 
 bool add_agent(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 
