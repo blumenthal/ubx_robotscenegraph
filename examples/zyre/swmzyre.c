@@ -985,6 +985,121 @@ bool add_victim(component_t *self, double* transform_matrix, double utcTimeStamp
 	return succsess;
 }
 
+bool add_image(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author, char* file_name) {
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+	/* Get observationGroupId */
+	char* observationGroupId = 0;
+    if(!get_observations_group_id(self, &observationGroupId)) {
+    	printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+    	return false;
+    }
+	printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+    /*
+     * Get the "origin" node. It is relevant to specify a new pose.
+     */
+	char* originId = 0;
+    if(!get_gis_origin_id(self, &originId)) {
+    	printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
+    	return false;
+    }
+	printf("[%s] origin Id = %s \n", self->name, originId);
+
+	/* get mediator ID */
+	char* mediator_uuid = "79346b2b-e0a1-4e04-a7c8-981828436357";
+
+    char uri[1024] = {0};
+    snprintf(uri, sizeof(uri), "%s:%s", mediator_uuid, file_name);
+
+	/*
+	 * The actual "observation" node. Here for an image.
+	 */
+
+	//    currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+	//    imageNodeId = str(uuid.uuid4())
+	//    newImageNodeMsg = {
+	//      "@worldmodeltype": "RSGUpdate",
+	//      "operation": "CREATE",
+	//      "node": {
+	//        "@graphtype": "Node",
+	//        "id": imageNodeId,
+	//        "attributes": [
+	//              {"key": "sherpa:observation_type", "value": "image"},
+	//              {"key": "sherpa:uri", "value": URI},
+	//              {"key": "sherpa:stamp", "value": currentTimeStamp},
+	//              {"key": "sherpa:author", "value": author},
+	//        ],
+	//      },
+	//      "parentId": observationGroupId,
+	//    }
+
+	// top level message
+	json_t *newImageNodeMsg = json_object();
+	json_object_set_new(newImageNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(newImageNodeMsg, "operation", json_string("CREATE"));
+	json_object_set_new(newImageNodeMsg, "parentId", json_string(observationGroupId));
+	json_t *newImageNode = json_object();
+	json_object_set_new(newImageNode, "@graphtype", json_string("Node"));
+	zuuid_t *uuid = zuuid_new ();
+	json_object_set_new(newImageNode, "id", json_string(zuuid_str_canonical(uuid)));
+
+	// attributes
+	json_t *newObservationAttributes = json_array();
+	json_t *attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "value", json_string("image"));
+	json_array_append_new(newObservationAttributes, attribute1);
+	json_t *attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("sherpa:uri"));
+	json_object_set_new(attribute2, "value", json_string(uri));
+	json_array_append_new(newObservationAttributes, attribute2);
+	json_t *attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa:stamp"));
+	json_object_set_new(attribute3, "value", json_real(utcTimeStampInMiliSec));
+	json_array_append_new(newObservationAttributes, attribute3);
+	json_t *attribute4 = json_object();
+	json_object_set_new(attribute4, "key", json_string("sherpa:author"));
+	json_object_set_new(attribute4, "value", json_string(author));
+	json_array_append_new(newObservationAttributes, attribute4);
+
+
+	json_object_set_new(newImageNode, "attributes", newObservationAttributes);
+	json_object_set_new(newImageNodeMsg, "node", newImageNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, newImageNodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+
+	char* poseId;
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utcTimeStampInMiliSec, 0, 0);
+
+
+	/* Clean up */
+	free(msg);
+	free(reply);
+	free(observationGroupId);
+	free(originId);
+	free(uuid);
+	json_decref(newImageNodeMsg);
+
+	return succsess;
+}
+
 bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName) {
 
 	if (self == NULL) {

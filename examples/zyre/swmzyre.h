@@ -76,6 +76,8 @@ char* send_update(component_t* self, char* operation, json_t* update_params);
 /* Convenience functions for a SHERPA mission*/
 bool add_victim(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author);
 
+bool add_image(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char* author, char* file_name);
+
 bool add_agent(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName);
 
 bool update_pose(component_t *self, double* transform_matrix, double utcTimeStampInMiliSec, char *agentName);
