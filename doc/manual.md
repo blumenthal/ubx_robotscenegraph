@@ -304,15 +304,16 @@ This can be a helpful migration strategy in cases some applications assume the e
 
 The SWM has a *zyre bridge* that is able to publish and receive any message to any other SWM or client. 
 A zyre network has an autodiscovery either based on *UDP beaconing* or a *Gossip* protocol. In order to use 
-Gossip the must be at least one participant in the network that has to *bind a socket*. In fact it acts as
+Gossip there must be at least one participant in the network that has to *bind a socket*. In fact it acts as
  a form of master in the network. This is not required for the UDP beaconing. The SWM can be configured to
  use both setups. The below environment variables can be used:
  
 | Variable       |      Description   | Example  |
 |----------------|--------------------|----------|
-| SWM_USE_GOSSIP | ``1`` or using gossip and ``0`` for using UDP beaconing instead | ``export SWM_USE_GOSSIP=0`` |
-| SWM_BIND_ZYRE  | Decides whether this node binds or connects to gossip network; The must be at least on node that binds. Use ``1`` to enable it, otherwise  use ``0`` | ``export SWM_BIND_ZYRE=0`` |
-
+| SWM_USE_GOSSIP | ``1`` or using gossip and ``0`` for using UDP beaconing instead. *Recommendation*: it depends whether to use the Mediator or not cf. below for more details. | ``export SWM_USE_GOSSIP=0`` |
+| SWM_BIND_ZYRE  | Decides whether this node binds or connects to gossip network; The must be at least on node that binds. Use ``1`` to enable it, otherwise  use ``0``. Default is ``0``. *Recommendation*: **use the default**. | ``export SWM_BIND_ZYRE=0`` |
+| SWM_GOSSIP_ENDPOINT | Defines the local Gossip endpoint; This must match for all involved local components: **Mediator**, **SWM** and any **client** (library). *Recommendation*: use the same as define in the conig file (e.g. [donkey.json](https://github.com/maccradar/sherpa-com-mediator/blob/master/examples/configs/donkey.json)) for the Mediator. | ``SWM_GOSSIP_ENDPOINT=ipc:///tmp/donkey-hub`` |
+| SWM_ZYRE_GROUP | Defines the local zyre *group* (for *UDP beaconing* and *Gossip*); Default is ``local``. **Use the default**, unless you want to simulate multiple robots on one machine. | ``SWM_ZYRE_GROUP=local`` |
  
 #### Local Zyre network with UPD beaconing 
 
@@ -363,8 +364,9 @@ The usage of the Mediator has a some advantages over the above setups:
 
 1. It handles the network fragility e.g. by monitoring if a message was received by another robot.
 2. It binds the socket for the Zyre network. So the SWM does not need to care about which SWM has to bind.
-3. It seperates local and global networks. E.g. if a client sends a query to the local network only the local SWM will answer.
+3. It separates local and global networks. E.g. if a client sends a query to the local network only the local SWM will answer.
    In case of a global network multiple SWMs might answer.
+4. It can handle file transfers
 
 ![SWM with Mediator](swm_zyre_mediator_gossip.png)
 
@@ -372,15 +374,23 @@ Configuration of SHERPA WM 1
 ```
  export SWM_USE_GOSSIP=1
  export SWM_BIND_ZYRE=0
+ export SWM_GOSSIP_ENDPOINT=ipc:///tmp/donkey-hub`` # in case it is a donkey; check config of Mediator
 ```
 
 Configuration of SHERPA WM 2 (same)
 ```
  export SWM_USE_GOSSIP=1
  export SWM_BIND_ZYRE=0
+ export SWM_GOSSIP_ENDPOINT=ipc:///tmp/wasp1-hub`` # in case it is a wasp; check config of Mediator
 ```
 
 As many SWMs as desired can be deployed. Every robot has to start one Mediator and one (or more) SWMs with exactly the above configuration.
+
+#### Known issues
+
+* **The Mediator has to be started before the SWM (since it binds the port).**
+* If the SWM gets restarted, the Mediator should be restarted as well, to be on the safe side. Sometimes the communication stops.
+
 
 ## Debugging
 
@@ -391,8 +401,8 @@ data is missing *why* is it not stored although it is expected to be there.
 
 ### Dump of data model
 
-Dump the SWM by using the ``dump_wm()`` command then call on another shell:
- ``./latest_rsg_dump_to_pdf.sh``. This will generate a pdf file that can be further
+Dump the SWM by using the ``p()`` command then call on another shell:
+ ``./show.sh``. This will generate a pdf file that can be further
 inspected. All Nodes, Attributes and Connection will be visualized. The ``Transforms``
 only depict the latest translation value (to get a rough idea).  
 
