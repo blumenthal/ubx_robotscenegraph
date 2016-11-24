@@ -617,6 +617,60 @@ void handle_evasive (component_t *self, zmsg_t *msg) {
 }
 
 
+bool get_root_node_id(component_t *self, char** root_id) {
+	assert(self);
+	*root_id = NULL;
+	char *msg;
+	char *reply;
+
+	// e.g.
+//	{
+//	  "@worldmodeltype": "RSGQuery",
+//	  "query": "GET_ROOT_NODE"
+//	}
+
+	json_t *getRootNodeMsg = json_object();
+	json_object_set_new(getRootNodeMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getRootNodeMsg, "query", json_string("GET_ROOT_NODE"));
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getRootNodeMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self);
+	printf("#########################################\n");
+	printf("[%s] Got reply for get_root_node_id: %s \n", self->name, reply);
+
+	/* Parse reply */
+    json_error_t error;
+	json_t* rootNodeIdReply = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+	json_t* rootNodeIdAsJSON = 0;
+
+	json_t* querySuccessMsg = json_object_get(rootNodeIdReply, "querySuccess");
+	bool querySuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+	if (querySuccessMsg) {
+		querySuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_t* rootIdMsg = json_object_get(rootNodeIdReply, "rootId");
+	if (rootIdMsg) {
+		*root_id = strdup(json_string_value(rootIdMsg));
+		printf("[%s] get_root_node_id ID is: %s \n", self->name, *root_id);
+	} else {
+		querySuccess = false;
+	}
+
+	/* Clean up */
+	json_decref(rootNodeIdReply);
+	json_decref(getRootNodeMsg);
+
+	return querySuccess;
+}
+
 bool get_gis_origin_id(component_t *self, char** origin_id) {
 	assert(self);
 //	*origin_id = NULL;

@@ -47,6 +47,16 @@ int main(int argc, char *argv[]) {
 	int i;
 	struct timeval tp;
 
+	printf("###################### CONNECTIVITY #########################\n");
+	char *root_id = 0;
+	/* Get the root node ID of the local SHWRPA World Model.
+	 * This can be used the check connectivity the the SMW.
+	 * Typically false means the local SWM cannot be reached. Is it actually started?
+	 */
+	assert(get_root_node_id(self, &root_id));
+	free(root_id);
+
+
 	printf("###################### AGENT #########################\n");
 	/* column-major layout:
 	 * 0 4 8  12

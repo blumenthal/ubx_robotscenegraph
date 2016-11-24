@@ -10,7 +10,7 @@
 #include <uuid/uuid.h>
 #include <string.h>
 
-// (Internal) Helper stucts
+// (Internal) Helper structs
 
 typedef struct _json_msg_t {
     char *metamodel;
@@ -141,6 +141,15 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
  * @return
  */
 bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name);
+
+/**
+ * Get the root node ID of the local SHWRPA World Model.
+ * This can be used the check connectivity the the SMW.
+ * @param [in]self Handle to the communication component.
+ * @param[out] root_id Resulting root node ID or NULL. Owned by caller, so it is has to be freed afterwards.
+ * @return True if root node was sucesfully found, otherwise false. Typically false means the local SWM cannot be reached. Is it actually started?
+ */
+bool get_root_node_id(component_t *self, char** root_id);
 
 /**
  * Get the ID of the origin node, based on an attribute look up.
