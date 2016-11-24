@@ -108,7 +108,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 bool add_victim(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author);
 
 /**
- * An an observation image.
+ * Add an observation image.
  * Every observation is represented as a single node.
  * @param[in] self Handle to the communication component.
  * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
@@ -119,8 +119,24 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
  */
 bool add_image(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author, char* file_name);
 
-bool add_artva(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author,
-		double artva0, double artva1, double artva2, double artva3);
+/**
+ * Add an ARTVA observation
+ * A single observation stores 4 different channels at the same time.
+ * @param[in] self Handle to the communication component.
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
+ * @param[in] utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
+ * @param[in] author Agent that created the observation. Same as agent_name in other methods. e.g. "fw0", "operator0", or "wasp2", ...
+ * @param[in] artva0 ARTVAL signal 0
+ * @param[in] artva1 ARTVAL signal 1
+ * @param[in] artva2 ARTVAL signal 2
+ * @param[in] artva3 ARTVAL signal 3
+ * @return True if ARTVA observation was sucesfully added, otherwise false.
+ */
+bool add_artva(component_t *self, double* transform_matrix, double artva0, double artva1, double artva2, double artva3,
+		double utc_time_stamp_in_mili_sec, char* author);
+
+bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author);
+
 
 
 /**
@@ -128,7 +144,21 @@ bool add_artva(component_t *self, double* transform_matrix, double utc_time_stam
  * The agent must exist before hands.
  * Note, this is a more light weight version off add_agent() since it performs less checks.
  * @param[in] self Handle to the communication component.
- * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen). @see update_pose for further details.
+ * @param[in] transform_matrix 4x4 Homogeneous matrix represents as column-major array. (Like e.g. Eigen).
+ *
+ * column-major layout:
+ * 0 4 8  12
+ * 1 5 9  13
+ * 2 6 10 14
+ * 3 7 11 15
+ *
+ *  <=>
+ *
+ * r11 r12 r13  x
+ * r21 r22 r23  y
+ * r31 r32 r33  z
+ * 3    7   11  15
+ *
  * @param[in] utc_time_stamp_in_mili_sec UTC time stamp since epoch (1970) in [ms].
  * @param[in] author Agent that created the observation. Same as agent_name in other methods. e.g. "fw0", "operator0", or "wasp2", ...
  * @return True if pose was sucesfully updated, otherwise false. The latter is the case e.g. when the agent was not created beforehand.
@@ -185,6 +215,8 @@ bool get_observations_group_id(component_t *self, char** observations_id);
  * @return c
  */
 bool get_node_by_attribute(component_t *self, char** node_id, const char* key, const char* value);
+
+bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const char* key, const char* value,  const char* subgraph_id);
 
 /**
  * Add gepose between the origin and an existing node as defined by node_id.

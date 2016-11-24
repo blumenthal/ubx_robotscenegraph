@@ -746,6 +746,71 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 	return true;
 }
 
+bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const char* key, const char* value,  const char* subgraph_id) {
+	assert(self);
+	*node_id = NULL;
+	char *msg;
+	char *reply;
+
+	// e.g.
+	//    {
+	//      "@worldmodeltype": "RSGQuery",
+	//      "query": "GET_NODES",
+	//      "subgraphId": "b0890bef-59fa-42f5-b195-cf5e28240d7d",
+	//      "attributes": [
+	//          {"key": "name", "value": "observations"},
+	//      ]
+	//    }
+
+	json_t *getNodeMsg = json_object();
+	json_object_set_new(getNodeMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getNodeMsg, "query", json_string("GET_NODES"));
+	json_object_set_new(getNodeMsg, "subgraphId", json_string(subgraph_id));
+	json_t* nodeAttribute = json_object();
+	json_object_set_new(nodeAttribute, "key", json_string(key));
+	json_object_set_new(nodeAttribute, "value", json_string(value));
+	json_t* originAttributes = json_array();
+	json_array_append_new(originAttributes, nodeAttribute);
+	json_object_set_new(getNodeMsg, "attributes", originAttributes);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getNodeMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self);
+	printf("#########################################\n");
+	printf("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
+
+	/* Parse reply */
+    json_error_t error;
+	json_t* nodeIdReply = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+	json_t* nodeIdAsJSON = 0;
+	json_t* array = json_object_get(nodeIdReply, "ids");
+	if (array) {
+		printf("[%s] result array found: \n", self->name);
+		if( json_array_size(array) > 0 ) {
+			nodeIdAsJSON = json_array_get(array, 0);
+			*node_id = strdup(json_string_value(nodeIdAsJSON));
+			printf("[%s] get_node_by_attribute ID is: %s \n", self->name, *node_id);
+		} else {
+			json_decref(nodeIdReply);
+			json_decref(getNodeMsg);
+			return false;
+		}
+	} else {
+		json_decref(nodeIdReply);
+		json_decref(getNodeMsg);
+		return false;
+	}
+
+	/* Clean up */
+	json_decref(nodeIdReply);
+	json_decref(getNodeMsg);
+
+	return true;
+}
+
 bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value) {
 	assert(self);
 	*new_geopose_id = NULL;
@@ -1155,8 +1220,8 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 	return succsess;
 }
 
-bool add_artva(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author,
-		double artva0, double artva1, double artva2, double artva3) {
+bool add_artva(component_t *self, double* transform_matrix, double artva0, double artva1, double artva2, double artva3,
+		double utc_time_stamp_in_mili_sec, char* author) {
 
 	if (self == NULL) {
 		return false;
@@ -1225,7 +1290,7 @@ bool add_artva(component_t *self, double* transform_matrix, double utc_time_stam
 	json_t *newObservationAttributes = json_array();
 	json_t *attribute1 = json_object();
 	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
-	json_object_set_new(attribute1, "value", json_string("image"));
+	json_object_set_new(attribute1, "value", json_string("artva"));
 	json_array_append_new(newObservationAttributes, attribute1);
 	json_t *attribute2a = json_object();
 	json_object_set_new(attribute2a, "key", json_string("sherpa:artva_signal0"));
@@ -1280,6 +1345,175 @@ bool add_artva(component_t *self, double* transform_matrix, double utc_time_stam
 	json_decref(newARTVANodeMsg);
 
 	return succsess;
+}
+
+bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* root_id = 0;
+	if (!get_root_node_id(self, &root_id)) {
+		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		return false;
+	}
+
+	char* batteryId = 0;
+	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:observation_type", "battery", root_id)) { // battery does not exist yet, so we will add it here
+
+		/* Get observationGroupId */
+		char* observationGroupId = 0;
+		if(!get_observations_group_id(self, &observationGroupId)) {
+			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+			return false;
+		}
+		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+
+		json_t *newBatteryNodeMsg = json_object();
+		json_object_set_new(newBatteryNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+		json_object_set_new(newBatteryNodeMsg, "operation", json_string("CREATE"));
+		json_object_set_new(newBatteryNodeMsg, "parentId", json_string(observationGroupId));
+		json_t *newAgentNode = json_object();
+		json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
+		zuuid_t *uuid = zuuid_new ();
+		char* batteryId = zuuid_str_canonical(uuid);
+		json_object_set_new(newAgentNode, "id", json_string(batteryId));
+
+		// attributes
+		json_t* attributes = json_array();
+		json_t* attribute1 = json_object();
+		json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+		json_object_set_new(attribute1, "value", json_string("battery"));
+		json_array_append_new(attributes, attribute1);
+
+		json_t* attribute2 = json_object();
+		json_object_set_new(attribute2, "key", json_string("sherpa:battery_voltage"));
+		json_object_set_new(attribute2, "value", json_real(battery_voltage));
+		json_array_append_new(attributes, attribute2);
+
+		json_t* attribute3 = json_object();
+		json_object_set_new(attribute3, "key", json_string("sherpa:battery_status"));
+		json_object_set_new(attribute3, "value", json_string(battery_status));
+		json_array_append_new(attributes, attribute3);
+
+		json_object_set_new(newAgentNode, "attributes", attributes);
+		json_object_set_new(newBatteryNodeMsg, "node", newAgentNode);
+
+		/* CReate message*/
+		msg = encode_json_message(self, newBatteryNodeMsg);
+		/* Send the message */
+		shout_message(self, msg);
+		/* Wait for a reply */
+		reply = wait_for_reply(self);
+		/* Print reply */
+		printf("#########################################\n");
+		printf("[%s] Got reply: %s \n", self->name, reply);
+
+		/* Parse reply */
+		json_t* newBatteryReply = json_loads(reply, 0, &error);
+		json_t* querySuccessMsg = json_object_get(newBatteryReply, "updateSuccess");
+		bool querySuccess = false;
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+
+		if (querySuccessMsg) {
+			querySuccess = json_is_true(querySuccessMsg);
+		}
+
+		json_decref(newBatteryNodeMsg);
+		json_decref(newBatteryReply);
+		free(msg);
+		free(reply);
+		free(batteryId);
+		free(uuid);
+
+		if(!querySuccess) {
+			printf("[%s] [ERROR] Can not add battery node for agent.\n", self->name);
+			return false;
+		}
+
+		return true;
+	}
+
+	// if it exists already, just UPDATE the attributes
+
+		//        batteryUpdateMsg = {
+		//          "@worldmodeltype": "RSGUpdate",
+		//          "operation": "UPDATE_ATTRIBUTES",
+		//          "node": {
+		//            "@graphtype": "Node",
+		//            "id": self.battery_uuid,
+		//            "attributes": [
+		//                  {"key": "sensor:battery_voltage", "value": self.battery_voltage},
+		//            ],
+		//           },
+		//        }
+
+	json_t *updateBatteryNodeMsg = json_object();
+	json_object_set_new(updateBatteryNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(updateBatteryNodeMsg, "operation", json_string("UPDATE_ATTRIBUTES"));
+	json_t *newAgentNode = json_object();
+	json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
+	json_object_set_new(newAgentNode, "id", json_string(batteryId));
+
+	// attributes
+	json_t* attributes = json_array();
+	json_t* attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "value", json_string("battery"));
+	json_array_append_new(attributes, attribute1);
+
+	json_t* attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("sherpa:battery_voltage"));
+	json_object_set_new(attribute2, "value", json_real(battery_voltage));
+	json_array_append_new(attributes, attribute2);
+
+	json_t* attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa:battery_status"));
+	json_object_set_new(attribute3, "value", json_string(battery_status));
+	json_array_append_new(attributes, attribute3);
+
+	json_object_set_new(newAgentNode, "attributes", attributes);
+	json_object_set_new(updateBatteryNodeMsg, "node", newAgentNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, updateBatteryNodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* updateBatteryReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(updateBatteryReply, "updateSuccess");
+	bool updateSuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		updateSuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(updateBatteryNodeMsg);
+	json_decref(updateBatteryReply);
+	free(msg);
+	free(reply);
+
+	return updateSuccess;
 }
 
 

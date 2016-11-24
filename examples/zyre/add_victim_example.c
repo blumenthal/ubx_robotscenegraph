@@ -138,7 +138,17 @@ int main(int argc, char *argv[]) {
 		matrix[12] = x;
 		matrix[13] = y;
 		matrix[14] = z;
-		assert(add_artva(self, matrix, utcTimeInMiliSec, agent_name, 77, 12, 0, 0));
+		assert(add_artva(self, matrix,  77, 12, 0, 0, utcTimeInMiliSec, agent_name));
+	}
+
+	/*
+	 * Add new battery values. In fact it is stored in a single battery node and
+	 * get updated after first creation.
+	 */
+	for (i = 0; i < 2; ++i) {
+		printf("###################### BATTERY #########################\n");
+		double voltage = 20 + i;
+		assert(add_battery(self, voltage, "HIGH", utcTimeInMiliSec, agent_name));
 	}
 
 	/*
