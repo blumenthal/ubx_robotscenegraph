@@ -47,13 +47,20 @@ int main(int argc, char *argv[]) {
 	int i;
 	struct timeval tp;
 
-//	printf("###################### ORIGIN #########################\n");
-//	char* originId = 0;
-//	assert(get_gis_origin_id(self, &originId));
-//	printf ("Origin ID = %s \n", originId);
-//	free(originId);
-
 	printf("###################### AGENT #########################\n");
+	/* column-major layout:
+	 * 0 4 8  12
+	 * 1 5 9  13
+	 * 2 6 10 14
+	 * 3 7 11 15
+	 *
+	 *  <=>
+	 *
+	 * r11 r12 r13  x
+	 * r21 r22 r23  y
+	 * r31 r32 r33  z
+	 * 3    7   11  15
+	 */
 	double matrix[16] = { 1, 0, 0, 0,
 			               0, 1, 0, 0,
 			               0, 0, 1, 0,
@@ -61,26 +68,14 @@ int main(int argc, char *argv[]) {
 	matrix[12] = x;
 	matrix[13] = y;
 	matrix[14] = z;
-	add_agent(self, matrix, utcTimeInMiliSec, agent_name); //TODO rotation/transform as 4x4 column-major matrix
+	assert(add_agent(self, matrix, utcTimeInMiliSec, agent_name));
+	assert(add_agent(self, matrix, utcTimeInMiliSec, agent_name)); // twice is not a problem, sine it checks for existance
 
 
 	for (i = 0; i < 2; ++i) {
 		printf("###################### VICTIM #########################\n");
 		gettimeofday(&tp, NULL);
 		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
-		/* column-major layout:
-		 * 0 4 8  12
-		 * 1 5 9  13
-		 * 2 6 10 14
-		 * 3 7 11 15
-		 *
-		 *  <=>
-		 *
-		 * r11 r12 r13  x
-		 * r21 r22 r23  y
-		 * r31 r32 r33  z
-		 * 3    7   11  15
-		 */
 		double matrix[16] = { 1, 0, 0, 0,
 				               0, 1, 0, 0,
 				               0, 0, 1, 0,
@@ -95,19 +90,6 @@ int main(int argc, char *argv[]) {
 		printf("###################### IMAGE #########################\n");
 		gettimeofday(&tp, NULL);
 		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
-		/* column-major layout:
-		 * 0 4 8  12
-		 * 1 5 9  13
-		 * 2 6 10 14
-		 * 3 7 11 15
-		 *
-		 *  <=>
-		 *
-		 * r11 r12 r13  x
-		 * r21 r22 r23  y
-		 * r31 r32 r33  z
-		 * 3    7   11  15
-		 */
 		double matrix[16] = { 1, 0, 0, 0,
 				               0, 1, 0, 0,
 				               0, 0, 1, 0,
