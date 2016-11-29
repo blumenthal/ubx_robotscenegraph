@@ -141,12 +141,63 @@ function start_all()
 --  scene_setup()
 --  load_map()
   start_wm()
+  fbx_setup()
   sync() -- just to be on the safe side
 end
 
 -- Alias s for start, calls start_all()
 function s()
   start_all()
+end  
+
+-- Send a JOSN message directly to the RSG.
+-- It will be placed in the input buffer as any other incomming message.
+-- e.g. 
+-- local msg = "{\"@worldmodeltype\": \"RSGQuery\",\"query\": \"GET_NODES\",\"attributes\": [{\"key\": \"name\", \"value\": \"*\"}]}"   
+-- send_json_to_swm(msg)
+function send_json_to_rsg(msg)
+  print("Sending a RSG-JSON message via the interactive Lua console.")
+  --local msg = "{\"@worldmodeltype\": \"RSGQuery\",\"query\": \"GET_NODES\",\"attributes\": [{\"key\": \"name\", \"value\": \"*\"}]}"   
+  local data=ubx.data_alloc(ni, "unsigned char", 1)  -- UBX data type
+  ubx.data_set(data, msg)                      -- write the  JSON message to it 
+  ubx.data_resize(data, ubx.data_size(data)-1) -- remove trailing null termination
+  ni:block_get("zyre_query_req_buffer"):write(data)
+end 
+
+function load_function_block(name)
+  local fbx_modules = os.getenv("FBX_MODULES")
+  if fbx_modules == nil then
+    print("fbx_setup() FBX_MODULES is not set. Skipping load_function_block.")
+    return 
+  end
+  fbx_modules = fbx_modules .. "/lib"
+
+  print("Trying to load function block: " .. name)
+
+  local load_block_msg = "{"
+  .. "  \"@worldmodeltype\": \"RSGFunctionBlock\","
+  .. "  \"metamodel\":       \"rsg-functionBlock-schema.json\","
+  .. "  \"name\":            \"" .. name .. "\","
+  .. "  \"operation\":       \"LOAD\","
+  .. "  \"input\": {"
+  .. "    \"metamodel\": \"rsg-functionBlock-path-schema.json\","
+  .. "    \"path\":      \"" .. fbx_modules .. "\","
+  .. "    \"comment\":   \"path is the same as the FBX_MODULES environment variable appended with a lib/ folder\""
+  .. "  }"
+  .. "}"   
+  send_json_to_rsg(load_block_msg)
+end
+
+-- (Try to) load a set of well-known function blocks.
+function fbx_setup()
+  load_function_block("poselist")
+  load_function_block("posehistory")
+  load_function_block("nodesinarea")
+end
+
+function pa()
+--  local msg = "{\"@worldmodeltype\": \"RSGQuery\",\"query\": \"GET_NODES\",\"attributes\": [{\"key\": \"" .. key .. "\", \"value\": \"*\"}]}"   
+--  send_json_to_rsg(msg)
 end  
 
 --------------------------configuaration (ENV variables)-----------------------
@@ -258,7 +309,7 @@ return bd.system
 
       -- ZMQ REQ-REP server and JSON query runner
       { src="zmq_json_query_server.zmq_req", tgt="zmq_query_req_buffer" },
---      { src="zmq_json_query_server.zmq_req", tgt="dbg_hexdump" }, --DBG
+--      { src="zyre_local_bridge.zyre_in", tgt="dbg_hexdump" }, --DBG
       { src="zmq_query_req_buffer", tgt="zmq_rsgjsonqueryrunner.rsq_query" },
       { src="zmq_rsgjsonqueryrunner.rsg_result", tgt="zmq_query_rep_buffer" },
       { src="zmq_query_rep_buffer", tgt="zmq_json_query_server.zmq_rep" },
