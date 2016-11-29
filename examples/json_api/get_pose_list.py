@@ -84,19 +84,19 @@ if (len(ids) <= 0):
 
 originId = ids[0]
 
-# Check if an "all" node exists already.
-getOrigin = {
+# Simply query for all existing nodes. In practice this will me a bit more elaborated query...
+getAllNodes = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
       {"key": "*", "value": "*"},
   ]
 }
-result = json.loads(sendMessageToSWM(json.dumps(getOrigin)))
+result = json.loads(sendMessageToSWM(json.dumps(getAllNodes)))
 ids = result["ids"]
 print("ids = %s " % ids)
 
-### Prepare  poselist functionblock ###  
+### Prepare poselist functionblock ###  
 blockName = "poselist"
 unloadFunctionBlock =  {
   "@worldmodeltype": "RSGFunctionBlock",
@@ -109,7 +109,7 @@ unloadFunctionBlock =  {
     "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
   }
 } 
-result = json.loads(sendMessageToSWM(json.dumps(unloadFunctionBlock)))
+result = json.loads(sendMessageToSWM(json.dumps(unloadFunctionBlock))) # optional
 
 loadFunctionBlock =  {
   "@worldmodeltype": "RSGFunctionBlock",
@@ -122,9 +122,9 @@ loadFunctionBlock =  {
     "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
   }
 }
-result = json.loads(sendMessageToSWM(json.dumps(loadFunctionBlock)))
+result = json.loads(sendMessageToSWM(json.dumps(loadFunctionBlock))) # has to b eloaded at least onece before
 
-### Request history ###
+### Request list of poses as defined by "ids" ###
 currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 getPoseListQuery =  {
   "@worldmodeltype": "RSGFunctionBlock",
@@ -145,7 +145,7 @@ result = json.loads(sendMessageToSWM(json.dumps(getPoseListQuery)))
 print("Recieved pose history:")  
 print(result["output"]["poses"])  
 
-## For comparison - below is an example how to get a single pose rather than a full history:
+## For comparison - below is an example how to get a single pose rather than a list:
 #currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 #print(currentTimeStamp)
 #  
