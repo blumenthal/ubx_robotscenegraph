@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 	printf("###################### CONNECTIVITY #########################\n");
 	char *root_id = 0;
 	/* Get the root node ID of the local SHWRPA World Model.
-	 * This can be used the check connectivity the the SMW.
+	 * This can be used the check connectivity to the SMW.
 	 * Typically false means the local SWM cannot be reached. Is it actually started?
 	 */
 	assert(get_root_node_id(self, &root_id));
@@ -180,6 +180,15 @@ int main(int argc, char *argv[]) {
 	utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
 	get_position(self, &x, &y, &z, utcTimeInMiliSec, agent_name);
 	printf ("Latest position of agent = (%f,%f,%f)\n", x,y,z);
+
+	/*
+	 * Get ID of mediator
+	 */
+	printf("######################  GET MEDIATOR ID  #########################\n");
+	char* mediator_id = NULL;
+	assert(get_mediator_id(self, &mediator_id));
+	printf ("ID of mediator = %s\n", mediator_id);
+	free(mediator_id);
 
 
 	printf("######################  DONE  #########################\n");

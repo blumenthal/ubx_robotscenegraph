@@ -20,6 +20,7 @@ Overview
   5. add_battery()
   6. update_pose()
   7. get_position() 
+  8. get_mediator_id()
 * A [simple example program](swm_zyre.c) that accepts a JSON file as argument and will return the reply by the SWM. 
 * A more [sophisticated example program](sherpa_example.c) highlighting a set of convenience methods to be used for a SHERPA mission.
 * A [Python wrapper](../json_api/zyre_add.py) for ``libswmzyre`` to be used as a drop in replacement for the existing [Python examples](../json_api).
