@@ -9,10 +9,31 @@ import time
 import datetime
 import ctypes
 
+
+
+# Setup messge
+if len(sys.argv) > 1:
+    fileName =  sys.argv[1]
+    with open (fileName, "r") as messagefile:
+      message=messagefile.read()
+else:
+    message="{}"
+    print("No parameters specified.")
+    print("Usage:")
+    print("\t python ./" + sys.argv[0] + " <path_to_json_file> [<path_to_config_file>]")
+    print("Example:")
+    print("\t python ./" + sys.argv[0] + " new_node.json ../zyre/swm_zyre_donkey.json")
+    exit()
+
+# Setup config file
+configFile='../zyre/swm_zyre_config.json'
+if len(sys.argv) > 2:
+    configFile =  sys.argv[2]
+
 ### Setup Zyre helper library: swmzyrelib
 swmzyrelib = ctypes.CDLL('../zyre/build/libswmzyre.so')
 swmzyrelib.wait_for_reply.restype = ctypes.c_char_p
-cfg = swmzyrelib.load_config_file('../zyre/swm_zyre_config.json')
+cfg = swmzyrelib.load_config_file(configFile)
 component = swmzyrelib.new_component(cfg)
 
 ### Define helper method to send a single messagne and receive its reply 
@@ -23,15 +44,6 @@ def sendZyreMessageToSWM(message):
   result = swmzyrelib.wait_for_reply(component);
   print("Received result: %s " % (result))
   return result
-
-
-# Setup query
-if len(sys.argv) > 1:
-    fileName =  sys.argv[1]
-    with open (fileName, "r") as messagefile:
-      message=messagefile.read()
-else:
-    message="{}"
 
 # Send message
 sendZyreMessageToSWM(message)
