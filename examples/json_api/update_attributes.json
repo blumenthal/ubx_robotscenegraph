@@ -1,0 +1,12 @@
+{
+  "@worldmodeltype": "RSGUpdate",
+  "operation": "UPDATE_ATTRIBUTES",
+  "updateMode": "UPDATE",
+  "node": {
+    "@graphtype": "Node",
+    "id": "41bba5aa-ebab-45ec-86a9-c37524afd550", 
+    "attributes": [
+          {"key": "ambient_temperature", "value": "-6°C"}
+    ]
+  }
+}

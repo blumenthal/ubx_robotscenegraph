@@ -92,7 +92,22 @@
 						
 										    ]   
 									    }
-								    },	 
+								    },
+								    {
+							      		"@childtype": "Child",
+						          		"child": {		
+										    "@graphtype": "Group",
+										    "id": "f90ce226-e0af-4a0a-a2e0-6d56ba021a3a",										    
+										    "attributes": [
+										    	{"key": "name", "value": "global_properties"},
+										    	{"key": "comment", "value": "Add mission specific parameters here."},
+										    	{"key": "scan-spec-default-status", "value": "wait-for-approval"}
+										    ],
+										    "childs": [				  
+						
+										    ]   
+									    }
+								    }	 
 							    ]   
 						    }
 						},	 

@@ -5,7 +5,7 @@
 # console but still usefull for autstart scripts.
 #
 
-cat swm_launch.sh - | ./run_sherpa_world_model.sh
+cat swm_launch.sh - | ./run_sherpa_world_model.sh $1
   
 s()
 scene_setup()
