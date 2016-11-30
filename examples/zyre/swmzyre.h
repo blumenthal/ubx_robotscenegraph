@@ -248,7 +248,7 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
  * Get the UUID of the Mediator component by using "query_mediator_uuid" query type.
  * @param[in] self Handle to the communication component.
  * @param[out] mediator_id Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
- * @return True if node was sucesfully found, otherwise false. Typically the case when no Mediator is used.
+ * @return True if ID was successfully found, otherwise false. Typically the case when no Mediator is used.
  */
 bool get_mediator_id(component_t *self, char** mediator_id);
 
