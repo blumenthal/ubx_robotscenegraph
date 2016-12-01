@@ -247,7 +247,7 @@ char* encode_json_message(component_t* self, json_t* message) {
     }
 
     // extract queryId
-	if(json_object_get(pl,"queryId") == 0) { // no queryIt in message, so we skip it here
+	if(json_object_get(pl,"queryId") == 0) { // no queryID in message, so we skip it here
 		printf("[%s] send_json_message: No queryId found, adding one.\n", self->name);
 		zuuid_t *uuid = zuuid_new ();
 		assert(uuid);
@@ -542,7 +542,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
-						printf("Skipping RSGQueryResult message without queryId");
+						printf("Skipping RSGQueryResult message without queryId\n");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
@@ -568,11 +568,37 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
-						printf("Skipping RSGFunctionBlockResult message without queryId");
+						printf("Skipping RSGFunctionBlockResult message without queryId\n");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
-						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s ", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						*reply = strdup(result->payload);
+						query_t *dummy = it;
+						it = zlist_next(self->query_list);
+						zlist_remove(self->query_list,dummy);
+						query_destroy(&dummy);
+					    json_decref(payload);
+						break;
+					}
+				}
+			}
+		} else if (streq (result->type, "mediator_uuid")) {
+			// load the payload as json
+			json_t *payload;
+			json_error_t error;
+			payload= json_loads(result->payload,0,&error);
+			if(!payload) {
+				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+			} else {
+				query_t *it = zlist_first(self->query_list);
+				while (it != NULL) {
+					if(json_object_get(payload,"UID") == 0) { // no queryIt in message, so we skip it here
+						printf("Skipping mediator_uuid message without queryId\n");
+						break;
+					}
+					if (streq(it->uid,json_string_value(json_object_get(payload,"UID")))) {
+						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						*reply = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
@@ -584,7 +610,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 				}
 			}
 		} else {
-			printf("[%s] Unknown msg type!",self->name);
+			printf("[%s] Unknown msg type!\n",self->name);
 		}
 	} else {
 		printf ("[%s] message could not be decoded\n", self->name);
@@ -994,11 +1020,74 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 }
 
 bool get_mediator_id(component_t *self, char** mediator_id) {
+	assert(self);
+	char* reply = NULL;
 
-	// https://github.com/maccradar/sherpa-com-mediator/blob/mediator/doc/msg.md#type-query_mediator_uuid
-	// NOTE, we have to use a slightly different envelope...
+	// Generate message
+	//    {
+	//      "metamodel": "sherpa_mgs",
+	//      "model": "http://kul/query_mediator_uuid.json",
+	//      "type": "query_mediator_uuid",
+	//		"payload":
+	//		{
+	//			"UID": 2147aba0-0d59-41ec-8531-f6787fe52b60
+	//		}
+	//    }
+	json_t *getMediatorIDMsg = json_object();
+	json_object_set_new(getMediatorIDMsg, "metamodel", json_string("sherpa_mgs"));
+	json_object_set_new(getMediatorIDMsg, "model", json_string("http://kul/query_mediator_uuid.json"));
+	json_object_set_new(getMediatorIDMsg, "type", json_string("query_mediator_uuid"));
+	json_t* pl = json_object();
+	zuuid_t *uuid = zuuid_new ();
+	assert(uuid);
+	json_object_set_new(pl, "UID", json_string(zuuid_str_canonical(uuid)));
+	json_object_set_new(getMediatorIDMsg, "payload", pl);
 
-	return false; // TBD
+	// add it to the query list
+	json_msg_t *msg = (json_msg_t *) zmalloc (sizeof (json_msg_t));
+	msg->metamodel = strdup("sherpa_mgs");
+	msg->model = strdup("http://kul/query_mediator_uuid.json");
+	msg->type = strdup("query_mediator_uuid");
+	msg->payload = json_dumps(pl, JSON_ENCODE_ANY);
+	query_t * q = query_new(zuuid_str_canonical(uuid), zyre_uuid(self->local), msg, NULL);
+	zlist_append(self->query_list, q);
+	free(uuid);
+
+	char* ret = json_dumps(getMediatorIDMsg, JSON_ENCODE_ANY);
+	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
+	json_decref(pl);
+	json_decref(getMediatorIDMsg);
+
+	/* Send message and wait for reply */
+	shout_message(self, ret);
+	reply = wait_for_reply(self);
+	if (reply==0) {
+		printf("[%s] Received no reply for mediator_id query.\n", self->name);
+		free(msg);
+		free(ret);
+		free(reply);
+		return false;
+	}
+	//printf("[%s] Got reply for query_mediator_uuid: %s \n", self->name, reply);
+
+	/* Parse reply */
+    json_error_t error;
+	json_t* rep = json_loads(reply, 0, &error);
+	free(msg);
+	free(ret);
+	free(reply);
+	if(!rep) {
+		printf("Error parsing JSON string! line %d: %s\n", error.line, error.text);
+		return false;
+	}
+	*mediator_id = strdup(json_string_value(json_object_get(rep, "remote")));
+	json_decref(rep);
+	if (!*mediator_id) {
+		printf("Reply did not contain mediator ID.\n");
+		return false;
+	}
+
+	return true;
 }
 
 bool add_victim(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author) {
