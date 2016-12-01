@@ -66,7 +66,7 @@ this repository (ubx_robotscenegraph) has been *cloned* to. Call the script with
 ```
  ./install.sh --help
 ```
-to retrive the folllowing usage information: 
+to retrieve the following usage information: 
  
 ``` 
  Usage: ./install.sh -i [--no-sudo] [--no-ros] [--workspace-path=PATH] [--install-path=PATH] [-h|--help] [-j=VALUE] 
@@ -167,7 +167,7 @@ Similar to install script the following options are available:
 ```
 	./update.sh --no-sudo
 ```
-In case the system has no sudo command available. Usefull for Docker based installations. 
+In case the system has no sudo command available. Useful for Docker based installations. 
 
  OR
 ```
@@ -181,20 +181,38 @@ Usage
 
 ### Launching of a SHERPA World Model
 
+#### Quick start
+
 You can start the SHERPA World Model by invoking:
+```
+  roscore&
+ ./swm_launch.sh 
+```
+
+In case the ROS communication modules are not available use instead:
+```
+  /swm_launch.sh --no-ros
+```
+
+Note, there are a set of environment variables the might need to be adopted. 
+
+#### Manual start
+
+The ``swm_launch.sh`` script already contains of a set of commands to s ins initialize the SHERPA World Model. 
+Still it is possible, e.g. in order to debug th e system, to manually perform these steps.
+
 ```
   roscore&
   ./run_sherpa_world_model.sh
 ```
 
+or 
 
-In case the ROS communication modules are not available use instead:
 ```
   ./run_sherpa_world_model.sh --no-ros
 ```
 
-
-When the system is launched correcly the following promt appears:
+When the system is launched correctly the following prompt appears:
 ```
 JIT: ON CMOV SSE2 SSE3 SSE4.1 fold cse dce fwd dse narrow loop abc sink fuse
 > 
@@ -202,35 +220,52 @@ JIT: ON CMOV SSE2 SSE3 SSE4.1 fold cse dce fwd dse narrow loop abc sink fuse
 
 Then enter the following command and hit enter:
 ```
+ scene_setup()
  start_all()
+ fbx_setup()
 ```
 
-The system state can be observed in a browser by entering http://localhost:8888/ as URL.
- 
+####Verify that it works
 
-Other examples can be obtained from the [examples section](examples).
+* The system state can be observed in a browser by entering [http://localhost:8888/](http://localhost:8888/) as URL.
+
+* Type ``p()`` into the interactive console of the SWM followed by pressing the return key. Then open a second terminal and call ``./show.sg``.
+  Note, the graphiz package need to be installed first. 
+
+* Other examples on how to use it can be obtained from the [examples section](examples).
 
 ### Interaction with a SHERPA World Model
 
-In general there are __three__ possibilities to interact with the *SHERPA World Model*:
+In general there are multiple possibilities to interact with the *SHERPA World Model*:
 
-1. By embedding a new *World Model Agent* in a process. It allows to [querie]
+1. By using the [JSON API](examples/json_api/README.md). It allows to send graph operations 
+   encoded as JSON messages via Zyre or ZMQ. 
+
+2. By using the [C client library](examples/zyre/README.md) that wraps (a subset) of the JSON API.
+
+3. By embedding a new *World Model Agent* in a process. It allows to [querie]
    (http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphQuery.html) and 
    [update](http://www.best-of-robotics.org/brics_3d/classbrics__3d_1_1rsg_1_1ISceneGraphUpdate.html) 
    all data via the C++ API. In order to use it, a dedicated *World Model Agent* has
-   to be spawned, the communication infrastructure (ZMQ) has to be added manually 
+   to be spawned, the communication infrastructure (Zyre) has to be added manually 
    and it has to be connected to the other *World Model Agent* of the *SHERPA World Model*.
 
-2. By using the [JSON API](examples/json_api/README.md). It allows to send graph operations 
-   encoded as JSON messages via Zyre or ZMQ. The distribution of the [Task Specification Tree](examples/tst/README.md)
-   makes use of this API.	 
-
-3. By creation of a dedicated *bridge* as done for ROS [TF](https://github.com/blumenthal/sherpa_world_model_tf_bridge) 
-   trees. Please note, that the implementation of the TF bridge embeds a *World 
-   Model Agent* as stated my method 1 and serves as a good reference example.
+4. By creation of a dedicated *bridge* as done for [KnowRob](https://github.com/blumenthal/sherpa_world_model_knowrob_bridge) 
+   trees. Please note, that the implementation of the KnowRob bridge embeds a *World 
+   Model Agent* as stated my method 3 and serves as a good reference example.
 
 Changelog
 ---------
+
+### 0.4.0
+
+* Extended functions in C client library (#31).
+* Fixed stability issued and memory leaks in C client library (#31).
+* Fixed bug that can hang the zyre bridge (#33).
+* Added more options on how to updates (OVERWRITE, UPDATE, APPEND, #34). 
+* Added function block for aggregated pose queries (#29). 
+* Added option to query for subgraphs (#27).
+* Added convenience launch script ``swm_launch.sh`` without the necessity to type commands at start up.
 
 ### 0.3.0 (02.11.2016)
 
@@ -277,7 +312,7 @@ Impressum
 ---------
 
 Written by Sebastian Blumenthal (blumenthal@locomotec.com)
-Last update: 02.11.2016
+Last update: 01.12.2016
  
 
 
