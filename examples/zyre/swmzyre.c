@@ -1055,7 +1055,6 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 
 	char* ret = json_dumps(getMediatorIDMsg, JSON_ENCODE_ANY);
 	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
-	json_decref(pl);
 	json_decref(getMediatorIDMsg);
 
 	/* Send message and wait for reply */
@@ -1073,7 +1072,7 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 	/* Parse reply */
     json_error_t error;
 	json_t* rep = json_loads(reply, 0, &error);
-	free(msg);
+//	free(msg); wait_for_reply handles this
 	free(ret);
 	free(reply);
 	if(!rep) {
@@ -1229,8 +1228,12 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
     }
 	printf("[%s] origin Id = %s \n", self->name, originId);
 
-	/* get mediator ID */
-	char* mediator_uuid = "79346b2b-e0a1-4e04-a7c8-981828436357";
+	/* get Mediator ID */
+	char* mediator_uuid; //= "79346b2b-e0a1-4e04-a7c8-981828436357";
+	if(!get_mediator_id(self, &mediator_uuid)) {
+		printf("[%s] [ERROR] Cannot get Mediator ID. Is the Mediator started? \n", self->name);
+		return false;
+	}
 
     char uri[1024] = {0};
     snprintf(uri, sizeof(uri), "%s:%s", mediator_uuid, file_name);
@@ -1311,6 +1314,7 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 	free(observationGroupId);
 	free(originId);
 	free(uuid);
+	free(mediator_uuid);
 	json_decref(newImageNodeMsg);
 
 	return succsess;
