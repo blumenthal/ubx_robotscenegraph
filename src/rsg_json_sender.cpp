@@ -256,6 +256,9 @@ int rsg_json_sender_init(ubx_block_t *b)
     	inf->remote_root_trigger = new RemoteRootNodeAdditionTrigger(&inf->wm->scene, b);
     	inf->wm->scene.attachUpdateObserver(inf->remote_root_trigger);
 
+    	/* Use sender port also for monitor messages */
+    	inf->wm->scene.setMonitorPort(wmUpdatesUbxPort);
+
         return 0;
 }
 
