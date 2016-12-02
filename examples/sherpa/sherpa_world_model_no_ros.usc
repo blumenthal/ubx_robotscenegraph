@@ -200,6 +200,35 @@ function pa()
 --  send_json_to_rsg(msg)
 end  
 
+function help()
+  local helpMsg =
+  [[
+  
+SWM command list  
+----------------  
+  
+  help()                    Prints all possible commands.
+  start_all() or s()        Convenience function that calls per default start_wm(), fbx_setup() and sync().
+  start_wm()                Starts all core and communication modules for the SWM.
+  fbx_setup()               Convenience function to start a set of well known function blocks.
+  sync()                    Manually trigger to send the full RSG to all other World Model Agents.
+  scene_setup()             Loads an RSG-JSON file as specified in the SWM_OSM_MAP_FILE environment variable.
+  load_map()                Loads an OpenStreetMap from a file as specified in the SWM_RSG_MAP_FILE environment variable.
+  load_function_block(name) Loads a function block as specified by a name e.g. load_function_block("posehistory").
+                            It is safe to call it multiple times. Used by fbx_setup()
+  dump_wm() or p()          Dump the current world model into a graphviz file.
+
+  
+Typical invocations after start
+-------------------------------
+
+  s()
+  scene_setup()     
+  
+  ]]
+  print(helpMsg)
+end
+
 --------------------------configuaration (ENV variables)-----------------------
 
 -- Communication configuration with reasonable default values. Can be adapted here or 
