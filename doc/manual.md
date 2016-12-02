@@ -9,7 +9,8 @@ This manual describes the following aspects of the world model:
  2. The [update](#updates) capabilities
  3. The [query](#queries) capabilities
  4. The [distribution](#distribution) capabilities
- 5. World model [debugging](#debugging) technique
+ 5. [Launch options](#launch-options)
+ 6. World model [debugging](#debugging) technique
  
 ## Data model
 
@@ -415,6 +416,83 @@ As many SWMs as desired can be deployed. Every robot has to start one Mediator a
 * **The Mediator has to be started before the SWM (since it binds the port).**
 * If the SWM gets restarted, the Mediator should be restarted as well, to be on the safe side. Sometimes the communication stops.
 
+## Launch options
+
+Since a SHERPA team consicts of a set of heterogenious plattforms, the SWM preserves flexibility on how exatly it will be used on a robot.
+This is reflected by allowing for diffrent system compostion models, various environemnt vairables and diffrent interactive commands that can be called.
+
+### System compostion models
+
+There are two different system compostion models one with ROS communation modules and one without. 
+For the latter the commmnad line parameter ``--no-ros`` is used woithin the the start scripts ``./run_sherpa_world_model.sh --no-ros``
+or ``./swm_launch.sh --no-ros`` to start a SWM.
+
+### Environment variables
+
+| Variable       |      Description   | Default  |
+|----------------|--------------------|----------|
+| ``SWM_LOCAL_JSON_QUERY_PORT`` | Port for ZMQ REQ-REP module. It exists onlx for backwards compatibility (for KnowRob) |``22422`` |
+| ``SWM_USE_GOSSIP`` | See [Zyre](#the-zyre-based-communication-layer) section  | ``0`` |
+| ``SWM_BIND_ZYRE`` |  See [Zyre](#the-zyre-based-communication-layer) section  | ``0`` |
+| ``SWM_GOSSIP_ENDPOINT`` | See [Zyre](#the-zyre-based-communication-layer) section  |  ``ipc:///tmp/local-hub`` |
+| ``SWM_ZYRE_GROUP`` |  See [Zyre](#the-zyre-based-communication-layer) section  | ``local`` |
+| ``SWM_RSG_MAP_FILE`` | Set file name to RSG map as used by the ``scene_setup()`` command | ``examples/maps/rsg/sherpa_basic_mission_setup.json`` |
+| ``SWM_OSM_MAP_FILE`` | Set file name to OSM map as used by the ``load_map`` command |  ``examples/maps/osm/map_micro_champoluc.osm`` |
+| ``SWM_GENERATE_DOT_FILES`` | Enable with ``1``. Generates a dot graphviz file on every change. Note, this can strongly effect the performance. Use it only for debugging. | ``0`` |
+| ``SWM_GENERATE_IMG_FILES`` | If ``SWM_GENERATE_DOT_FILES`` is set to ``1``, this will convert the dot files into svg files automatically by setting it to ``1``.  | ``0`` |
+| ``SWM_STORE_DOT_HISTORY``  | If ``SWM_GENERATE_DOT_FILES`` is set to ``1``, this will not override the dot file by setting it to ``1``. Instead it is saves individual files with an increasing index. | ``0`` |
+
+
+### Terminal commands
+
+The typical work-flow is to start the SWM and then call ``start_all()`` or ``s()`` as an appreviation by typing
+it into the interactive console and hitting enter.
+There are also other commands available that allow to go step by step. Here the 
+``s()`` is a convenience function.
+
+| Command                      | Description                                                |
+|------------------------------|------------------------------------------------------------|
+|  ``help()``                  |  Prints all possible commands. |
+|  ``start_all()`` or s``()``  |  Convenience function that calls per default ``start_wm()``, ``fbx_setup()`` and ``sync()``. |
+|  ``start_wm()``              |  Starts all core and communication modules for the SWM. |
+|  ``fbx_setup()``             |  Convenience function to start a set of well known function blocks. |
+|  ``sync()``                  |  Manually trigger to send the full RSG to all other World Model Agents. |
+|  ``scene_setup()``           |  Loads an RSG-JSON file as specified in the ``SWM_OSM_MAP_FILE`` environment variable. |
+|  ``load_map()``              |  Loads an OpenStreetMap from a file as specified in the ``SWM_RSG_MAP_FILE`` environment variable.  |
+|  ``load_function_block(name)``| Loads a function block as specified by a name e.g. ``load_function_block("posehistory")``. It is safe to call it multiple times. Used by ``fbx_setup()`` |
+|  ``dump_wm()`` or ``p()``    | Dump the current world model into a graphviz file.  |
+
+### Create a customized launch script
+
+The ``./swm_launch.sh`` can be used as an example for a stand alone launch script. 
+It allows to start the SWM and send as couple of terminal commands like ``s()`` 
+or ``sene_setup()``. Note, the file name after the``cat`` command must match the file name.
+
+```lua
+#!/bin/bash
+cat swm_launch.sh - | ./run_sherpa_world_model.sh $1
+  
+s()
+scene_setup()
+-- add more commands here. Note this Lua syntax.
+```
+
+### Typical launch for a SHERPA mission 
+
+1.) Ensure Zyre configurations are consistent. See section [Zyre](#the-zyre-based-communication-layer)
+```
+  export SWM_USE_GOSSIP=1
+  export SWM_BIND_ZYRE=0
+  export SWM_GOSSIP_ENDPOINT=ipc:///tmp/donkey-hub`` 
+```
+2.) Start Mediator 
+```
+  ./sherpa_comm_mediator ../examples/configs/donkey.json
+```
+3.) Start SWM via (customized?) launch script
+```
+  ./swm_launch.sh --no-ros
+```
 
 ## Debugging
 
@@ -445,28 +523,6 @@ Check if:
 Enter ``localhost:8888`` into a web browser and check if the relevant modules are active (green font). 
 Please note, the status changes based on the used [terminal](#terminal-commands) commands. When all module 
 are inactive - did you forgot to call ``start_all()``? 
-
-
-### Terminal commands
-
-The typical work-flow is to start the SWM and then call ``start_all()`` or ``s()`` as an appreviation by typing
-it into the interactive console and hitting enter.
-There are also other commands available that allow to go step by step. Here the 
-``s()`` is a convenience function.
-
-
-| Command                      | Description                                                |
-|------------------------------|------------------------------------------------------------|
-|  ``help()``                  |  Prints all possible commands. |
-|  ``start_all()`` or s``()``  |  Convenience function that calls per default ``start_wm()``, ``fbx_setup()`` and ``sync()``. |
-|  ``start_wm()``              |  Starts all core and communication modules for the SWM. |
-|  ``fbx_setup()``             |  Convenience function to start a set of well known function blocks. |
-|  ``sync()``                  |  Manually trigger to send the full RSG to all other World Model Agents. |
-|  ``scene_setup()``           |  Loads an RSG-JSON file as specified in the ``SWM_OSM_MAP_FILE`` environment variable. |
-|  ``load_map()``              |  Loads an OpenStreetMap from a file as specified in the ``SWM_RSG_MAP_FILE`` environment variable.  |
-|  ``load_function_block(name)``| Loads a function block as specified by a name e.g. ``load_function_block("posehistory")``. It is safe to call it multiple times. Used by ``fbx_setup()`` |
-|  ``dump_wm()`` or ``p()``         | Dump the current world model into a graphviz file.  |
-
 
 ### Log messages
 Look for ``[ERROR]`` and ``[WARNING]`` messages printed into the interactive terminal. 
