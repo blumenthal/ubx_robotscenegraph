@@ -298,7 +298,7 @@ int rsg_json_sender_init(ubx_block_t *b)
 
     	/* Setup error trigger */
     	inf->error_trigger = new OnErrorTrigger(b);
-    	inf->wm->scene.attachErrorObserver(inf->error_trigger);
+//    	inf->wm->scene.attachErrorObserver(inf->error_trigger);
 
     	/* Use sender port also for monitor messages */
     	inf->wm->scene.setMonitorPort(wmUpdatesUbxPort);
