@@ -12,13 +12,14 @@ source $FBX_MODULES/env.sh
 export SWM_LOG_LEVEL=0  #  default value = 1
 
 # World Model Agent 
-export SWM_WMA_NAME=wasp   #  default value = swm
+export SWM_WMA_NAME=donkey0   #  default value = swm
 #export SWM_WMA_ID=f3c1c524-486d-40dc-8cbe-7d8053e7f587  # default value = e379121f-06c6-4e21-ae9d-ae78ec1986a1
 export SWM_WMA_ID= # An empty World Model Agent Id will trigger to generate one.
 export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 
 # Communication setup with ZMQ (version without mediator component)
-export SWM_USE_GOSSIP=0 # 1 use gossip; 0 use UDP beaconing;
+export SWM_USE_GOSSIP=1 # 1 use gossip; 0 use UDP beaconing;
+export SWM_GOSSIP_ENDPOINT=ipc:///tmp/donkey-hub 
 export SWM_BIND_ZYRE=0  # 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
 export SWM_LOCAL_JSON_QUERY_PORT=22422  # default value = 22422
 
@@ -32,4 +33,4 @@ export SWM_RSG_MAP_FILE=../maps/rsg/sherpa_basic_mission_setup.json # default va
 export SWM_OSM_MAP_FILE=../maps/osm/map_micro_champoluc.osm # default value = examples/maps/osm/map_micro_champoluc.osm
 
 # Start the ubx system
-exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model.usc	
+exec $UBX_ROOT/tools/ubx_launch -webif 8888 -c sherpa_world_model_no_ros.usc	

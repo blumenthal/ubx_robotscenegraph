@@ -10,7 +10,7 @@ import os
 
 ### Variables ###
 objectAttribute = "sherpa:agent_name"
-agent = "genius"
+agent = "fw0"
 fbxPath = os.environ['FBX_MODULES']
 fbxPath = fbxPath + "/lib/"
 
