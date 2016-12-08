@@ -173,9 +173,7 @@ getPoseListQuery =  {
   "input": {
     "metamodel": "fbx-onattributechange-input-schema.json",
 	  "monitorOperation": "START",
-    "monitorId": "1ac67940-8639-4b33-b1f5-d9ec3a904da9",
-	  "id": ids[0],
-    "attributeKey": "ambient_temperature" 
+    "monitorId": "1ac67940-8639-4b33-b1f5-d9ec3a904da9"
   }
 } 
 result = json.loads(sendMessageToSWM(json.dumps(getPoseListQuery)))
@@ -208,9 +206,7 @@ getPoseListQuery =  {
   "input": {
     "metamodel": "fbx-onattributechange-input-schema.json",
 	  "monitorOperation": "START",
-    "monitorId": "ace71788-1b25-48d4-8ccd-17ab820a095e",
-	  "id": batteryIds[0],
-    "attributeKey": "sherpa:battery_voltage" 
+    "monitorId": "ace71788-1b25-48d4-8ccd-17ab820a095e"
   }
 } 
 result = json.loads(sendMessageToSWM(json.dumps(getPoseListQuery)))
