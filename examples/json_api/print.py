@@ -1,5 +1,7 @@
-# Example on how to get a complete trajectory of a SHERPA agent
-# assumed scene_setup() has been calles already!
+# Example on how to get "print" a Robot Scene Graph into a file.
+# Assumes scene_setup() has been calles already!
+# More details can be found here:
+# https://github.com/blumenthal/brics_3d_function_blocks/blob/master/dotdenerator/README.md
 
 import zmq
 import random
@@ -74,7 +76,7 @@ getNode = {
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
-      {"key": "gis:origin", "value": "wgs84"},
+      {"key": "name", "value": "swm"},
   ]
 }
 result = json.loads(sendMessageToSWM(json.dumps(getNode)))
@@ -86,14 +88,14 @@ if (len(ids) <= 0):
 
 subgraphId = ids[0]
 
-# Get root node;
-#getRootNodeMsg = {
-#  "@worldmodeltype": "RSGQuery",
-#  "query": "GET_ROOT_NODE"
-#}
-#result = json.loads(sendMessageToSWM(json.dumps(getRootNodeMsg)))
-#rootId = result["rootId"]
-#print("rootId = %s " % rootId)
+# In case a supgrah of this agent should be displayed
+getRootNodeMsg = {
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_ROOT_NODE"
+}
+result = json.loads(sendMessageToSWM(json.dumps(getRootNodeMsg)))
+rootId = result["rootId"]
+print("rootId = %s " % rootId)
 
 
 ### Prepare dotgenerator functionblock ###  
@@ -122,17 +124,19 @@ loadFunctionBlock =  {
     "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
   }
 }
-result = json.loads(sendMessageToSWM(json.dumps(loadFunctionBlock))) # has to b eloaded at least onece before
+result = json.loads(sendMessageToSWM(json.dumps(loadFunctionBlock))) # has to be loaded at least onece before
 
-### Trigger dotgenerator
+### Trigger dotgenerator. subgraphId, path and dotFileName are optional fields.
 saveToDoFileCommand =  {
   "@worldmodeltype": "RSGFunctionBlock",
   "metamodel":       "rsg-functionBlock-schema.json",
   "name":            blockName,
   "operation":       "EXECUTE",
   "input": {
-    "metamodel": "fbx-subgraph-and-file-schema.json"
-    
+    "metamodel": "fbx-subgraph-and-file-schema.json",
+    "subgraphId": rootId,
+    "path": "/tmp/",
+    "dotFileName": "rsg_dump_1"
   }
 } 
 result = json.loads(sendMessageToSWM(json.dumps(saveToDoFileCommand)))
