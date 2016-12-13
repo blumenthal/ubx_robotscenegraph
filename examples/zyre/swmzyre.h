@@ -32,7 +32,7 @@ typedef struct _component_t {
 	char *RSG_parent;
 	zyre_t *local;
 	json_t *config;
-	zpoller_t *poller;
+	zactor_t *communication_actor;
 	zlist_t *query_list;
 	int timeout;
 	int no_of_updates;
@@ -242,7 +242,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
  * @param value Optional attribute value. Ignored on NULL
  * @return Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
  */
-bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value);
+bool add_geopose_to_node(component_t *self, const char* node_id, const char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value);
 
 /**
  * Get the UUID of the Mediator component by using "query_mediator_uuid" query type.
@@ -259,7 +259,7 @@ void handle_exit(component_t *self, zmsg_t *msg);
 
 void handle_whisper (component_t *self, zmsg_t *msg);
 
-void handle_shout(component_t *self, zmsg_t *msg, char **reply);
+void handle_shout(component_t *self, zmsg_t *msg);
 
 void handle_join (component_t *self, zmsg_t *msg);
 

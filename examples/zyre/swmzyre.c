@@ -32,9 +32,8 @@ void destroy_component (component_t **self_p) {
 		zclock_sleep (100);
 		zyre_destroy (&self->local);
 		printf ("[%s] Destroying component.\n", self->name);
-        zyre_destroy (&self->local);
         json_decref(self->config);
-        zpoller_destroy (&self->poller);
+        zactor_destroy (&self->communication_actor);
         //free memory of all items from the query list
         query_t *it;
         while(zlist_size (self->query_list) > 0){
@@ -42,6 +41,7 @@ void destroy_component (component_t **self_p) {
         	query_destroy(&it);
         }
         zlist_destroy (&self->query_list);
+
         free (self);
         *self_p = NULL;
     }
@@ -58,6 +58,74 @@ query_t * query_new (const char *uid, const char *requester, json_msg_t *msg, za
 
         return self;
 }
+
+static void communication_actor (zsock_t *pipe, void *args)
+{
+	component_t *self = (component_t*) args;
+	zpoller_t *poller =  zpoller_new (zyre_socket(self->local), pipe , NULL);
+	zsock_signal (pipe, 0);
+
+	while (zlist_size (self->query_list) > 0){
+		//printf("[%s] Queries in queue: %d \n",self->name,zlist_size (self->query_list));
+		void *which = zpoller_wait (poller, ZMQ_POLL_MSEC);
+		if (which) {
+			zmsg_t *msg = zmsg_recv (which);
+			if (!msg) {
+				printf("[%s] interrupted!\n", self->name);
+			}
+			//zmsg_print(msg); printf("msg end\n");
+			char *event = zmsg_popstr (msg);
+			if (streq (event, "ENTER")) {
+				handle_enter (self, msg);
+			} else if (streq (event, "EXIT")) {
+				handle_exit (self, msg);
+			} else if (streq (event, "SHOUT")) {
+				handle_shout (self, msg);
+			} else if (streq (event, "WHISPER")) {
+				handle_whisper (self, msg);
+			} else if (streq (event, "JOIN")) {
+				handle_join (self, msg);
+			} else if (streq (event, "EVASIVE")) {
+				handle_evasive (self, msg);
+			} else {
+				zmsg_print(msg);
+			}
+			zstr_free (&event);
+			zmsg_destroy (&msg);
+		}
+	}
+	zpoller_destroy (&poller);
+}
+
+
+//// timestamp for timeout
+//struct timespec ts = {0,0};
+//struct timespec curr_time = {0,0};
+//if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
+//	printf("[%s] Could not assign time stamp!\n",self->name);
+//}
+//if (clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
+//	printf("[%s] Could not assign time stamp!\n",self->name);
+//}
+//
+//
+////check for timeout
+//if (!clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
+//	// if timeout, stop component
+//	double curr_time_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
+//	double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
+//	if (curr_time_msec - ts_msec > self->timeout) {
+//		printf("[%s] Timeout! No query answer received.\n",self->name);
+//		destroy_component(&self);
+//		return 0;
+//	}
+//} else {
+//	printf ("[%s] could not get current time\n", self->name);
+//}
+
+
+
+
 
 component_t* new_component(json_t *config) {
 	component_t *self = (component_t *) zmalloc (sizeof (component_t));
@@ -120,6 +188,15 @@ component_t* new_component(json_t *config) {
 		zyre_set_header(self->local, key, "%s", header_value);
 	}
 
+	//create a list to store queries...
+	self->query_list = zlist_new();
+	if ((!self->query_list)&&(zlist_size (self->query_list) == 0)) {
+		destroy_component (&self);
+		return NULL;
+	}
+
+	self->alive = 1; //will be used to quit program after answer to query is received
+
 	int rc;
 	if(!json_is_null(json_object_get(config, "gossip_endpoint"))) {
 		//  Set up gossip network for this node
@@ -130,20 +207,17 @@ component_t* new_component(json_t *config) {
 	}
 	rc = zyre_start (self->local);
 	assert (rc == 0);
+	///TODO: romove hardcoding of group name!
 	self->localgroup = strdup("local");
 	zyre_join (self->local, self->localgroup);
 	//  Give time for them to connect
 	zclock_sleep (1000);
 
-	//create a list to store queries...
-	self->query_list = zlist_new();
-	if ((!self->query_list)&&(zlist_size (self->query_list) == 0)) {
-		destroy_component (&self);
-		return NULL;
-	}
+	self->communication_actor = zactor_new (communication_actor, self);
+	assert (self->communication_actor);
+	///TODO: move to debug
+	zstr_sendx (self->communication_actor, "VERBOSE", NULL);
 
-	self->alive = 1; //will be used to quit program after answer to query is received
-	self->poller =  zpoller_new (zyre_socket(self->local), NULL);
 	return self;
 }
 
@@ -159,6 +233,7 @@ json_t * load_config_file(char* file) {
 
     return root;
 }
+
 
 
 int decode_json(char* message, json_msg_t *result) {
@@ -251,13 +326,12 @@ char* encode_json_message(component_t* self, json_t* message) {
 		printf("[%s] send_json_message: No queryId found, adding one.\n", self->name);
 		zuuid_t *uuid = zuuid_new ();
 		assert(uuid);
-		char* uuid_as_string = zuuid_str_canonical(uuid);
+		const char* uuid_as_string = zuuid_str_canonical(uuid);
 	    json_object_set_new(pl, "queryId", json_string(uuid_as_string));
-	    free(uuid_as_string);
 	    free(uuid);
 	}
 
-	char* query_id = json_string_value(json_object_get(pl,"queryId"));
+	const char* query_id = json_string_value(json_object_get(pl,"queryId"));
 	//printf("[%s] send_json_message: query_id = %s:\n", self->name, query_id);
 
 	// pack it into the standard msg envelope
@@ -292,62 +366,62 @@ int shout_message(component_t* self, char* message) {
 char* wait_for_reply(component_t* self) {
 	char* ret = 0;
 
-    // timestamp for timeout
-    struct timespec ts = {0,0};
-    struct timespec curr_time = {0,0};
-    if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
-		printf("[%s] Could not assign time stamp!\n",self->name);
-	}
-    if (clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
-		printf("[%s] Could not assign time stamp!\n",self->name);
-	}
-
-	while (zlist_size (self->query_list) > 0){
-			//printf("[%s] Queries in queue: %d \n",self->name,zlist_size (self->query_list));
-			void *which = zpoller_wait (self->poller, ZMQ_POLL_MSEC);
-			if (which) {
-				zmsg_t *msg = zmsg_recv (which);
-				if (!msg) {
-					printf("[%s] interrupted!\n", self->name);
-					return -1;
-				}
-				//zmsg_print(msg); printf("msg end\n");
-				char *event = zmsg_popstr (msg);
-				if (streq (event, "ENTER")) {
-					handle_enter (self, msg);
-				} else if (streq (event, "EXIT")) {
-					handle_exit (self, msg);
-				} else if (streq (event, "SHOUT")) {
-					handle_shout (self, msg, &ret);
-				} else if (streq (event, "WHISPER")) {
-					handle_whisper (self, msg);
-				} else if (streq (event, "JOIN")) {
-					handle_join (self, msg);
-				} else if (streq (event, "EVASIVE")) {
-					handle_evasive (self, msg);
-				} else {
-					zmsg_print(msg);
-				}
-				zstr_free (&event);
-				zmsg_destroy (&msg);
-			}
-			//check for timeout
-			if (!clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
-				// if timeout, stop component
-				double curr_time_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
-				double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
-				if (curr_time_msec - ts_msec > self->timeout) {
-					printf("[%s] Timeout! No query answer received.\n",self->name);
-					destroy_component(&self);
-					return 0;
-				}
-			} else {
-				printf ("[%s] could not get current time\n", self->name);
-			}
-		}
-
-	//printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
-	return ret;
+//    // timestamp for timeout
+//    struct timespec ts = {0,0};
+//    struct timespec curr_time = {0,0};
+//    if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
+//		printf("[%s] Could not assign time stamp!\n",self->name);
+//	}
+//    if (clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
+//		printf("[%s] Could not assign time stamp!\n",self->name);
+//	}
+//
+//	while (zlist_size (self->query_list) > 0){
+//			//printf("[%s] Queries in queue: %d \n",self->name,zlist_size (self->query_list));
+//			void *which = zpoller_wait (self->poller, ZMQ_POLL_MSEC);
+//			if (which) {
+//				zmsg_t *msg = zmsg_recv (which);
+//				if (!msg) {
+//					printf("[%s] interrupted!\n", self->name);
+//					return -1;
+//				}
+//				//zmsg_print(msg); printf("msg end\n");
+//				char *event = zmsg_popstr (msg);
+//				if (streq (event, "ENTER")) {
+//					handle_enter (self, msg);
+//				} else if (streq (event, "EXIT")) {
+//					handle_exit (self, msg);
+//				} else if (streq (event, "SHOUT")) {
+//					handle_shout (self, msg, &ret);
+//				} else if (streq (event, "WHISPER")) {
+//					handle_whisper (self, msg);
+//				} else if (streq (event, "JOIN")) {
+//					handle_join (self, msg);
+//				} else if (streq (event, "EVASIVE")) {
+//					handle_evasive (self, msg);
+//				} else {
+//					zmsg_print(msg);
+//				}
+//				zstr_free (&event);
+//				zmsg_destroy (&msg);
+//			}
+//			//check for timeout
+//			if (!clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
+//				// if timeout, stop component
+//				double curr_time_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
+//				double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
+//				if (curr_time_msec - ts_msec > self->timeout) {
+//					printf("[%s] Timeout! No query answer received.\n",self->name);
+//					destroy_component(&self);
+//					return 0;
+//				}
+//			} else {
+//				printf ("[%s] could not get current time\n", self->name);
+//			}
+//		}
+//
+//	//printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
+//	return ret;
 }
 
 char* send_query(component_t* self, char* query_type, json_t* query_params) {
@@ -494,7 +568,7 @@ void handle_whisper (component_t *self, zmsg_t *msg) {
 	zstr_free(&message);
 }
 
-void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
+void handle_shout(component_t *self, zmsg_t *msg) {
 	assert (zmsg_size(msg) == 4);
 	char *peerid = zmsg_popstr (msg);
 	char *name = zmsg_popstr (msg);
@@ -520,7 +594,6 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s:\n %s\n ", self->name,it->uid,result->payload);
-						*reply = strdup(result->payload);
 //						free(it->msg->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
@@ -547,7 +620,6 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
-						*reply = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -573,7 +645,6 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
-						*reply = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -599,7 +670,6 @@ void handle_shout(component_t *self, zmsg_t *msg, char** reply) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"UID")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
-						*reply = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -837,7 +907,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
 	return true;
 }
 
-bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value) {
+bool add_geopose_to_node(component_t *self, const char* node_id, const char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value) {
 	assert(self);
 	*new_geopose_id = NULL;
 	char *msg;
@@ -1185,7 +1255,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
 	printf("[%s] Got reply: %s \n", self->name, reply);
 
 
-	char* poseId;
+	const char* poseId;
 	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
 
 
@@ -1304,7 +1374,7 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 	printf("[%s] Got reply: %s \n", self->name, reply);
 
 
-	char* poseId;
+	const char* poseId;
 	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
 
 
@@ -1432,7 +1502,7 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 	printf("[%s] Got reply: %s \n", self->name, reply);
 
 
-	char* poseId;
+	const char* poseId;
 	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
 
 
@@ -1485,7 +1555,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		json_t *newAgentNode = json_object();
 		json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();
-		char* batteryId = zuuid_str_canonical(uuid);
+		const char* batteryId = zuuid_str_canonical(uuid);
 		json_object_set_new(newAgentNode, "id", json_string(batteryId));
 
 		// attributes
@@ -1534,7 +1604,6 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		json_decref(newBatteryReply);
 		free(msg);
 		free(reply);
-		free(batteryId);
 		free(uuid);
 
 		if(!querySuccess) {
@@ -1663,8 +1732,9 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		json_t *newAgentNode = json_object();
 		json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();
-		agentId = zuuid_str_canonical(uuid);
-		json_object_set_new(newAgentNode, "id", json_string(agentId));
+		const char* new_agentId;
+		new_agentId = zuuid_str_canonical(uuid);
+		json_object_set_new(newAgentNode, "id", json_string(new_agentId));
 
 		// attributes
 		json_t* attributes = json_array();
