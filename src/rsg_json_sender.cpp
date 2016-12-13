@@ -13,6 +13,7 @@
 #include <brics_3d/worldModel/sceneGraph/FrequencyAwareUpdateFilter.h>
 #include <brics_3d/worldModel/sceneGraph/ISceneGraphUpdateObserver.h>
 #include <brics_3d/worldModel/sceneGraph/GraphConstraintUpdateFilter.h>
+#include <brics_3d/worldModel/sceneGraph/TimeStamper.h>
 
 
 using namespace brics_3d;

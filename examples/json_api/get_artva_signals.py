@@ -96,7 +96,7 @@ for i in ids:
     getPose = {
       "@worldmodeltype": "RSGQuery",
       "query": "GET_TRANSFORM",
-      "id": i,
+      "id": ids[i],
       "idReferenceNode": rootId,
       "timeStamp": {
         "@stamptype": "TimeStampDate",
