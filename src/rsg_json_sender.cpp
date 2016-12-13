@@ -156,6 +156,7 @@ struct rsg_json_sender_info
 		brics_3d::rsg::GraphConstraintUpdateFilter* constraint_filter; // Supersedes the frequency_filter
 		RemoteRootNodeAdditionTrigger* remote_root_trigger;
 		OnErrorTrigger* error_trigger;
+		TimeStamper* time_stamper;
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -202,6 +203,8 @@ int rsg_json_sender_init(ubx_block_t *b)
     	inf->wm_printer->setGenerateSvgFiles(false);
     	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
 
+    	bool doBenchmark = true;
+
     	int* store_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_dot_files", &clen));
     	if(clen == 0) {
     		LOG(INFO) << "rsg_json_sender: No store_dot_files configuration given. Turned off by default.";
@@ -221,10 +224,12 @@ int rsg_json_sender_init(ubx_block_t *b)
     	} else {
     		if (*generate_svg_files == 1) {
     			LOG(INFO) << "rsg_json_sender: generate_svg_files turned on.";
-    	    	inf->wm_printer->setGenerateSvgFiles(true);
+    	    	//inf->wm_printer->setGenerateSvgFiles(true);
+    	    	doBenchmark = true;
     		} else {
     			LOG(INFO) << "rsg_json_sender: generate_svg_files turned off.";
-    	    	inf->wm_printer->setGenerateSvgFiles(false);
+    	    	//inf->wm_printer->setGenerateSvgFiles(false);
+    	    	doBenchmark = false;
     		}
     	}
 
@@ -304,6 +309,13 @@ int rsg_json_sender_init(ubx_block_t *b)
     	/* Use sender port also for monitor messages */
     	inf->wm->scene.setMonitorPort(wmUpdatesUbxPort);
 
+    	/* Benchmark tool */
+    	if(doBenchmark) {
+    		LOG(INFO) << "rsg_json_sender: time stamping benchmark turned on.";
+    		inf->time_stamper = new TimeStamper(inf->wm, "swm_send_after_encoding");
+    		inf->constraint_filter->attachUpdateObserver(inf->time_stamper); // right after the JSON serializer
+    	}
+
         return 0;
 }
 
@@ -374,6 +386,10 @@ void rsg_json_sender_cleanup(ubx_block_t *b)
         if(inf->error_trigger){
         	delete inf->error_trigger;
         	inf->error_trigger = 0;
+        }
+        if(inf->time_stamper){
+        	delete inf->time_stamper;
+        	inf->time_stamper = 0;
         }
         free(b->private_data);
 }
