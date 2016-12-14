@@ -274,7 +274,7 @@ echo "Lib yaml" #Reqired for installation on SHERPA Wasp (Odroid U3)
 ${SUDO} apt-get install -y libyaml-dev
 
 echo "JSON library for the Mediator and Zyre UBX bridge"
-${SUDO} apt-get install -y libjansson-dev
+${SUDO} apt-get install -y libjansson-dev uuid-dev
 
 echo "HDF5: " # (deprecated)
 # This one is alway a bit tricky since there are many compile time
