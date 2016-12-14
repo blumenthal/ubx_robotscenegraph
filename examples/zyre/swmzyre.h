@@ -193,6 +193,8 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
  */
 bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name);
 
+bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name);
+
 /**
  * Get the root node ID of the local SHWRPA World Model.
  * This can be used the check connectivity the the SMW.

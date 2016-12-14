@@ -2125,7 +2125,22 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
     return true;
 }
 
-bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agentName) {
+bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name) {
+	double matrix[16] = { 1, 0, 0, 0,
+			               0, 1, 0, 0,
+			               0, 0, 1, 0,
+			               0, 0, 0, 1}; // y,x,z,1 remember this is column-majo
+
+	bool result = get_pose(self, matrix, utc_time_stamp_in_mili_sec, agent_name);
+
+	*xOut = matrix[12];
+	*yOut = matrix[13];
+	*zOut = matrix[14];
+
+	return result;
+}
+
+bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 	char *msg;
 
 	/*
@@ -2136,7 +2151,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	json_object_set_new(getAgentMsg, "query", json_string("GET_NODES"));
 	json_t *agentAttribute = json_object();
 	json_object_set_new(agentAttribute, "key", json_string("sherpa:agent_name"));
-	json_object_set_new(agentAttribute, "value", json_string(agentName));
+	json_object_set_new(agentAttribute, "value", json_string(agent_name));
 	json_t *attributes = json_array();
 	json_array_append_new(attributes, agentAttribute);
 	json_object_set_new(getAgentMsg, "attributes", attributes);
@@ -2246,12 +2261,27 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     free(reply);
     if(transform) {
     	json_t* matrix = json_object_get(transform, "matrix");
-    	*xOut = json_real_value(json_array_get(json_array_get(matrix, 0), 3));
-    	*yOut = json_real_value(json_array_get(json_array_get(matrix, 1), 3));
-    	*zOut = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
+    	transform_matrix[0]  = json_real_value(json_array_get(json_array_get(matrix, 0), 0));
+    	transform_matrix[4]  = json_real_value(json_array_get(json_array_get(matrix, 0), 1));
+    	transform_matrix[8]  = json_real_value(json_array_get(json_array_get(matrix, 0), 2));
+    	transform_matrix[12] = json_real_value(json_array_get(json_array_get(matrix, 0), 3));
+
+    	transform_matrix[1]  = json_real_value(json_array_get(json_array_get(matrix, 1), 0));
+    	transform_matrix[5]  = json_real_value(json_array_get(json_array_get(matrix, 1), 1));
+    	transform_matrix[9]  = json_real_value(json_array_get(json_array_get(matrix, 1), 2));
+    	transform_matrix[13] = json_real_value(json_array_get(json_array_get(matrix, 1), 3));
+
+    	transform_matrix[2]  = json_real_value(json_array_get(json_array_get(matrix, 2), 0));
+    	transform_matrix[6]  = json_real_value(json_array_get(json_array_get(matrix, 2), 1));
+    	transform_matrix[10] = json_real_value(json_array_get(json_array_get(matrix, 2), 2));
+    	transform_matrix[14] = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
+
+    	transform_matrix[3]  = json_real_value(json_array_get(json_array_get(matrix, 3), 0));
+    	transform_matrix[7]  = json_real_value(json_array_get(json_array_get(matrix, 3), 1));
+    	transform_matrix[11] = json_real_value(json_array_get(json_array_get(matrix, 3), 2));
+    	transform_matrix[15] = json_real_value(json_array_get(json_array_get(matrix, 3), 3));
 
     } else {
-
     	return false;
     }
 
@@ -2262,3 +2292,4 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 
 	return true;
 }
+
