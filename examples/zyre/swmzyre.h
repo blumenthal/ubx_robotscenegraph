@@ -137,6 +137,18 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 
 bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author);
 
+bool add_sherpa_box_status(component_t *self,
+	int idle,
+	int completed,
+	int executeId,
+	int commandStep,
+	int linActuatorPosition,
+	bool waspDockLeft,
+	bool waspDockRight,
+	bool waspLockedLeft,
+	bool waspLockedRight,
+	char* author);
+
 
 
 /**

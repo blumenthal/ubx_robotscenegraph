@@ -152,6 +152,15 @@ int main(int argc, char *argv[]) {
 	}
 
 	/*
+	 * Add new status values for the SHERPA box. In fact it is stored in a single node and
+	 * get updated after first creation. Like the battery.
+	 */
+	for (i = 0; i < 2; ++i) {
+		printf("###################### SHERPA BOX STATUS #########################\n");
+		assert(add_sherpa_box_status(self, 0, i, 0, 0, 0, false, true, false, false, agent_name));
+	}
+
+	/*
 	 * Update pose of this agent
 	 */
 	for (i = 0; i < 30; ++i) {

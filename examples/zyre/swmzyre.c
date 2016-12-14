@@ -1616,6 +1616,254 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	return updateSuccess;
 }
 
+bool add_sherpa_box_status(component_t *self,
+	int idle,
+	int completed,
+	int executeId,
+	int commandStep,
+	int linActuatorPosition,
+	bool waspDockLeft,
+	bool waspDockRight,
+	bool waspLockedLeft,
+	bool waspLockedRight,
+	char* author) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* root_id = 0;
+	if (!get_root_node_id(self, &root_id)) {
+		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		return false;
+	}
+
+	char* batteryId = 0;
+	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:observation_type", "sherpa_box", root_id)) { // battery does not exist yet, so we will add it here
+
+		/* Get observationGroupId */
+		char* observationGroupId = 0;
+		if(!get_observations_group_id(self, &observationGroupId)) {
+			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+			return false;
+		}
+		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+
+		json_t *newSherpaBoxStatusNodeMsg = json_object();
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "operation", json_string("CREATE"));
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "parentId", json_string(observationGroupId));
+		json_t *newSBoxNode = json_object();
+		json_object_set_new(newSBoxNode, "@graphtype", json_string("Node"));
+		zuuid_t *uuid = zuuid_new ();
+		char* sherpaBoxStatusId = zuuid_str_canonical(uuid);
+		json_object_set_new(newSBoxNode, "id", json_string(sherpaBoxStatusId));
+
+		// attributes
+		json_t* attributes = json_array();
+		json_t* attribute1 = json_object();
+		json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+		json_object_set_new(attribute1, "value", json_string("sherpa_box"));
+		json_array_append_new(attributes, attribute1);
+
+		json_t* attribute2 = json_object();
+		json_object_set_new(attribute2, "key", json_string("sherpa_box:idle"));
+		json_object_set_new(attribute2, "value", json_integer(idle));
+		json_array_append_new(attributes, attribute2);
+
+		json_t* attribute3 = json_object();
+		json_object_set_new(attribute3, "key", json_string("sherpa_box:completed"));
+		json_object_set_new(attribute3, "value", json_integer(completed));
+		json_array_append_new(attributes, attribute3);
+
+		json_t* attribute4 = json_object();
+		json_object_set_new(attribute4, "key", json_string("sherpa_box:executeId"));
+		json_object_set_new(attribute4, "value", json_integer(executeId));
+		json_array_append_new(attributes, attribute4);
+
+		json_t* attribute5 = json_object();
+		json_object_set_new(attribute5, "key", json_string("sherpa_box:commandStep"));
+		json_object_set_new(attribute5, "value", json_integer(executeId));
+		json_array_append_new(attributes, attribute5);
+
+		json_t* attribute6 = json_object();
+		json_object_set_new(attribute6, "key", json_string("sherpa_box:linActuatorPosition"));
+		json_object_set_new(attribute6, "value", json_integer(linActuatorPosition));
+		json_array_append_new(attributes, attribute6);
+
+		json_t* attribute7 = json_object();
+		json_object_set_new(attribute7, "key", json_string("sherpa_box:waspDockLeft"));
+		json_object_set_new(attribute7, "value", json_boolean(waspDockLeft));
+		json_array_append_new(attributes, attribute7);
+
+		json_t* attribute8 = json_object();
+		json_object_set_new(attribute8, "key", json_string("sherpa_box:waspDockRight"));
+		json_object_set_new(attribute8, "value", json_boolean(waspDockRight));
+		json_array_append_new(attributes, attribute8);
+
+		json_t* attribute9 = json_object();
+		json_object_set_new(attribute9, "key", json_string("sherpa_box:waspLockedLeft"));
+		json_object_set_new(attribute9, "value", json_boolean(waspLockedLeft));
+		json_array_append_new(attributes, attribute9);
+
+		json_t* attribute10 = json_object();
+		json_object_set_new(attribute10, "key", json_string("sherpa_box:waspLockedRight"));
+		json_object_set_new(attribute10, "value", json_boolean(waspLockedRight));
+		json_array_append_new(attributes, attribute10);
+
+		json_object_set_new(newSBoxNode, "attributes", attributes);
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "node", newSBoxNode);
+
+		/* CReate message*/
+		msg = encode_json_message(self, newSherpaBoxStatusNodeMsg);
+		/* Send the message */
+		shout_message(self, msg);
+		/* Wait for a reply */
+		reply = wait_for_reply(self);
+		/* Print reply */
+		printf("#########################################\n");
+		printf("[%s] Got reply: %s \n", self->name, reply);
+
+		/* Parse reply */
+		json_t* newSherpaBoxStatusReply = json_loads(reply, 0, &error);
+		json_t* querySuccessMsg = json_object_get(newSherpaBoxStatusReply, "updateSuccess");
+		bool querySuccess = false;
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+
+		if (querySuccessMsg) {
+			querySuccess = json_is_true(querySuccessMsg);
+		}
+
+		json_decref(newSherpaBoxStatusNodeMsg);
+		json_decref(newSherpaBoxStatusReply);
+		free(msg);
+		free(reply);
+		free(sherpaBoxStatusId);
+		free(uuid);
+
+		if(!querySuccess) {
+			printf("[%s] [ERROR] Can not add battery node for agent.\n", self->name);
+			return false;
+		}
+
+		return true;
+	}
+
+	// if it exists already, just UPDATE the attributes
+
+		//        batteryUpdateMsg = {
+		//          "@worldmodeltype": "RSGUpdate",
+		//          "operation": "UPDATE_ATTRIBUTES",
+		//          "node": {
+		//            "@graphtype": "Node",
+		//            "id": self.battery_uuid,
+		//            "attributes": [
+		//                  {"key": "sensor:battery_voltage", "value": self.battery_voltage},
+		//            ],
+		//           },
+		//        }
+
+	json_t *updateSherpaBoxStatusNodeMsg = json_object();
+	json_object_set_new(updateSherpaBoxStatusNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(updateSherpaBoxStatusNodeMsg, "operation", json_string("UPDATE_ATTRIBUTES"));
+	json_t *newSherpaBoxStatusNode = json_object();
+	json_object_set_new(newSherpaBoxStatusNode, "@graphtype", json_string("Node"));
+	json_object_set_new(newSherpaBoxStatusNode, "id", json_string(batteryId));
+
+	// attributes
+	json_t* attributes = json_array();
+	json_t* attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "value", json_string("sherpa_box"));
+	json_array_append_new(attributes, attribute1);
+
+	json_t* attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("sherpa_box:idle"));
+	json_object_set_new(attribute2, "value", json_integer(idle));
+	json_array_append_new(attributes, attribute2);
+
+	json_t* attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa_box:completed"));
+	json_object_set_new(attribute3, "value", json_integer(completed));
+	json_array_append_new(attributes, attribute3);
+
+	json_t* attribute4 = json_object();
+	json_object_set_new(attribute4, "key", json_string("sherpa_box:executeId"));
+	json_object_set_new(attribute4, "value", json_integer(executeId));
+	json_array_append_new(attributes, attribute4);
+
+	json_t* attribute5 = json_object();
+	json_object_set_new(attribute5, "key", json_string("sherpa_box:commandStep"));
+	json_object_set_new(attribute5, "value", json_integer(executeId));
+	json_array_append_new(attributes, attribute5);
+
+	json_t* attribute6 = json_object();
+	json_object_set_new(attribute6, "key", json_string("sherpa_box:linActuatorPosition"));
+	json_object_set_new(attribute6, "value", json_integer(linActuatorPosition));
+	json_array_append_new(attributes, attribute6);
+
+	json_t* attribute7 = json_object();
+	json_object_set_new(attribute7, "key", json_string("sherpa_box:waspDockLeft"));
+	json_object_set_new(attribute7, "value", json_boolean(waspDockLeft));
+	json_array_append_new(attributes, attribute7);
+
+	json_t* attribute8 = json_object();
+	json_object_set_new(attribute8, "key", json_string("sherpa_box:waspDockRight"));
+	json_object_set_new(attribute8, "value", json_boolean(waspDockRight));
+	json_array_append_new(attributes, attribute8);
+
+	json_t* attribute9 = json_object();
+	json_object_set_new(attribute9, "key", json_string("sherpa_box:waspLockedLeft"));
+	json_object_set_new(attribute9, "value", json_boolean(waspLockedLeft));
+	json_array_append_new(attributes, attribute9);
+
+	json_t* attribute10 = json_object();
+	json_object_set_new(attribute10, "key", json_string("sherpa_box:waspLockedRight"));
+	json_object_set_new(attribute10, "value", json_boolean(waspLockedRight));
+	json_array_append_new(attributes, attribute10);
+
+	json_object_set_new(newSherpaBoxStatusNode, "attributes", attributes);
+	json_object_set_new(updateSherpaBoxStatusNodeMsg, "node", newSherpaBoxStatusNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, updateSherpaBoxStatusNodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* updateSherpaBoxStatusReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(updateSherpaBoxStatusReply, "updateSuccess");
+	bool updateSuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		updateSuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(updateSherpaBoxStatusNodeMsg);
+	json_decref(updateSherpaBoxStatusReply);
+	free(msg);
+	free(reply);
+
+	return updateSuccess;
+}
 
 bool add_agent(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 
