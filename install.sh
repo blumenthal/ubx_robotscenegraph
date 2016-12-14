@@ -613,6 +613,18 @@ ${SUDO} make install
 cd ..
 cd ..
 
+echo "libswmzyre client library"
+# Optional client C library with convenience functions.
+# Since it is part of the ubx_robotscenegraph repository,
+# we do not need to pull from git again.
+cd ubx_robotscenegraph/examples/zyre
+mkdir build -p
+cd build
+cmake ..
+${SUDO} make install
+cd ../../../..
+
+
 cd ${SCRIPT_DIR} # go back
 
 echo ""
@@ -635,10 +647,10 @@ echo "####################################################################"
 echo "In case the ROS communication modules are used also start roscore:"
 echo "	cd ./ubx_robotscenegraph"
 echo "	roscore& "
-echo "	./run_sherpa_world_model.sh"
+echo "	./swm_launch.sh"
 echo ""
 echo "Then enter the following command and hit enter:"
-echo "	start_all()"
+echo "	p()"
 echo "####################################################################"
 echo ""
 
