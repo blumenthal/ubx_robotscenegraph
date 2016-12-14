@@ -87,7 +87,16 @@ if [ "$USE_GIT" = "TRUE" ]; then
 fi
 make clean 
 ${SUDO} make install
-
 cd ..
+
+echo "Recompiling C client example."
+cd ${UBX_RSG_DIR}/examples/zyre/build
+if [ "$USE_GIT" = "TRUE" ]; then
+  cmake .. 
+fi
+make clean 
+${SUDO} make install
+cd ../../..
+
 echo "Done."
 
