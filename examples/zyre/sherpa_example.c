@@ -130,15 +130,25 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < 2; ++i) {
 		printf("###################### ARTVA #########################\n");
 		gettimeofday(&tp, NULL);
-		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
-		double matrix[16] = { 1, 0, 0, 0,
-				               0, 1, 0, 0,
-				               0, 0, 1, 0,
-				               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
-		matrix[12] = x;
-		matrix[13] = y;
-		matrix[14] = z;
-		assert(add_artva(self, matrix,  77, 12, 0, 0, utcTimeInMiliSec, agent_name));
+//		utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
+//		double matrix[16] = { 1, 0, 0, 0,
+//				               0, 1, 0, 0,
+//				               0, 0, 1, 0,
+//				               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
+//		matrix[12] = x;
+//		matrix[13] = y;
+//		matrix[14] = z;
+//		assert(add_artva(self, matrix,  77, 12, 0, 0, utcTimeInMiliSec, agent_name));
+		artva_measurement artva;
+		artva.signal0 = 4104+i;
+		artva.signal1 = 0;
+		artva.signal2 = 0;
+		artva.signal3 = 0;
+		artva.angle0 = 49;
+		artva.angle1 = 0;
+		artva.angle2 = 0;
+		artva.angle3 = 0;
+		assert(add_artva_mesurement(self, artva, agent_name));
 	}
 
 	/*

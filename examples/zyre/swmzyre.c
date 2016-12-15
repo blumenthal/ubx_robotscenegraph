@@ -1320,6 +1320,7 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 	return succsess;
 }
 
+#if 0
 bool add_artva(component_t *self, double* transform_matrix, double artva0, double artva1, double artva2, double artva3,
 		double utc_time_stamp_in_mili_sec, char* author) {
 
@@ -1445,6 +1446,194 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 	json_decref(newARTVANodeMsg);
 
 	return succsess;
+}
+#endif
+
+bool add_artva_mesurement(component_t *self, artva_measurement measurement, char* author) {
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* scope_id = 0;
+	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
+		printf("[%s] [ERROR] Cannot get cope Id \n", self->name);
+		return false;
+	}
+
+	/* prepare payload */
+	// attributes
+	json_t* attributes = json_array();
+	json_t* attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "value", json_string("artva"));
+	json_array_append_new(attributes, attribute1);
+
+	json_t* attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("sherpa:artva_signal0"));
+	json_object_set_new(attribute2, "value", json_integer(measurement.signal0));
+	json_array_append_new(attributes, attribute2);
+
+	json_t* attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa:artva_signal1"));
+	json_object_set_new(attribute3, "value", json_integer(measurement.signal1));
+	json_array_append_new(attributes, attribute3);
+
+	json_t* attribute4 = json_object();
+	json_object_set_new(attribute4, "key", json_string("sherpa:artva_signal2"));
+	json_object_set_new(attribute4, "value", json_integer(measurement.signal2));
+	json_array_append_new(attributes, attribute4);
+
+	json_t* attribute5 = json_object();
+	json_object_set_new(attribute5, "key", json_string("sherpa:artva_signal3"));
+	json_object_set_new(attribute5, "value", json_integer(measurement.signal3));
+	json_array_append_new(attributes, attribute5);
+
+	json_t* attribute6 = json_object();
+	json_object_set_new(attribute6, "key", json_string("sherpa:artva_angle0"));
+	json_object_set_new(attribute6, "value", json_integer(measurement.angle0));
+	json_array_append_new(attributes, attribute6);
+
+	json_t* attribute7 = json_object();
+	json_object_set_new(attribute7, "key", json_string("sherpa:artva_angle1"));
+	json_object_set_new(attribute7, "value", json_integer(measurement.angle1));
+	json_array_append_new(attributes, attribute7);
+
+	json_t* attribute8 = json_object();
+	json_object_set_new(attribute8, "key", json_string("sherpa:artva_angle2"));
+	json_object_set_new(attribute8, "value", json_integer(measurement.angle2));
+	json_array_append_new(attributes, attribute8);
+
+	json_t* attribute9 = json_object();
+	json_object_set_new(attribute9, "key", json_string("sherpa:artva_angle3"));
+	json_object_set_new(attribute9, "value", json_integer(measurement.angle3));
+	json_array_append_new(attributes, attribute9);
+
+	char* artvaId = 0;
+	if (!get_node_by_attribute_in_subgrapgh(self, &artvaId, "sherpa:observation_type", "artva", scope_id)) { // measurement node does not exist yet, so we will add it here
+
+		/* Get observationGroupId */
+		char* observationGroupId = 0;
+		if(!get_observations_group_id(self, &observationGroupId)) {
+			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+			return false;
+		}
+		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+
+		json_t *newArtvaMeasurementMsg = json_object();
+		json_object_set_new(newArtvaMeasurementMsg, "@worldmodeltype", json_string("RSGUpdate"));
+		json_object_set_new(newArtvaMeasurementMsg, "operation", json_string("CREATE"));
+		json_object_set_new(newArtvaMeasurementMsg, "parentId", json_string(observationGroupId));
+		json_t *newArtvaNode = json_object();
+		json_object_set_new(newArtvaNode, "@graphtype", json_string("Node"));
+		zuuid_t *uuid = zuuid_new ();
+		char* artvaNodeId = zuuid_str_canonical(uuid);
+		json_object_set_new(newArtvaNode, "id", json_string(artvaNodeId));
+
+		// attributes see above
+
+		json_object_set_new(newArtvaNode, "attributes", attributes);
+		json_object_set_new(newArtvaMeasurementMsg, "node", newArtvaNode);
+
+		/* CReate message*/
+		msg = encode_json_message(self, newArtvaMeasurementMsg);
+		/* Send the message */
+		shout_message(self, msg);
+		/* Wait for a reply */
+		reply = wait_for_reply(self);
+		/* Print reply */
+		printf("#########################################\n");
+		printf("[%s] Got reply: %s \n", self->name, reply);
+
+		/* Parse reply */
+		json_t* newArtvaNodeReply = json_loads(reply, 0, &error);
+		json_t* querySuccessMsg = json_object_get(newArtvaNodeReply, "updateSuccess");
+		bool querySuccess = false;
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+
+		if (querySuccessMsg) {
+			querySuccess = json_is_true(querySuccessMsg);
+		}
+
+		json_decref(newArtvaMeasurementMsg);
+		json_decref(newArtvaNodeReply);
+		free(msg);
+		free(reply);
+		free(artvaNodeId);
+		free(uuid);
+
+		if(!querySuccess) {
+			printf("[%s] [ERROR] Can not add battery node for agent.\n", self->name);
+			return false;
+		}
+
+		return true;
+	} // it exists, so just update it
+
+	// if it exists already, just UPDATE the attributes
+
+		//        batteryUpdateMsg = {
+		//          "@worldmodeltype": "RSGUpdate",
+		//          "operation": "UPDATE_ATTRIBUTES",
+		//          "node": {
+		//            "@graphtype": "Node",
+		//            "id": self.battery_uuid,
+		//            "attributes": [
+		//                  {"key": "sensor:battery_voltage", "value": self.battery_voltage},
+		//            ],
+		//           },
+		//        }
+
+	json_t *updateArtvaNodeMsg = json_object();
+	json_object_set_new(updateArtvaNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(updateArtvaNodeMsg, "operation", json_string("UPDATE_ATTRIBUTES"));
+	json_t *updateArtvaNode = json_object();
+	json_object_set_new(updateArtvaNode, "@graphtype", json_string("Node"));
+	json_object_set_new(updateArtvaNode, "id", json_string(artvaId));
+
+	// attributes see above
+
+	json_object_set_new(updateArtvaNode, "attributes", attributes);
+	json_object_set_new(updateArtvaNodeMsg, "node", updateArtvaNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, updateArtvaNodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* updateArtvaReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(updateArtvaReply, "updateSuccess");
+	bool updateSuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		updateSuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(updateArtvaNodeMsg);
+	json_decref(updateArtvaReply);
+	free(msg);
+	free(reply);
+
+	return updateSuccess;
+
 }
 
 bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author) {

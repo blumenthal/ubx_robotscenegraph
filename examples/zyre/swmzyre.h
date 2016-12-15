@@ -41,7 +41,7 @@ typedef struct _component_t {
 	int alive;
 } component_t;
 
-typedef struct _sbox_status_ {
+typedef struct _sbox_status_t {
 	int idle;
 	int completed;
 	int executeId;
@@ -52,6 +52,18 @@ typedef struct _sbox_status_ {
 	bool waspLockedLeft;
 	bool waspLockedRight;
 } sbox_status;
+
+typedef struct _artva_measurement_t {
+	int signal0;
+	int signal1;
+	int signal2;
+	int signal3;
+	int angle0;
+	int angle1;
+	int angle2;
+	int angle3;
+} artva_measurement;
+
 
 // Internal helper methods
 
@@ -144,8 +156,10 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
  * @param[in] artva3 ARTVAL signal 3
  * @return True if ARTVA observation was sucesfully added, otherwise false.
  */
-bool add_artva(component_t *self, double* transform_matrix, double artva0, double artva1, double artva2, double artva3,
-		double utc_time_stamp_in_mili_sec, char* author);
+//bool add_artva(component_t *self, double* transform_matrix, double artva0, double artva1, double artva2, double artva3,
+//		double utc_time_stamp_in_mili_sec, char* author);
+
+bool add_artva_mesurement(component_t *self, artva_measurement measurement, char* author);
 
 bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author);
 
