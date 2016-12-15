@@ -157,7 +157,17 @@ int main(int argc, char *argv[]) {
 	 */
 	for (i = 0; i < 2; ++i) {
 		printf("###################### SHERPA BOX STATUS #########################\n");
-		assert(add_sherpa_box_status(self, 0, i, 0, 0, 0, false, true, false, false, agent_name));
+		sbox_status status;
+		status.commandStep = 0;
+		status.completed = i;
+		status.executeId = 0;
+		status.idle = 0;
+		status.linActuatorPosition = 0,
+		status.waspDockLeft = false;
+		status.waspDockRight = true;
+		status.waspLockedLeft = false;
+		status.waspLockedRight = false;
+		assert(add_sherpa_box_status(self, status, agent_name));
 	}
 
 	/*

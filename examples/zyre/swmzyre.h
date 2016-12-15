@@ -41,6 +41,18 @@ typedef struct _component_t {
 	int alive;
 } component_t;
 
+typedef struct _sbox_status_ {
+	int idle;
+	int completed;
+	int executeId;
+	int commandStep;
+	int linActuatorPosition;
+	bool waspDockLeft;
+	bool waspDockRight;
+	bool waspLockedLeft;
+	bool waspLockedRight;
+} sbox_status;
+
 // Internal helper methods
 
 void query_destroy (query_t **self_p);
@@ -137,19 +149,11 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 
 bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author);
 
-bool add_sherpa_box_status(component_t *self,
-	int idle,
-	int completed,
-	int executeId,
-	int commandStep,
-	int linActuatorPosition,
-	bool waspDockLeft,
-	bool waspDockRight,
-	bool waspLockedLeft,
-	bool waspLockedRight,
-	char* author);
+bool add_sherpa_box_status(component_t *self, sbox_status status, char* author);
 
+//bool add_wasp_status
 
+//bool add_gra_status
 
 /**
  * Update pose of agent.
@@ -192,6 +196,10 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
  * @return
  */
 bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name);
+
+bool get_sharpa_box_status(component_t *self,
+		char *agent_name
+);
 
 bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name);
 
