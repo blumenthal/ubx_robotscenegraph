@@ -11,7 +11,8 @@ RSG integration into Microblox (UBX) [![Build Status](https://travis-ci.org/blum
  * The [data model](doc/manual.md#data-model)
  * The [update](doc/manual.md#updates) capabilities
  * The [query](doc/manual.md#queries) capabilities 
- * The [distribution](doc/manual.md#distribution) capabilities  
+ * The [distribution](doc/manual.md#distribution) capabilities
+ * [Launch options](doc/manual.md#launch-options)  
  * World model [debugging](doc/manual.md#debugging) techniques
 * [Changelog](#changelog)
 * [Licensing](#licensing)
@@ -181,6 +182,10 @@ Usage
 
 ### Launching of a SHERPA World Model
 
+The first steps on how to start a SHERPA World Model are described below. 
+For a more detailed description including various options please see the manual 
+section on [launch options](doc/manual.md#launch-options).
+
 #### Quick start
 
 You can start the SHERPA World Model by invoking:
@@ -195,6 +200,7 @@ In case the ROS communication modules are not available use instead:
 ```
 
 Note, there are a set of environment variables the might need to be adopted. 
+
 
 #### Manual start
 
@@ -222,7 +228,6 @@ Then enter the following command and hit enter:
 ```
  scene_setup()
  start_all()
- fbx_setup()
 ```
 
 ####Verify that it works
@@ -257,15 +262,18 @@ In general there are multiple possibilities to interact with the *SHERPA World M
 Changelog
 ---------
 
-### 0.4.0
+### 0.4.0 (02.12.2016)
 
 * Extended functions in C client library (#31).
-* Fixed stability issued and memory leaks in C client library (#31).
+* Fixed stability issues and memory leaks in C client library (#31).
 * Fixed bug that can hang the zyre bridge (#33).
-* Added more options on how to updates (OVERWRITE, UPDATE, APPEND, #34). 
+* Added more options on how to perform updates on attributes. (OVERWRITE, UPDATE, APPEND, #34). 
 * Added function block for aggregated pose queries (#29). 
 * Added option to query for subgraphs (#27).
+* Added help and start functions for function blocks to [terminals commands](doc/manual.md#terminal-commands).
 * Added convenience launch script ``swm_launch.sh`` without the necessity to type commands at start up.
+* Fixed bugs of for JSON API including [wrong](https://github.com/brics/brics_3d/issues/7) ``updateResult`` replies or [missing](https://github.com/brics/brics_3d/issues/8) ids.
+* Fixed issues with graphviz visualization including [duplicated edges](https://github.com/brics/brics_3d/issues/0) or [missing](https://github.com/brics/brics_3d/issues/10) attributes.
 
 ### 0.3.0 (02.11.2016)
 

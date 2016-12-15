@@ -1698,6 +1698,254 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	return updateSuccess;
 }
 
+bool add_sherpa_box_status(component_t *self, sbox_status status,
+//	int idle,
+//	int completed,
+//	int executeId,
+//	int commandStep,
+//	int linActuatorPosition,
+//	bool waspDockLeft,
+//	bool waspDockRight,
+//	bool waspLockedLeft,
+//	bool waspLockedRight,
+	char* author) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* root_id = 0;
+	if (!get_root_node_id(self, &root_id)) {
+		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		return false;
+	}
+
+	char* batteryId = 0;
+	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:observation_type", "sherpa_box", root_id)) { // battery does not exist yet, so we will add it here
+
+		/* Get observationGroupId */
+		char* observationGroupId = 0;
+		if(!get_observations_group_id(self, &observationGroupId)) {
+			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+			return false;
+		}
+		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+
+		json_t *newSherpaBoxStatusNodeMsg = json_object();
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "operation", json_string("CREATE"));
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "parentId", json_string(observationGroupId));
+		json_t *newSBoxNode = json_object();
+		json_object_set_new(newSBoxNode, "@graphtype", json_string("Node"));
+		zuuid_t *uuid = zuuid_new ();
+		char* sherpaBoxStatusId = zuuid_str_canonical(uuid);
+		json_object_set_new(newSBoxNode, "id", json_string(sherpaBoxStatusId));
+
+		// attributes
+		json_t* attributes = json_array();
+		json_t* attribute1 = json_object();
+		json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+		json_object_set_new(attribute1, "value", json_string("sherpa_box"));
+		json_array_append_new(attributes, attribute1);
+
+		json_t* attribute2 = json_object();
+		json_object_set_new(attribute2, "key", json_string("sherpa_box:idle"));
+		json_object_set_new(attribute2, "value", json_integer(status.idle));
+		json_array_append_new(attributes, attribute2);
+
+		json_t* attribute3 = json_object();
+		json_object_set_new(attribute3, "key", json_string("sherpa_box:completed"));
+		json_object_set_new(attribute3, "value", json_integer(status.completed));
+		json_array_append_new(attributes, attribute3);
+
+		json_t* attribute4 = json_object();
+		json_object_set_new(attribute4, "key", json_string("sherpa_box:executeId"));
+		json_object_set_new(attribute4, "value", json_integer(status.executeId));
+		json_array_append_new(attributes, attribute4);
+
+		json_t* attribute5 = json_object();
+		json_object_set_new(attribute5, "key", json_string("sherpa_box:commandStep"));
+		json_object_set_new(attribute5, "value", json_integer(status.executeId));
+		json_array_append_new(attributes, attribute5);
+
+		json_t* attribute6 = json_object();
+		json_object_set_new(attribute6, "key", json_string("sherpa_box:linActuatorPosition"));
+		json_object_set_new(attribute6, "value", json_integer(status.linActuatorPosition));
+		json_array_append_new(attributes, attribute6);
+
+		json_t* attribute7 = json_object();
+		json_object_set_new(attribute7, "key", json_string("sherpa_box:waspDockLeft"));
+		json_object_set_new(attribute7, "value", json_boolean(status.waspDockLeft));
+		json_array_append_new(attributes, attribute7);
+
+		json_t* attribute8 = json_object();
+		json_object_set_new(attribute8, "key", json_string("sherpa_box:waspDockRight"));
+		json_object_set_new(attribute8, "value", json_boolean(status.waspDockRight));
+		json_array_append_new(attributes, attribute8);
+
+		json_t* attribute9 = json_object();
+		json_object_set_new(attribute9, "key", json_string("sherpa_box:waspLockedLeft"));
+		json_object_set_new(attribute9, "value", json_boolean(status.waspLockedLeft));
+		json_array_append_new(attributes, attribute9);
+
+		json_t* attribute10 = json_object();
+		json_object_set_new(attribute10, "key", json_string("sherpa_box:waspLockedRight"));
+		json_object_set_new(attribute10, "value", json_boolean(status.waspLockedRight));
+		json_array_append_new(attributes, attribute10);
+
+		json_object_set_new(newSBoxNode, "attributes", attributes);
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "node", newSBoxNode);
+
+		/* CReate message*/
+		msg = encode_json_message(self, newSherpaBoxStatusNodeMsg);
+		/* Send the message */
+		shout_message(self, msg);
+		/* Wait for a reply */
+		reply = wait_for_reply(self);
+		/* Print reply */
+		printf("#########################################\n");
+		printf("[%s] Got reply: %s \n", self->name, reply);
+
+		/* Parse reply */
+		json_t* newSherpaBoxStatusReply = json_loads(reply, 0, &error);
+		json_t* querySuccessMsg = json_object_get(newSherpaBoxStatusReply, "updateSuccess");
+		bool querySuccess = false;
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+
+		if (querySuccessMsg) {
+			querySuccess = json_is_true(querySuccessMsg);
+		}
+
+		json_decref(newSherpaBoxStatusNodeMsg);
+		json_decref(newSherpaBoxStatusReply);
+		free(msg);
+		free(reply);
+		free(sherpaBoxStatusId);
+		free(uuid);
+
+		if(!querySuccess) {
+			printf("[%s] [ERROR] Can not add battery node for agent.\n", self->name);
+			return false;
+		}
+
+		return true;
+	}
+
+	// if it exists already, just UPDATE the attributes
+
+		//        batteryUpdateMsg = {
+		//          "@worldmodeltype": "RSGUpdate",
+		//          "operation": "UPDATE_ATTRIBUTES",
+		//          "node": {
+		//            "@graphtype": "Node",
+		//            "id": self.battery_uuid,
+		//            "attributes": [
+		//                  {"key": "sensor:battery_voltage", "value": self.battery_voltage},
+		//            ],
+		//           },
+		//        }
+
+	json_t *updateSherpaBoxStatusNodeMsg = json_object();
+	json_object_set_new(updateSherpaBoxStatusNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(updateSherpaBoxStatusNodeMsg, "operation", json_string("UPDATE_ATTRIBUTES"));
+	json_t *newSherpaBoxStatusNode = json_object();
+	json_object_set_new(newSherpaBoxStatusNode, "@graphtype", json_string("Node"));
+	json_object_set_new(newSherpaBoxStatusNode, "id", json_string(batteryId));
+
+	// attributes
+	json_t* attributes = json_array();
+	json_t* attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "value", json_string("sherpa_box"));
+	json_array_append_new(attributes, attribute1);
+
+	json_t* attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("sherpa_box:idle"));
+	json_object_set_new(attribute2, "value", json_integer(status.idle));
+	json_array_append_new(attributes, attribute2);
+
+	json_t* attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa_box:completed"));
+	json_object_set_new(attribute3, "value", json_integer(status.completed));
+	json_array_append_new(attributes, attribute3);
+
+	json_t* attribute4 = json_object();
+	json_object_set_new(attribute4, "key", json_string("sherpa_box:executeId"));
+	json_object_set_new(attribute4, "value", json_integer(status.executeId));
+	json_array_append_new(attributes, attribute4);
+
+	json_t* attribute5 = json_object();
+	json_object_set_new(attribute5, "key", json_string("sherpa_box:commandStep"));
+	json_object_set_new(attribute5, "value", json_integer(status.executeId));
+	json_array_append_new(attributes, attribute5);
+
+	json_t* attribute6 = json_object();
+	json_object_set_new(attribute6, "key", json_string("sherpa_box:linActuatorPosition"));
+	json_object_set_new(attribute6, "value", json_integer(status.linActuatorPosition));
+	json_array_append_new(attributes, attribute6);
+
+	json_t* attribute7 = json_object();
+	json_object_set_new(attribute7, "key", json_string("sherpa_box:waspDockLeft"));
+	json_object_set_new(attribute7, "value", json_boolean(status.waspDockLeft));
+	json_array_append_new(attributes, attribute7);
+
+	json_t* attribute8 = json_object();
+	json_object_set_new(attribute8, "key", json_string("sherpa_box:waspDockRight"));
+	json_object_set_new(attribute8, "value", json_boolean(status.waspDockRight));
+	json_array_append_new(attributes, attribute8);
+
+	json_t* attribute9 = json_object();
+	json_object_set_new(attribute9, "key", json_string("sherpa_box:waspLockedLeft"));
+	json_object_set_new(attribute9, "value", json_boolean(status.waspLockedLeft));
+	json_array_append_new(attributes, attribute9);
+
+	json_t* attribute10 = json_object();
+	json_object_set_new(attribute10, "key", json_string("sherpa_box:waspLockedRight"));
+	json_object_set_new(attribute10, "value", json_boolean(status.waspLockedRight));
+	json_array_append_new(attributes, attribute10);
+
+	json_object_set_new(newSherpaBoxStatusNode, "attributes", attributes);
+	json_object_set_new(updateSherpaBoxStatusNodeMsg, "node", newSherpaBoxStatusNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, updateSherpaBoxStatusNodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* updateSherpaBoxStatusReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(updateSherpaBoxStatusReply, "updateSuccess");
+	bool updateSuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		updateSuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(updateSherpaBoxStatusNodeMsg);
+	json_decref(updateSherpaBoxStatusReply);
+	free(msg);
+	free(reply);
+
+	return updateSuccess;
+}
 
 bool add_agent(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 
@@ -1710,6 +1958,15 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	char* reply;
 	json_error_t error;
 
+	/*
+	 * Get the "root" node. It is relevant to specify a new pose.
+	 */
+	char* rootId = 0;
+	if(!get_root_node_id(self, &rootId)) {
+		printf("[%s] [ERROR] Cannot get root Id \n", self->name);
+		return false;
+	}
+	printf("[%s] root Id = %s \n", self->name, rootId);
 
 	/*
 	 * Get the "origin" node. It is relevant to specify a new pose.
@@ -1743,7 +2000,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		json_object_set_new(newAgentNodeMsg, "operation", json_string("CREATE"));
 		json_object_set_new(newAgentNodeMsg, "parentId", json_string(agentsGroupId));
 		json_t *newAgentNode = json_object();
-		json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
+		json_object_set_new(newAgentNode, "@graphtype", json_string("Group"));
 		zuuid_t *uuid = zuuid_new ();
 		const char* new_agentId;
 		new_agentId = zuuid_str_canonical(uuid);
@@ -1789,13 +2046,70 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 			printf("[%s] [ERROR] CAn nor add agent.\n", self->name);
 			return false;
 		}
+
+
+
 	} // exists
+
+	/* We will also make THIS root node a child of the agent node, so the overall structure gets more hierarchical */
+
+//	{
+//	  "@worldmodeltype": "RSGUpdate",
+//	  "operation": "CREATE",
+//	  "node": {
+//	    "@graphtype": "Group",
+//	    "id": "d0483c43-4a36-4197-be49-de829cdd66c9"
+//	  },
+//	  "parentId": "193db306-fd8c-4eb8-a3ab-36910665773b",
+//	}
+	json_t *newParentMsg = json_object();
+	json_object_set_new(newParentMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(newParentMsg, "operation", json_string("CREATE_PARENT"));
+	json_object_set_new(newParentMsg, "parentId", json_string(agentId));
+	json_t *newParentNode = json_object();
+	json_object_set_new(newParentNode, "@graphtype", json_string("Node"));
+	json_object_set_new(newParentNode, "childId", json_string(rootId));
+	json_object_set_new(newParentMsg, "node", newParentNode);
+
+	/* Create message*/
+	msg = encode_json_message(self, newParentMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* newParentReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(newParentReply, "updateSuccess");
+	bool querySuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		querySuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(newParentMsg);
+	json_decref(newParentReply);
+	free(msg);
+	free(reply);
+
+	if(!querySuccess) {
+		printf("[%s] [ERROR] Can not add this WMA as part of SHERPA agent. Maybe is existed already?\n", self->name);
+//		return false;
+	}
+
+
 
 
 	char* poseId = 0;
 	char poseName[512] = {0};
 	snprintf(poseName, sizeof(poseName), "%s%s", agent_name, "_geopose");
-	if (!get_node_by_attribute(self, &poseId, "name", poseName)) { // pose does not exist yet, so we will add it here
+	if (!get_node_by_attribute(self, &poseId, "tf:name", poseName)) { // pose does not exist yet, so we will add it here
 
 		/*
 		 * Get the "origin" node. It is relevant to specify a new pose.
@@ -1810,7 +2124,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/*
 		 * Finally add a pose ;-)
 		 */
-		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "name", poseName)) {
+		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "tf:name", poseName)) {
 			printf("[%s] [ERROR] Cannot add agent pose  \n", self->name);
 			return false;
 		}
@@ -1844,7 +2158,7 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
 	json_object_set_new(getPoseIdMsg, "@worldmodeltype", json_string("RSGQuery"));
 	json_object_set_new(getPoseIdMsg, "query", json_string("GET_NODES"));
 	json_t *poseIdAttribute = json_object();
-	json_object_set_new(poseIdAttribute, "key", json_string("name"));
+	json_object_set_new(poseIdAttribute, "key", json_string("tf:name"));
     char poseName[512] = {0};
     snprintf(poseName, sizeof(poseName), "%s%s", agentName, "_geopose");
 	json_object_set_new(poseIdAttribute, "value", json_string(poseName));
@@ -1960,7 +2274,22 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
     return true;
 }
 
-bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agentName) {
+bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name) {
+	double matrix[16] = { 1, 0, 0, 0,
+			               0, 1, 0, 0,
+			               0, 0, 1, 0,
+			               0, 0, 0, 1}; // y,x,z,1 remember this is column-majo
+
+	bool result = get_pose(self, matrix, utc_time_stamp_in_mili_sec, agent_name);
+
+	*xOut = matrix[12];
+	*yOut = matrix[13];
+	*zOut = matrix[14];
+
+	return result;
+}
+
+bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 	char *msg;
 
 	/*
@@ -1971,7 +2300,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	json_object_set_new(getAgentMsg, "query", json_string("GET_NODES"));
 	json_t *agentAttribute = json_object();
 	json_object_set_new(agentAttribute, "key", json_string("sherpa:agent_name"));
-	json_object_set_new(agentAttribute, "value", json_string(agentName));
+	json_object_set_new(agentAttribute, "value", json_string(agent_name));
 	json_t *attributes = json_array();
 	json_array_append_new(attributes, agentAttribute);
 	json_object_set_new(getAgentMsg, "attributes", attributes);
@@ -2081,12 +2410,27 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
     free(reply);
     if(transform) {
     	json_t* matrix = json_object_get(transform, "matrix");
-    	*xOut = json_real_value(json_array_get(json_array_get(matrix, 0), 3));
-    	*yOut = json_real_value(json_array_get(json_array_get(matrix, 1), 3));
-    	*zOut = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
+    	transform_matrix[0]  = json_real_value(json_array_get(json_array_get(matrix, 0), 0));
+    	transform_matrix[4]  = json_real_value(json_array_get(json_array_get(matrix, 0), 1));
+    	transform_matrix[8]  = json_real_value(json_array_get(json_array_get(matrix, 0), 2));
+    	transform_matrix[12] = json_real_value(json_array_get(json_array_get(matrix, 0), 3));
+
+    	transform_matrix[1]  = json_real_value(json_array_get(json_array_get(matrix, 1), 0));
+    	transform_matrix[5]  = json_real_value(json_array_get(json_array_get(matrix, 1), 1));
+    	transform_matrix[9]  = json_real_value(json_array_get(json_array_get(matrix, 1), 2));
+    	transform_matrix[13] = json_real_value(json_array_get(json_array_get(matrix, 1), 3));
+
+    	transform_matrix[2]  = json_real_value(json_array_get(json_array_get(matrix, 2), 0));
+    	transform_matrix[6]  = json_real_value(json_array_get(json_array_get(matrix, 2), 1));
+    	transform_matrix[10] = json_real_value(json_array_get(json_array_get(matrix, 2), 2));
+    	transform_matrix[14] = json_real_value(json_array_get(json_array_get(matrix, 2), 3));
+
+    	transform_matrix[3]  = json_real_value(json_array_get(json_array_get(matrix, 3), 0));
+    	transform_matrix[7]  = json_real_value(json_array_get(json_array_get(matrix, 3), 1));
+    	transform_matrix[11] = json_real_value(json_array_get(json_array_get(matrix, 3), 2));
+    	transform_matrix[15] = json_real_value(json_array_get(json_array_get(matrix, 3), 3));
 
     } else {
-
     	return false;
     }
 
@@ -2097,3 +2441,4 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 
 	return true;
 }
+

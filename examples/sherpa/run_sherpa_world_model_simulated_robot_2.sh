@@ -12,7 +12,7 @@ source $FBX_MODULES/env.sh
 export SWM_LOG_LEVEL=0  #  default value = 1
 
 # World Model Agent 
-export SWM_WMA_NAME=sherpa_box   #  default value = swm
+export SWM_WMA_NAME=sherpa_box0   #  default value = swm
 #export SWM_WMA_ID=c253cebe-9b00-4c77-9f07-9520023bd122  # default value = e379121f-06c6-4e21-ae9d-ae78ec1986a1
 export SWM_WMA_ID= # An empty World Model Agent Id will trigger to generate one.
 export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =

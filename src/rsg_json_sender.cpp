@@ -13,6 +13,7 @@
 #include <brics_3d/worldModel/sceneGraph/FrequencyAwareUpdateFilter.h>
 #include <brics_3d/worldModel/sceneGraph/ISceneGraphUpdateObserver.h>
 #include <brics_3d/worldModel/sceneGraph/GraphConstraintUpdateFilter.h>
+#include <brics_3d/worldModel/sceneGraph/TimeStamper.h>
 
 
 using namespace brics_3d;
@@ -77,7 +78,7 @@ public:
 		 * addRemoteRootNode().
 		 */
 		if(rootId != observedScene->getRootId()) {
-			LOG(DEBUG) << "RemoteRootNodeAdditionTrigger: tiggering now.";
+			LOG(DEBUG) << "RemoteRootNodeAdditionTrigger: triggering now.";
 			b->step(b); // A single step.
 		} else {
 			LOG(DEBUG) << "RemoteRootNodeAdditionTrigger: Skipping addRemoteRootNode from local graph.";
@@ -102,6 +103,45 @@ private:
     ubx_block_t *b;
 };
 
+/**
+ * Triggers block b whenever an error is detected.
+ */
+class OnErrorTrigger : public brics_3d::rsg::ISceneGraphErrorObserver {
+public:
+
+	OnErrorTrigger(ubx_block_t *b): b(b) {}
+	virtual ~OnErrorTrigger(){}
+
+	void onError(SceneGraphErrorCode code) {
+
+		switch (code) {
+			case brics_3d::rsg::ISceneGraphErrorObserver::RSG_ERR_ID_DOES_NOT_EXIST:
+
+				LOG(DEBUG) << "OnErrorTrigger: [2] RSG_ERR_ID_DOES_NOT_EXIST triggering now.";
+				b->step(b); // A single step.
+				break;
+
+			case brics_3d::rsg::ISceneGraphErrorObserver::RSG_ERR_PARENT_ID_DOES_NOT_EXIST:
+
+				LOG(DEBUG) << "OnErrorTrigger: [3] RSG_ERR_PARENT_ID_DOES_NOT_EXIST triggering now.";
+				b->step(b); // A single step.
+				break;
+
+			case brics_3d::rsg::ISceneGraphErrorObserver::RSG_ERR_NODE_IS_OF_DIFFERENT_TYPE:
+				break;
+
+			default: // the other codes are ignored
+				break;
+		}
+
+
+	}
+
+    // Block that gets triggered on an addRemoteRootNode event;
+    ubx_block_t *b;
+
+};
+
 /* define a structure for holding the block local state. By assigning an
  * instance of this struct to the block private_data pointer (see init), this
  * information becomes accessible within the hook functions.
@@ -115,6 +155,8 @@ struct rsg_json_sender_info
 		brics_3d::rsg::FrequencyAwareUpdateFilter* frequency_filter;
 		brics_3d::rsg::GraphConstraintUpdateFilter* constraint_filter; // Supersedes the frequency_filter
 		RemoteRootNodeAdditionTrigger* remote_root_trigger;
+		OnErrorTrigger* error_trigger;
+		TimeStamper* time_stamper;
 
         /* this is to have fast access to ports for reading and writing, without
          * needing a hash table lookup */
@@ -161,6 +203,8 @@ int rsg_json_sender_init(ubx_block_t *b)
     	inf->wm_printer->setGenerateSvgFiles(false);
     	inf->wm->scene.attachUpdateObserver(inf->wm_printer);
 
+    	bool doBenchmark = true;
+
     	int* store_dot_files =  ((int*) ubx_config_get_data_ptr(b, "store_dot_files", &clen));
     	if(clen == 0) {
     		LOG(INFO) << "rsg_json_sender: No store_dot_files configuration given. Turned off by default.";
@@ -180,10 +224,12 @@ int rsg_json_sender_init(ubx_block_t *b)
     	} else {
     		if (*generate_svg_files == 1) {
     			LOG(INFO) << "rsg_json_sender: generate_svg_files turned on.";
-    	    	inf->wm_printer->setGenerateSvgFiles(true);
+    	    	//inf->wm_printer->setGenerateSvgFiles(true);
+    	    	doBenchmark = true;
     		} else {
     			LOG(INFO) << "rsg_json_sender: generate_svg_files turned off.";
-    	    	inf->wm_printer->setGenerateSvgFiles(false);
+    	    	//inf->wm_printer->setGenerateSvgFiles(false);
+    	    	doBenchmark = false;
     		}
     	}
 
@@ -256,6 +302,20 @@ int rsg_json_sender_init(ubx_block_t *b)
     	inf->remote_root_trigger = new RemoteRootNodeAdditionTrigger(&inf->wm->scene, b);
     	inf->wm->scene.attachUpdateObserver(inf->remote_root_trigger);
 
+    	/* Setup error trigger */
+    	inf->error_trigger = new OnErrorTrigger(b);
+//    	inf->wm->scene.attachErrorObserver(inf->error_trigger);
+
+    	/* Use sender port also for monitor messages */
+    	inf->wm->scene.setMonitorPort(wmUpdatesUbxPort);
+
+    	/* Benchmark tool */
+    	if(doBenchmark) {
+    		LOG(INFO) << "rsg_json_sender: time stamping benchmark turned on.";
+    		inf->time_stamper = new TimeStamper(inf->wm, "swm_send_after_encoding");
+    		inf->constraint_filter->attachUpdateObserver(inf->time_stamper); // right after the JSON serializer
+    	}
+
         return 0;
 }
 
@@ -322,6 +382,14 @@ void rsg_json_sender_cleanup(ubx_block_t *b)
         if(inf->remote_root_trigger){
         	delete inf->remote_root_trigger;
         	inf->remote_root_trigger = 0;
+        }
+        if(inf->error_trigger){
+        	delete inf->error_trigger;
+        	inf->error_trigger = 0;
+        }
+        if(inf->time_stamper){
+        	delete inf->time_stamper;
+        	inf->time_stamper = 0;
         }
         free(b->private_data);
 }

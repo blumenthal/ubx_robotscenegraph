@@ -46,8 +46,8 @@ referenceId = rootId
 
 
 # Get object Ids of ARTVA measurements 
-objectAttribute="sherpa:artva_signal"
-objectValue="*"
+objectAttribute="sherpa:observation_type"
+objectValue="artva"
 
 getNodes = {
   "@worldmodeltype": "RSGQuery",
@@ -96,7 +96,7 @@ for i in ids:
     getPose = {
       "@worldmodeltype": "RSGQuery",
       "query": "GET_TRANSFORM",
-      "id": i,
+      "id": ids[i],
       "idReferenceNode": rootId,
       "timeStamp": {
         "@stamptype": "TimeStampDate",
