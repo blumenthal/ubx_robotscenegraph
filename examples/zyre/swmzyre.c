@@ -1876,6 +1876,15 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	char* reply;
 	json_error_t error;
 
+	/*
+	 * Get the "root" node. It is relevant to specify a new pose.
+	 */
+	char* rootId = 0;
+	if(!get_root_node_id(self, &rootId)) {
+		printf("[%s] [ERROR] Cannot get root Id \n", self->name);
+		return false;
+	}
+	printf("[%s] root Id = %s \n", self->name, rootId);
 
 	/*
 	 * Get the "origin" node. It is relevant to specify a new pose.
@@ -1909,7 +1918,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		json_object_set_new(newAgentNodeMsg, "operation", json_string("CREATE"));
 		json_object_set_new(newAgentNodeMsg, "parentId", json_string(agentsGroupId));
 		json_t *newAgentNode = json_object();
-		json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
+		json_object_set_new(newAgentNode, "@graphtype", json_string("Group"));
 		zuuid_t *uuid = zuuid_new ();
 		agentId = zuuid_str_canonical(uuid);
 		json_object_set_new(newAgentNode, "id", json_string(agentId));
@@ -1954,7 +1963,64 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 			printf("[%s] [ERROR] CAn nor add agent.\n", self->name);
 			return false;
 		}
+
+
+
 	} // exists
+
+	/* We will also make THIS root node a child of the agent node, so the overall structure gets more hierarchical */
+
+//	{
+//	  "@worldmodeltype": "RSGUpdate",
+//	  "operation": "CREATE",
+//	  "node": {
+//	    "@graphtype": "Group",
+//	    "id": "d0483c43-4a36-4197-be49-de829cdd66c9"
+//	  },
+//	  "parentId": "193db306-fd8c-4eb8-a3ab-36910665773b",
+//	}
+	json_t *newParentMsg = json_object();
+	json_object_set_new(newParentMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(newParentMsg, "operation", json_string("CREATE_PARENT"));
+	json_object_set_new(newParentMsg, "parentId", json_string(agentId));
+	json_t *newParentNode = json_object();
+	json_object_set_new(newParentNode, "@graphtype", json_string("Node"));
+	json_object_set_new(newParentNode, "childId", json_string(rootId));
+	json_object_set_new(newParentMsg, "node", newParentNode);
+
+	/* Create message*/
+	msg = encode_json_message(self, newParentMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* newParentReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(newParentReply, "updateSuccess");
+	bool querySuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		querySuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(newParentMsg);
+	json_decref(newParentReply);
+	free(msg);
+	free(reply);
+
+	if(!querySuccess) {
+		printf("[%s] [ERROR] Can not add this WMA as part of SHERPA agent. Maybe is existed already?\n", self->name);
+//		return false;
+	}
+
+
 
 
 	char* poseId = 0;
@@ -1975,7 +2041,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/*
 		 * Finally add a pose ;-)
 		 */
-		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "name", poseName)) {
+		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "tf:name", poseName)) {
 			printf("[%s] [ERROR] Cannot add agent pose  \n", self->name);
 			return false;
 		}
