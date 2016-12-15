@@ -27,13 +27,14 @@ void destroy_component (component_t **self_p) {
     assert (self_p);
     if(*self_p) {
     	component_t *self = *self_p;
+    	zactor_destroy (&self->communication_actor);
+    	zclock_sleep (100);
     	zyre_stop (self->local);
 		printf ("[%s] Stopping zyre node.\n", self->name);
 		zclock_sleep (100);
 		zyre_destroy (&self->local);
 		printf ("[%s] Destroying component.\n", self->name);
         json_decref(self->config);
-        zactor_destroy (&self->communication_actor);
         //free memory of all items from the query list
         query_t *it;
         while(zlist_size (self->query_list) > 0){
@@ -65,11 +66,11 @@ static void communication_actor (zsock_t *pipe, void *args)
 	zpoller_t *poller =  zpoller_new (zyre_socket(self->local), pipe , NULL);
 	zsock_signal (pipe, 0);
 
-	while (zlist_size (self->query_list) > 0){
+	while((!zsys_interrupted)&&(self->alive == 1)){
 		//printf("[%s] Queries in queue: %d \n",self->name,zlist_size (self->query_list));
 		void *which = zpoller_wait (poller, ZMQ_POLL_MSEC);
-		if (which) {
-			zmsg_t *msg = zmsg_recv (which);
+		if (which == zyre_socket(self->local)) {
+			zmsg_t *msg = zmsg_recv (which );
 			if (!msg) {
 				printf("[%s] interrupted!\n", self->name);
 			}
@@ -80,7 +81,14 @@ static void communication_actor (zsock_t *pipe, void *args)
 			} else if (streq (event, "EXIT")) {
 				handle_exit (self, msg);
 			} else if (streq (event, "SHOUT")) {
-				handle_shout (self, msg);
+				char *rep;
+				handle_shout (self, msg, &rep);
+				if (rep) {
+					printf("communication actor received reply: %s\n",rep);
+					zstr_sendf(pipe,"%s",rep);
+					printf("sent");
+					zstr_free(&rep);
+				}
 			} else if (streq (event, "WHISPER")) {
 				handle_whisper (self, msg);
 			} else if (streq (event, "JOIN")) {
@@ -93,39 +101,18 @@ static void communication_actor (zsock_t *pipe, void *args)
 			zstr_free (&event);
 			zmsg_destroy (&msg);
 		}
+		else if (which == pipe) {
+			zmsg_t *msg = zmsg_recv (which);
+			if (!msg)
+				break; //  Interrupted
+			char *command = zmsg_popstr (msg);
+			if (streq (command, "$TERM"))
+				self->alive = 0;
+
+			}
 	}
 	zpoller_destroy (&poller);
 }
-
-
-//// timestamp for timeout
-//struct timespec ts = {0,0};
-//struct timespec curr_time = {0,0};
-//if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
-//	printf("[%s] Could not assign time stamp!\n",self->name);
-//}
-//if (clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
-//	printf("[%s] Could not assign time stamp!\n",self->name);
-//}
-//
-//
-////check for timeout
-//if (!clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
-//	// if timeout, stop component
-//	double curr_time_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
-//	double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
-//	if (curr_time_msec - ts_msec > self->timeout) {
-//		printf("[%s] Timeout! No query answer received.\n",self->name);
-//		destroy_component(&self);
-//		return 0;
-//	}
-//} else {
-//	printf ("[%s] could not get current time\n", self->name);
-//}
-
-
-
-
 
 component_t* new_component(json_t *config) {
 	component_t *self = (component_t *) zmalloc (sizeof (component_t));
@@ -273,7 +260,7 @@ int decode_json(char* message, json_msg_t *result) {
 		return -1;
 	}
     if (json_object_get(root, "payload")) {
-    	result->payload = /*strdup(*/json_dumps(json_object_get(root, "payload"), JSON_ENCODE_ANY)/*)*/;
+    	result->payload = strdup(json_dumps(json_object_get(root, "payload"), JSON_ENCODE_ANY));
 	} else {
 		printf("Error parsing JSON string! Does not conform to msg model.\n");
 		return -1;
@@ -363,66 +350,87 @@ int shout_message(component_t* self, char* message) {
 	 return zyre_shouts(self->local, self->localgroup, "%s", message);
 }
 
-char* wait_for_reply(component_t* self) {
-	char* ret = 0;
+char* wait_for_reply(component_t* self, char *msg, int timeout) {
 
-//    // timestamp for timeout
-//    struct timespec ts = {0,0};
-//    struct timespec curr_time = {0,0};
-//    if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
-//		printf("[%s] Could not assign time stamp!\n",self->name);
-//	}
-//    if (clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
-//		printf("[%s] Could not assign time stamp!\n",self->name);
-//	}
-//
-//	while (zlist_size (self->query_list) > 0){
-//			//printf("[%s] Queries in queue: %d \n",self->name,zlist_size (self->query_list));
-//			void *which = zpoller_wait (self->poller, ZMQ_POLL_MSEC);
-//			if (which) {
-//				zmsg_t *msg = zmsg_recv (which);
-//				if (!msg) {
-//					printf("[%s] interrupted!\n", self->name);
-//					return -1;
-//				}
-//				//zmsg_print(msg); printf("msg end\n");
-//				char *event = zmsg_popstr (msg);
-//				if (streq (event, "ENTER")) {
-//					handle_enter (self, msg);
-//				} else if (streq (event, "EXIT")) {
-//					handle_exit (self, msg);
-//				} else if (streq (event, "SHOUT")) {
-//					handle_shout (self, msg, &ret);
-//				} else if (streq (event, "WHISPER")) {
-//					handle_whisper (self, msg);
-//				} else if (streq (event, "JOIN")) {
-//					handle_join (self, msg);
-//				} else if (streq (event, "EVASIVE")) {
-//					handle_evasive (self, msg);
-//				} else {
-//					zmsg_print(msg);
-//				}
-//				zstr_free (&event);
-//				zmsg_destroy (&msg);
-//			}
-//			//check for timeout
-//			if (!clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
-//				// if timeout, stop component
-//				double curr_time_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
-//				double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
-//				if (curr_time_msec - ts_msec > self->timeout) {
-//					printf("[%s] Timeout! No query answer received.\n",self->name);
-//					destroy_component(&self);
-//					return 0;
-//				}
-//			} else {
-//				printf ("[%s] could not get current time\n", self->name);
-//			}
-//		}
-//
-//	//printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
-//	return ret;
+	char* ret = NULL;
+	if (timeout <= 0) {
+		printf("[%s] Timeout has to be >0!\n",self->name);
+		return ret;
+	}
+
+    // timestamp for timeout
+    struct timespec ts = {0,0};
+    struct timespec curr_time = {0,0};
+    if (clock_gettime(CLOCK_MONOTONIC,&ts)) {
+		printf("[%s] Could not assign time stamp!\n",self->name);
+		return ret;
+	}
+    if (clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
+		printf("[%s] Could not assign time stamp!\n",self->name);
+		return ret;
+	}
+
+    json_error_t error;
+    json_t *sent_msg;
+    sent_msg = json_loads(msg, 0, &error);
+    // because of implementation inconsistencies between SWM and CM, we have to check for UID and queryId
+    char *queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"queryId"));
+    if(!queryID) {
+    	queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"UID"));
+    	if(!queryID) {
+        	printf("[%s] Message has no queryID to wait for: %s\n", self->name, msg);
+        	return ret;
+    	}
+    }
+
+    //do this with poller?
+    zsock_set_rcvtimeo (self->communication_actor, timeout); //set timeout for socket
+    while (!zsys_interrupted){
+    	ret = zstr_recv (self->communication_actor);
+		if (ret){ //if ret is query we were waiting for in this thread
+			//printf("[%s] wait_for_reply received answer %s:\n", self->name, ret);
+			json_t *pl;
+			pl = json_loads(ret, 0, &error);
+			if(!pl) {
+				printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+				return NULL;
+			}
+			//streq cannot take NULL, so check before
+			char *received_queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"queryId"));
+			if(!received_queryID) {
+				received_queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"UID"));
+				if(!received_queryID) {
+					printf("[%s] Received message has no queryID: %s\n", self->name, msg);
+					return NULL;
+				}
+			}
+			if (streq(received_queryID,queryID)){
+				printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
+				json_decref(pl);
+				break;
+			}
+			json_decref(pl);
+
+		}
+    	//if it is not the query we were waiting for in this thread, go back to recv if timeout has not happened yet
+		if (!clock_gettime(CLOCK_MONOTONIC,&curr_time)) {
+			// if timeout, stop component
+			double curr_time_msec = curr_time.tv_sec*1.0e3 +curr_time.tv_nsec*1.0e-6;
+			double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
+			if (curr_time_msec - ts_msec > timeout) {
+				printf("[%s] Timeout! No query answer received.\n",self->name);
+				destroy_component(&self);
+				break;
+			}
+		} else {
+			printf ("[%s] could not get current time\n", self->name);
+		}
+    }
+    json_decref(sent_msg);
+
+    return ret;
 }
+
 
 char* send_query(component_t* self, char* query_type, json_t* query_params) {
 	/**
@@ -568,8 +576,9 @@ void handle_whisper (component_t *self, zmsg_t *msg) {
 	zstr_free(&message);
 }
 
-void handle_shout(component_t *self, zmsg_t *msg) {
+void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 	assert (zmsg_size(msg) == 4);
+	*rep = NULL;
 	char *peerid = zmsg_popstr (msg);
 	char *name = zmsg_popstr (msg);
 	char *group = zmsg_popstr (msg);
@@ -594,6 +603,7 @@ void handle_shout(component_t *self, zmsg_t *msg) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s:\n %s\n ", self->name,it->uid,result->payload);
+						*rep = strdup(result->payload);
 //						free(it->msg->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
@@ -620,6 +630,7 @@ void handle_shout(component_t *self, zmsg_t *msg) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						*rep = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -645,6 +656,7 @@ void handle_shout(component_t *self, zmsg_t *msg) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						*rep = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -670,6 +682,7 @@ void handle_shout(component_t *self, zmsg_t *msg) {
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"UID")))) {
 						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						*rep = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
@@ -732,7 +745,7 @@ bool get_root_node_id(component_t *self, char** root_id) {
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getRootNodeMsg);
 	shout_message(self, msg);
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	printf("#########################################\n");
 	printf("[%s] Got reply for get_root_node_id: %s \n", self->name, reply);
 
@@ -807,7 +820,7 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getNodeMsg);
 	shout_message(self, msg);
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	printf("#########################################\n");
 	printf("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
 
@@ -872,7 +885,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getNodeMsg);
 	shout_message(self, msg);
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	printf("#########################################\n");
 	printf("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
 
@@ -1061,7 +1074,7 @@ bool add_geopose_to_node(component_t *self, const char* node_id, const char** ne
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, newTfNodeMsg);
 	shout_message(self, msg);
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	printf("#########################################\n");
 	printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
@@ -1129,7 +1142,7 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 
 	/* Send message and wait for reply */
 	shout_message(self, ret);
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, ret, self->timeout);
 	if (reply==0) {
 		printf("[%s] Received no reply for mediator_id query.\n", self->name);
 		free(msg);
@@ -1249,7 +1262,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
 	/* Send the message */
 	shout_message(self, msg);
 	/* Wait for a reply */
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
 	printf("[%s] Got reply: %s \n", self->name, reply);
@@ -1368,7 +1381,7 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 	/* Send the message */
 	shout_message(self, msg);
 	/* Wait for a reply */
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
 	printf("[%s] Got reply: %s \n", self->name, reply);
@@ -1496,7 +1509,7 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 	/* Send the message */
 	shout_message(self, msg);
 	/* Wait for a reply */
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
 	printf("[%s] Got reply: %s \n", self->name, reply);
@@ -1583,7 +1596,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		/* Send the message */
 		shout_message(self, msg);
 		/* Wait for a reply */
-		reply = wait_for_reply(self);
+		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
 		printf("#########################################\n");
 		printf("[%s] Got reply: %s \n", self->name, reply);
@@ -1660,7 +1673,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	/* Send the message */
 	shout_message(self, msg);
 	/* Wait for a reply */
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
 	printf("[%s] Got reply: %s \n", self->name, reply);
@@ -1750,7 +1763,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/* Send the message */
 		shout_message(self, msg);
 		/* Wait for a reply */
-		reply = wait_for_reply(self);
+		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
 		printf("#########################################\n");
 		printf("[%s] Got reply: %s \n", self->name, reply);
@@ -1843,7 +1856,7 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getPoseIdMsg);
 	shout_message(self, msg);
-	char* reply = wait_for_reply(self);
+	char* reply = wait_for_reply(self, msg, self->timeout);
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
@@ -1933,7 +1946,7 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
     /* Send message and wait for reply */
     msg = encode_json_message(self, newTfNodeMsg);
     shout_message(self, msg);
-    reply = wait_for_reply(self);
+    reply = wait_for_reply(self, msg, self->timeout);
     printf("#########################################\n");
     printf("[%s] Got reply for pose: %s \n", self->name, reply);
 
@@ -1966,7 +1979,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	/* Send message and wait for reply */
 	msg = encode_json_message(self, getAgentMsg);
 	shout_message(self, msg);
-	char* reply = wait_for_reply(self);
+	char* reply = wait_for_reply(self, msg, self->timeout);
 	printf("#########################################\n");
 	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
 
@@ -2004,7 +2017,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	/* Send message and wait for reply */
     msg = encode_json_message(self, getOriginMsg);
     shout_message(self, msg);
-    reply = wait_for_reply(self); // TODO free older reply
+    reply = wait_for_reply(self, msg, self->timeout); // TODO free older reply
     printf("#########################################\n");
     printf("[%s] Got reply: %s \n", self->name, reply);
 
@@ -2053,7 +2066,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 	/* Send message and wait for reply */
     msg = encode_json_message(self, getTransformMsg);
     shout_message(self, msg);
-    reply = wait_for_reply(self); // TODO free older reply
+    reply = wait_for_reply(self, msg, self->timeout); // TODO free older reply
     printf("#########################################\n");
     printf("[%s] Got reply: %s \n", self->name, reply);
 
