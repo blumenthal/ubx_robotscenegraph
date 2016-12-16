@@ -1624,7 +1624,8 @@ bool add_artva_measurement(component_t *self, artva_measurement measurement, cha
 	free(dump);
 
 	if (querySuccessMsg) {
-		updateSuccess = json_is_true(querySuccessMsg);
+		//updateSuccess = json_is_true(querySuccessMsg);
+		updateSuccess = true; //FIXME updates of same values are not yet supported
 	}
 
 	json_decref(updateArtvaNodeMsg);
@@ -1634,6 +1635,163 @@ bool add_artva_measurement(component_t *self, artva_measurement measurement, cha
 
 	return updateSuccess;
 
+}
+
+bool add_wasp_status(component_t *self, wasp_status status, char* author) {
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* scope_id = 0;
+	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
+		printf("[%s] [ERROR] Cannot get cope Id \n", self->name);
+		return false;
+	}
+
+	/* prepare payload */
+	// attributes
+	json_t* attributes = json_array();
+	json_t* attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("sherpa:status_type"));
+	json_object_set_new(attribute1, "value", json_string("wasp"));
+	json_array_append_new(attributes, attribute1);
+
+	json_t* attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("sherpa:wasp_flight_state"));
+	json_object_set_new(attribute2, "value", json_string(status.flight_state));
+	json_array_append_new(attributes, attribute2);
+
+	json_t* attribute3 = json_object();
+	json_object_set_new(attribute3, "key", json_string("sherpa:wasp_on_box"));
+	json_object_set_new(attribute3, "value", json_string(status.wasp_on_box));
+	json_array_append_new(attributes, attribute3);
+
+	char* waspStatusId = 0;
+	if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp", scope_id)) { // measurement node does not exist yet, so we will add it here
+
+		/* Get observationGroupId */
+		char* observationGroupId = 0;
+		if(!get_observations_group_id(self, &observationGroupId)) {
+			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+			return false;
+		}
+		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+
+
+		json_t *newWaspStatusMsg = json_object();
+		json_object_set_new(newWaspStatusMsg, "@worldmodeltype", json_string("RSGUpdate"));
+		json_object_set_new(newWaspStatusMsg, "operation", json_string("CREATE"));
+		json_object_set_new(newWaspStatusMsg, "parentId", json_string(observationGroupId));
+		json_t *newWaspNode = json_object();
+		json_object_set_new(newWaspNode, "@graphtype", json_string("Node"));
+		zuuid_t *uuid = zuuid_new ();
+		char* waspNodeId = zuuid_str_canonical(uuid);
+		json_object_set_new(newWaspNode, "id", json_string(waspNodeId));
+
+		// attributes see above
+
+		json_object_set_new(newWaspNode, "attributes", attributes);
+		json_object_set_new(newWaspStatusMsg, "node", newWaspNode);
+
+		/* CReate message*/
+		msg = encode_json_message(self, newWaspStatusMsg);
+		/* Send the message */
+		shout_message(self, msg);
+		/* Wait for a reply */
+		reply = wait_for_reply(self);
+		/* Print reply */
+		printf("#########################################\n");
+		printf("[%s] Got reply: %s \n", self->name, reply);
+
+		/* Parse reply */
+		json_t* newWaspStatusNodeReply = json_loads(reply, 0, &error);
+		json_t* querySuccessMsg = json_object_get(newWaspStatusNodeReply, "updateSuccess");
+		bool querySuccess = false;
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+
+		if (querySuccessMsg) {
+			querySuccess = json_is_true(querySuccessMsg);
+		}
+
+		json_decref(newWaspStatusMsg);
+		json_decref(newWaspStatusNodeReply);
+		free(msg);
+		free(reply);
+		free(waspNodeId);
+		free(uuid);
+
+		if(!querySuccess) {
+			printf("[%s] [ERROR] Can not add wasp status node for agent.\n", self->name);
+			return false;
+		}
+
+		return true;
+	} // it exists, so just update it
+
+	// if it exists already, just UPDATE the attributes
+
+		//        batteryUpdateMsg = {
+		//          "@worldmodeltype": "RSGUpdate",
+		//          "operation": "UPDATE_ATTRIBUTES",
+		//          "node": {
+		//            "@graphtype": "Node",
+		//            "id": self.battery_uuid,
+		//            "attributes": [
+		//                  {"key": "sensor:battery_voltage", "value": self.battery_voltage},
+		//            ],
+		//           },
+		//        }
+
+	json_t *updateWaspStatusNodeMsg = json_object();
+	json_object_set_new(updateWaspStatusNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(updateWaspStatusNodeMsg, "operation", json_string("UPDATE_ATTRIBUTES"));
+	json_t *updateWaspNode = json_object();
+	json_object_set_new(updateWaspNode, "@graphtype", json_string("Node"));
+	json_object_set_new(updateWaspNode, "id", json_string(waspStatusId));
+
+	// attributes see above
+
+	json_object_set_new(updateWaspNode, "attributes", attributes);
+	json_object_set_new(updateWaspStatusNodeMsg, "node", updateWaspNode);
+
+	/* CReate message*/
+	msg = encode_json_message(self, updateWaspStatusNodeMsg);
+	/* Send the message */
+	shout_message(self, msg);
+	/* Wait for a reply */
+	reply = wait_for_reply(self);
+	/* Print reply */
+	printf("#########################################\n");
+	printf("[%s] Got reply: %s \n", self->name, reply);
+
+	/* Parse reply */
+	json_t* updateWaspStatusReply = json_loads(reply, 0, &error);
+	json_t* querySuccessMsg = json_object_get(updateWaspStatusReply, "updateSuccess");
+	bool updateSuccess = false;
+	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	free(dump);
+
+	if (querySuccessMsg) {
+		//updateSuccess = json_is_true(querySuccessMsg);
+		updateSuccess = true; //FIXME updates of same values are not yet supported
+	}
+
+	json_decref(updateWaspStatusNodeMsg);
+	json_decref(updateWaspStatusReply);
+	free(msg);
+	free(reply);
+
+	return updateSuccess;
 }
 
 bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author) {
@@ -1794,7 +1952,8 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	free(dump);
 
 	if (querySuccessMsg) {
-		updateSuccess = json_is_true(querySuccessMsg);
+		//updateSuccess = json_is_true(querySuccessMsg);
+		updateSuccess = true; //FIXME updates of same values are not yet supported
 	}
 
 	json_decref(updateBatteryNodeMsg);
@@ -1805,17 +1964,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	return updateSuccess;
 }
 
-bool add_sherpa_box_status(component_t *self, sbox_status status,
-//	int idle,
-//	int completed,
-//	int executeId,
-//	int commandStep,
-//	int linActuatorPosition,
-//	bool waspDockLeft,
-//	bool waspDockRight,
-//	bool waspLockedLeft,
-//	bool waspLockedRight,
-	char* author) {
+bool add_sherpa_box_status(component_t *self, sbox_status status, char* author) {
 
 	if (self == NULL) {
 		return false;
@@ -1835,7 +1984,7 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 	}
 
 	char* batteryId = 0;
-	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:observation_type", "sherpa_box", root_id)) { // battery does not exist yet, so we will add it here
+	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:status_type", "sherpa_box", root_id)) { // battery does not exist yet, so we will add it here
 
 		/* Get observationGroupId */
 		char* observationGroupId = 0;
@@ -1859,7 +2008,7 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 		// attributes
 		json_t* attributes = json_array();
 		json_t* attribute1 = json_object();
-		json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+		json_object_set_new(attribute1, "key", json_string("sherpa:status_type"));
 		json_object_set_new(attribute1, "value", json_string("sherpa_box"));
 		json_array_append_new(attributes, attribute1);
 
@@ -1972,7 +2121,7 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 	// attributes
 	json_t* attributes = json_array();
 	json_t* attribute1 = json_object();
-	json_object_set_new(attribute1, "key", json_string("sherpa:observation_type"));
+	json_object_set_new(attribute1, "key", json_string("sherpa:status_type"));
 	json_object_set_new(attribute1, "value", json_string("sherpa_box"));
 	json_array_append_new(attributes, attribute1);
 
@@ -2043,7 +2192,8 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 	free(dump);
 
 	if (querySuccessMsg) {
-		updateSuccess = json_is_true(querySuccessMsg);
+		//updateSuccess = json_is_true(querySuccessMsg);
+		updateSuccess = true; //FIXME updates of same values are not yet supported
 	}
 
 	json_decref(updateSherpaBoxStatusNodeMsg);

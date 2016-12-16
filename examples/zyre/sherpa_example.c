@@ -181,6 +181,17 @@ int main(int argc, char *argv[]) {
 	}
 
 	/*
+	 * Add new status values for the WASP similar to the SHERPA Box.
+	 */
+	for (i = 0; i < 2; ++i) {
+		printf("###################### SHERPA BOX STATUS #########################\n");
+		wasp_status status;
+		status.flight_state = "ON_GROUND_ARMED";
+		status.wasp_on_box = "NO";
+		assert(add_wasp_status(self, status, agent_name));
+	}
+
+	/*
 	 * Update pose of this agent
 	 */
 	for (i = 0; i < 30; ++i) {
