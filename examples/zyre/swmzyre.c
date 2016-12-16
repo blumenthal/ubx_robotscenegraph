@@ -213,7 +213,7 @@ json_t * load_config_file(char* file) {
     json_t * root;
     root = json_load_file(file, JSON_ENSURE_ASCII, &error);
 	if(!root) {
-		printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
     	return NULL;
     }
     printf("[%s] config file: %s\n", json_string_value(json_object_get(root, "short-name")), json_dumps(root, JSON_ENCODE_ANY));
@@ -237,7 +237,7 @@ int decode_json(char* message, json_msg_t *result) {
     root = json_loads(message, 0, &error);
 
     if(!root) {
-    	printf("Error parsing JSON string! line %d: %s\n", error.line, error.text);
+    	printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
     	return -1;
     }
 
@@ -276,7 +276,7 @@ char* encode_json_message_from_file(component_t* self, char* message_file) {
     pl = json_load_file(message_file, JSON_ENSURE_ASCII, &error);
     printf("[%s] message file: %s\n", message_file, json_dumps(pl, JSON_ENCODE_ANY));
     if(!pl) {
-   	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+    	printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
     	return NULL;
     }
 
@@ -290,7 +290,7 @@ char* encode_json_message_from_string(component_t* self, char* message) {
 
     printf("[%s] message : %s\n", self->name , json_dumps(pl, JSON_ENCODE_ANY));
 	if(!pl) {
-	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 		return NULL;
 	}
 
@@ -298,13 +298,12 @@ char* encode_json_message_from_string(component_t* self, char* message) {
 }
 
 char* encode_json_message(component_t* self, json_t* message) {
-    json_error_t error;
     json_t * pl = message;
     // create the payload, i.e., the query
 
 
     if(!pl) {
-   	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+    	printf("Error! No JSON message was passed to encode_json:message\n");
     	return NULL;
     }
 
@@ -373,6 +372,11 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
     json_error_t error;
     json_t *sent_msg;
     sent_msg = json_loads(msg, 0, &error);
+    if (!sent_msg){
+    	printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+    	printf("[%s] Message passed to wait_for_reply is no valid JSON.\n", self->name);
+    	return ret;
+    }
     // because of implementation inconsistencies between SWM and CM, we have to check for UID and queryId
     char *queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"queryId"));
     if(!queryID) {
@@ -392,7 +396,7 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 			json_t *pl;
 			pl = json_loads(ret, 0, &error);
 			if(!pl) {
-				printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 				return NULL;
 			}
 			//streq cannot take NULL, so check before
@@ -593,7 +597,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
@@ -620,7 +624,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
@@ -646,7 +650,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
@@ -672,7 +676,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
@@ -752,15 +756,21 @@ bool get_root_node_id(component_t *self, char** root_id) {
 	/* Parse reply */
     json_error_t error;
 	json_t* rootNodeIdReply = json_loads(reply, 0, &error);
+
+
+	json_t* querySuccessMsg = NULL;
+	if(!rootNodeIdReply) {
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+	} else {
+		querySuccessMsg = json_object_get(rootNodeIdReply, "updateSuccess");
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+	}
+	bool querySuccess = false;
 	free(msg);
 	free(reply);
 	json_t* rootNodeIdAsJSON = 0;
-
-	json_t* querySuccessMsg = json_object_get(rootNodeIdReply, "querySuccess");
-	bool querySuccess = false;
-	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-	free(dump);
 	if (querySuccessMsg) {
 		querySuccess = json_is_true(querySuccessMsg);
 	}
@@ -1081,11 +1091,16 @@ bool add_geopose_to_node(component_t *self, const char* node_id, const char** ne
 	/* Parse reply */
 	json_error_t error;
 	json_t* tfReply = json_loads(reply, 0, &error);
-	json_t* querySuccessMsg = json_object_get(tfReply, "updateSuccess");
+	json_t* querySuccessMsg = NULL;
+	if(!tfReply) {
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+	} else {
+		querySuccessMsg = json_object_get(tfReply, "updateSuccess");
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+	}
 	bool querySuccess = false;
-	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-	free(dump);
 	if (querySuccessMsg) {
 		querySuccess = json_is_true(querySuccessMsg);
 	}
@@ -1159,7 +1174,7 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 	free(ret);
 	free(reply);
 	if(!rep) {
-		printf("Error parsing JSON string! line %d: %s\n", error.line, error.text);
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 		return false;
 	}
 	*mediator_id = strdup(json_string_value(json_object_get(rep, "remote")));
@@ -1181,7 +1196,6 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
 
 	char* msg;
 	char* reply;
-    json_error_t error;
 
 	/* Get observationGroupId */
 	char* observationGroupId = 0;
@@ -1291,7 +1305,6 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 
 	char* msg;
 	char* reply;
-    json_error_t error;
 
 	/* Get observationGroupId */
 	char* observationGroupId = 0;
@@ -1413,7 +1426,6 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 
 	char* msg;
 	char* reply;
-    json_error_t error;
 
 	/* Get observationGroupId */
 	char* observationGroupId = 0;
@@ -1539,8 +1551,6 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 
 	char* msg;
 	char* reply;
-    json_error_t error;
-
 
 	/* Get root ID to restrict search to subgraph of local SWM */
 	char* root_id = 0;
@@ -1602,12 +1612,18 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		printf("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
+		json_error_t error;
 		json_t* newBatteryReply = json_loads(reply, 0, &error);
-		json_t* querySuccessMsg = json_object_get(newBatteryReply, "updateSuccess");
+		json_t* querySuccessMsg = NULL;
+		if(!newBatteryReply) {
+			printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+		} else {
+			querySuccessMsg = json_object_get(newBatteryReply, "updateSuccess");
+			char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+			printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+			free(dump);
+		}
 		bool querySuccess = false;
-		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-		free(dump);
 
 		if (querySuccessMsg) {
 			querySuccess = json_is_true(querySuccessMsg);
@@ -1679,15 +1695,21 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	printf("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
+	json_error_t error;
 	json_t* updateBatteryReply = json_loads(reply, 0, &error);
-	json_t* querySuccessMsg = json_object_get(updateBatteryReply, "updateSuccess");
-	bool updateSuccess = false;
-	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-	free(dump);
+	json_t* querySuccessMsg = NULL;
+	if(!updateBatteryReply) {
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+	} else {
+		querySuccessMsg = json_object_get(updateBatteryReply, "updateSuccess");
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+	}
+	bool querySuccess = false;
 
 	if (querySuccessMsg) {
-		updateSuccess = json_is_true(querySuccessMsg);
+		querySuccess = json_is_true(querySuccessMsg);
 	}
 
 	json_decref(updateBatteryNodeMsg);
@@ -1695,7 +1717,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	free(msg);
 	free(reply);
 
-	return updateSuccess;
+	return querySuccess;
 }
 
 bool add_sherpa_box_status(component_t *self, sbox_status status,
@@ -1717,8 +1739,6 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 
 	char* msg;
 	char* reply;
-    json_error_t error;
-
 
 	/* Get root ID to restrict search to subgraph of local SWM */
 	char* root_id = 0;
@@ -1809,18 +1829,24 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 		/* Send the message */
 		shout_message(self, msg);
 		/* Wait for a reply */
-		reply = wait_for_reply(self);
+		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
 		printf("#########################################\n");
 		printf("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
+		json_error_t error;
 		json_t* newSherpaBoxStatusReply = json_loads(reply, 0, &error);
-		json_t* querySuccessMsg = json_object_get(newSherpaBoxStatusReply, "updateSuccess");
+		json_t* querySuccessMsg = NULL;
+		if(!newSherpaBoxStatusReply) {
+			printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+		} else {
+			querySuccessMsg = json_object_get(newSherpaBoxStatusReply, "updateSuccess");
+			char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+			printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+			free(dump);
+		}
 		bool querySuccess = false;
-		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-		free(dump);
 
 		if (querySuccessMsg) {
 			querySuccess = json_is_true(querySuccessMsg);
@@ -1922,21 +1948,27 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 	/* Send the message */
 	shout_message(self, msg);
 	/* Wait for a reply */
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
 	printf("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
+	json_error_t error;
 	json_t* updateSherpaBoxStatusReply = json_loads(reply, 0, &error);
-	json_t* querySuccessMsg = json_object_get(updateSherpaBoxStatusReply, "updateSuccess");
-	bool updateSuccess = false;
-	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-	free(dump);
+	json_t* querySuccessMsg = NULL;
+	if(!updateSherpaBoxStatusReply) {
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+	} else {
+		querySuccessMsg = json_object_get(updateSherpaBoxStatusReply, "updateSuccess");
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+	}
+	bool querySuccess = false;
 
 	if (querySuccessMsg) {
-		updateSuccess = json_is_true(querySuccessMsg);
+		querySuccess = json_is_true(querySuccessMsg);
 	}
 
 	json_decref(updateSherpaBoxStatusNodeMsg);
@@ -1944,7 +1976,7 @@ bool add_sherpa_box_status(component_t *self, sbox_status status,
 	free(msg);
 	free(reply);
 
-	return updateSuccess;
+	return querySuccess;
 }
 
 bool add_agent(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
@@ -1956,7 +1988,6 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 
 	char* msg;
 	char* reply;
-	json_error_t error;
 
 	/*
 	 * Get the "root" node. It is relevant to specify a new pose.
@@ -2026,12 +2057,18 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		printf("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
+		json_error_t error;
 		json_t* newAgentReply = json_loads(reply, 0, &error);
-		json_t* querySuccessMsg = json_object_get(newAgentReply, "updateSuccess");
+		json_t* querySuccessMsg = NULL;
+		if(!newAgentReply) {
+			printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+		} else {
+			querySuccessMsg = json_object_get(newAgentReply, "updateSuccess");
+			char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+			printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+			free(dump);
+		}
 		bool querySuccess = false;
-		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-		free(dump);
 
 		if (querySuccessMsg) {
 			querySuccess = json_is_true(querySuccessMsg);
@@ -2076,18 +2113,24 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	/* Send the message */
 	shout_message(self, msg);
 	/* Wait for a reply */
-	reply = wait_for_reply(self);
+	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
 	printf("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
+	json_error_t error;
 	json_t* newParentReply = json_loads(reply, 0, &error);
-	json_t* querySuccessMsg = json_object_get(newParentReply, "updateSuccess");
+	json_t* querySuccessMsg = NULL;
+	if(!newParentReply) {
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+	} else {
+		querySuccessMsg = json_object_get(newParentReply, "updateSuccess");
+		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
+		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		free(dump);
+	}
 	bool querySuccess = false;
-	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
-	free(dump);
 
 	if (querySuccessMsg) {
 		querySuccess = json_is_true(querySuccessMsg);
@@ -2102,9 +2145,6 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		printf("[%s] [ERROR] Can not add this WMA as part of SHERPA agent. Maybe is existed already?\n", self->name);
 //		return false;
 	}
-
-
-
 
 	char* poseId = 0;
 	char poseName[512] = {0};
@@ -2178,6 +2218,11 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
 
 	json_error_t error;
 	json_t *poseIdReply = json_loads(reply, 0, &error);
+	if(!poseIdReply) {
+		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+		printf("[%s] Pose ID query not successful. \n", self->name);
+		return false;
+	}
 	json_t* poseIdAsJSON = 0;
 	json_t* poseIdArray = json_object_get(poseIdReply, "ids");
 	if (poseIdArray) {
@@ -2291,6 +2336,7 @@ bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, d
 
 bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name) {
 	char *msg;
+	json_error_t error;
 
 	/*
 	 * Get ID of agent by name
@@ -2315,8 +2361,12 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
 	free(msg);//?!?
 	json_decref(getAgentMsg);
 
-	json_error_t error;
 	json_t *agentIdReply = json_loads(reply, 0, &error);
+//	if(!agentIdReply) {
+//		printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+//		printf("[%s] Agent ID query not successful. \n", self->name);
+//		return false;
+//	}
 	json_t* agentIdAsJSON = 0;
 	json_t* agentArray = json_object_get(agentIdReply, "ids");
 	if (agentArray) {
