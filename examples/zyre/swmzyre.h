@@ -234,11 +234,10 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
  */
 bool get_position(component_t *self, double* xOut, double* yOut, double* zOut, double utc_time_stamp_in_mili_sec, char *agent_name);
 
-bool get_sharpa_box_status(component_t *self,
-		char *agent_name
-);
-
 bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char *agent_name);
+
+bool get_sherpa_box_status(component_t *self, sbox_status* status, char* author);
+
 
 /**
  * Get the root node ID of the local SHWRPA World Model.

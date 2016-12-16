@@ -2698,3 +2698,96 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
 	return true;
 }
 
+bool get_sherpa_box_status(component_t *self, sbox_status* status, char* author) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+    json_error_t error;
+
+
+	/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
+	char* scope_id = 0;
+	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
+		printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+		return false;
+	}
+
+	/* Find the node based on the above scope id */
+	char* sherpa_box_status_id = 0;
+	if (!get_node_by_attribute_in_subgrapgh(self, &sherpa_box_status_id, "sherpa:status_type", "sherpa_box", scope_id)) { // battery does not exist yet, so we will add it here
+		printf("[%s] [ERROR] Cannot get sherpa_box_status_id \n", self->name);
+		return false;
+	}
+
+	/*
+	 * Get all attributes of the node
+	 * {
+  	 *	 "@worldmodeltype": "RSGQuery",
+  	 *	"query": "GET_NODE_ATTRIBUTES",
+  	 * 	"id": "92cf7a8d-4529-4abd-b174-5fabbdd3068f"
+	 * }
+	 */
+	json_t *getAttributesmMsg = json_object();
+	json_object_set_new(getAttributesmMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getAttributesmMsg, "query", json_string("GET_NODE_ATTRIBUTES"));
+	json_object_set_new(getAttributesmMsg, "id", json_string(sherpa_box_status_id));
+
+
+	/* Send message and wait for reply */
+    msg = encode_json_message(self, getAttributesmMsg);
+    shout_message(self, msg);
+    reply = wait_for_reply(self);
+
+	/*
+	 * Parse result
+	 */
+    json_t *attributesReply = json_loads(reply, 0, &error);
+    json_t* attributes = json_object_get(attributesReply, "attributes");
+    size_t i;
+    char* k = 0;
+    for (i = 0; i < json_array_size(attributes); ++i) {
+
+    	k = json_string_value(json_object_get(json_array_get(attributes, i), "key"));
+    	if(strncmp(k, "sherpa_box:idle", sizeof("sherpa_box:idle")) == 0) {
+    		status->idle = json_integer_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %i) \n", self->name, k, status->idle);
+    	} else	if(strncmp(k, "sherpa_box:completed", sizeof("sherpa_box:completed")) == 0) {
+    		status->completed = json_integer_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %i) \n", self->name, k, status->completed);
+    	} else	if(strncmp(k, "sherpa_box:executeId", sizeof("sherpa_box:executeId")) == 0) {
+    		status->executeId = json_integer_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %i) \n", self->name, k, status->executeId);
+    	} else	if(strncmp(k, "sherpa_box:commandStep", sizeof("sherpa_box:commandStep")) == 0) {
+    		status->commandStep = json_integer_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %i) \n", self->name, k, status->commandStep);
+    	} else	if(strncmp(k, "sherpa_box:linActuatorPosition", sizeof("sherpa_box:linActuatorPosition")) == 0) {
+    		status->linActuatorPosition = json_integer_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %i) \n", self->name, k, status->linActuatorPosition);
+    	}  else	if(strncmp(k, "sherpa_box:waspDockLeft", sizeof("sherpa_box:waspDockLeft")) == 0) {
+    		status->waspDockLeft = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspDockLeft);
+    	} else	if(strncmp(k, "sherpa_box:waspDockRight", sizeof("sherpa_box:waspDockRight")) == 0) {
+    		status->waspDockRight = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspDockRight);
+    	} else	if(strncmp(k, "sherpa_box:waspLockedLeft", sizeof("sherpa_box:waspLockedLeft")) == 0) {
+    		status->waspLockedLeft = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspLockedLeft);
+    	} else	if(strncmp(k, "sherpa_box:waspLockedRight", sizeof("sherpa_box:waspLockedRight")) == 0) {
+    		status->waspLockedRight = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspLockedRight);
+    	}
+
+	}
+
+    json_decref(getAttributesmMsg);
+    json_decref(attributesReply);
+    free(msg);
+    free(reply);
+
+}
+

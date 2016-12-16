@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
 		printf("###################### SHERPA BOX STATUS #########################\n");
 		wasp_status status;
 		status.flight_state = "ON_GROUND_ARMED";
-		status.wasp_on_box = "NO";
+		status.wasp_on_box = "NOT";
 		assert(add_wasp_status(self, status, agent_name));
 	}
 
@@ -230,6 +230,15 @@ int main(int argc, char *argv[]) {
 	printf ("ID of mediator = %s\n", mediator_id);
 	free(mediator_id);
 
+	/*
+	 * Get status of sherpa box
+	 */
+	printf("######################  GET SHERPABOX STATUS  #########################\n");
+	sbox_status sbox_status;
+	assert(get_sherpa_box_status(self, &sbox_status, agent_name));
+	printf("SBOX: %i, %i, %i, %i, %i,   %i, %i, %i, %i \n", sbox_status.idle, sbox_status.completed, sbox_status.executeId,
+			sbox_status.commandStep, sbox_status.linActuatorPosition, sbox_status.waspDockLeft, sbox_status.waspDockRight,
+			sbox_status.waspLockedLeft, sbox_status.waspLockedRight);
 
 	printf("######################  DONE  #########################\n");
     /* Clean up */
