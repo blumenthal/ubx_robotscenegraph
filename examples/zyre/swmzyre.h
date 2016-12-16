@@ -44,14 +44,38 @@ typedef struct _component_t {
 typedef struct _sbox_status_t {
 	int idle;
 	int completed;
-	int executeId;
-	int commandStep;
+	int executeId;   //(changeBattery=31, lock wasp=1, moveBat_Clamps=2, moveLinAct=5,moveRevolver=4, zeroRevolver=3)
+	int commandStep; // micro steps for debugging only
 	int linActuatorPosition;
 	bool waspDockLeft;
 	bool waspDockRight;
 	bool waspLockedLeft;
 	bool waspLockedRight;
 } sbox_status;
+
+
+// flight state:
+/*#define ON_GROUND_NO_HOME 10
+#define SETTING_HOME 20
+#define ON_GROUND_DISARMED 30
+#define ARMING 40
+#define DISARMING 45
+#define ON_GROUND_ARMED 50
+#define PERFORMING_TAKEOFF 70
+#define IN_FLIGHT 80
+#define GRID 90
+#define PERFORMING_GO_TO 100
+#define PERFORMING_LANDING 120
+#define LEASHING 140
+#define PAUSED 150
+#define MANUAL_FLIGHT 1000*/
+
+//wasp_on_box:
+//“NOT”, “LEFT”, “RIGHT”​
+typedef struct _wasp_status_t {
+	char* flight_state;
+	char* wasp_on_box;
+} wasp_status;
 
 typedef struct _artva_measurement_t {
 	int signal0;
@@ -63,7 +87,6 @@ typedef struct _artva_measurement_t {
 	int angle2;
 	int angle3;
 } artva_measurement;
-
 
 // Internal helper methods
 
@@ -159,13 +182,13 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 //bool add_artva(component_t *self, double* transform_matrix, double artva0, double artva1, double artva2, double artva3,
 //		double utc_time_stamp_in_mili_sec, char* author);
 
-bool add_artva_mesurement(component_t *self, artva_measurement measurement, char* author);
+bool add_artva_measurement(component_t *self, artva_measurement measurement, char* author);
 
 bool add_battery(component_t *self, double battery_voltage, char* battery_status,  double utc_time_stamp_in_mili_sec, char* author);
 
 bool add_sherpa_box_status(component_t *self, sbox_status status, char* author);
 
-//bool add_wasp_status
+bool add_wasp_status(component_t *self, wasp_status status, char* author);
 
 //bool add_gra_status
 

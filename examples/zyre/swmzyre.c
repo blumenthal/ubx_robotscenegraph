@@ -1449,7 +1449,7 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 }
 #endif
 
-bool add_artva_mesurement(component_t *self, artva_measurement measurement, char* author) {
+bool add_artva_measurement(component_t *self, artva_measurement measurement, char* author) {
 	if (self == NULL) {
 		return false;
 		printf("[ERROR] Communication component is not yet initialized.\n");

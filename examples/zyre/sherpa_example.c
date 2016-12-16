@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 		artva.angle1 = 0;
 		artva.angle2 = 0;
 		artva.angle3 = 0;
-		assert(add_artva_mesurement(self, artva, agent_name));
+		assert(add_artva_measurement(self, artva, agent_name));
 	}
 
 	/*
