@@ -69,13 +69,15 @@ typedef struct _sbox_status_t {
 #define LEASHING 140
 #define PAUSED 150
 #define MANUAL_FLIGHT 1000*/
+typedef struct _wasp_flight_status_t {
+	char* flight_state;
+} wasp_flight_status;
 
 //wasp_on_box:
 //“NOT”, “LEFT”, “RIGHT”​
-typedef struct _wasp_status_t {
-	char* flight_state;
+typedef struct _wasp_dock_status_t {
 	char* wasp_on_box;
-} wasp_status;
+} wasp_dock_status;
 
 typedef struct _artva_measurement_t {
 	int signal0;
@@ -188,7 +190,9 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 
 bool add_sherpa_box_status(component_t *self, sbox_status status, char* author);
 
-bool add_wasp_status(component_t *self, wasp_status status, char* author);
+bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* author);
+
+bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* author);
 
 //bool add_gra_status
 
