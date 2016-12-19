@@ -2769,16 +2769,16 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* author)
     		status->linActuatorPosition = json_integer_value(json_object_get(json_array_get(attributes, i), "value"));
     		printf("[%s] SBOX status (%s = %i) \n", self->name, k, status->linActuatorPosition);
     	}  else	if(strncmp(k, "sherpa_box:waspDockLeft", sizeof("sherpa_box:waspDockLeft")) == 0) {
-    		status->waspDockLeft = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		status->waspDockLeft = json_is_true(json_object_get(json_array_get(attributes, i), "value"));
     		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspDockLeft);
     	} else	if(strncmp(k, "sherpa_box:waspDockRight", sizeof("sherpa_box:waspDockRight")) == 0) {
-    		status->waspDockRight = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		status->waspDockRight = json_is_true(json_object_get(json_array_get(attributes, i), "value"));
     		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspDockRight);
     	} else	if(strncmp(k, "sherpa_box:waspLockedLeft", sizeof("sherpa_box:waspLockedLeft")) == 0) {
-    		status->waspLockedLeft = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		status->waspLockedLeft = json_is_true(json_object_get(json_array_get(attributes, i), "value"));
     		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspLockedLeft);
     	} else	if(strncmp(k, "sherpa_box:waspLockedRight", sizeof("sherpa_box:waspLockedRight")) == 0) {
-    		status->waspLockedRight = json_boolean_value(json_object_get(json_array_get(attributes, i), "value"));
+    		status->waspLockedRight = json_is_true(json_object_get(json_array_get(attributes, i), "value"));
     		printf("[%s] SBOX status (%s = %d) \n", self->name, k, status->waspLockedRight);
     	}
 
