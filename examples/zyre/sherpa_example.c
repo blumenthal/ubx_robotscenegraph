@@ -242,9 +242,14 @@ int main(int argc, char *argv[]) {
 	/*
 	 * Get status of sherpa box
 	 */
-	printf("######################  GET SHERPABOX STATUS  #########################\n");
+	printf("######################  GET SHERPA BOX STATUS  #########################\n");
 	sbox_status sbox_status;
 	assert(get_sherpa_box_status(self, &sbox_status, agent_name));
+	printf("SBOX: %i, %i, %i, %i, %i,   %i, %i, %i, %i \n", sbox_status.idle, sbox_status.completed, sbox_status.executeId,
+			sbox_status.commandStep, sbox_status.linActuatorPosition, sbox_status.waspDockLeft, sbox_status.waspDockRight,
+			sbox_status.waspLockedLeft, sbox_status.waspLockedRight);
+
+	assert(get_sherpa_box_status(self, &sbox_status, 0)); // search globally with out any agent name. Since there is only one SHERPA box...
 	printf("SBOX: %i, %i, %i, %i, %i,   %i, %i, %i, %i \n", sbox_status.idle, sbox_status.completed, sbox_status.executeId,
 			sbox_status.commandStep, sbox_status.linActuatorPosition, sbox_status.waspDockLeft, sbox_status.waspDockRight,
 			sbox_status.waspLockedLeft, sbox_status.waspLockedRight);

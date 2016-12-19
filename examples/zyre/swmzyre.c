@@ -2865,7 +2865,7 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
 	return true;
 }
 
-bool get_sherpa_box_status(component_t *self, sbox_status* status, char* author) {
+bool get_sherpa_box_status(component_t *self, sbox_status* status, char* agent_name) {
 
 	if (self == NULL) {
 		return false;
@@ -2875,21 +2875,28 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* author)
 	char* msg;
 	char* reply;
     json_error_t error;
-
-
-	/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
-	char* scope_id = 0;
-	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
-		printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
-		return false;
-	}
-
-	/* Find the node based on the above scope id */
 	char* sherpa_box_status_id = 0;
-	if (!get_node_by_attribute_in_subgrapgh(self, &sherpa_box_status_id, "sherpa:status_type", "sherpa_box", scope_id)) { // battery does not exist yet, so we will add it here
-		printf("[%s] [ERROR] Cannot get sherpa_box_status_id \n", self->name);
-		return false;
-	}
+
+    if(agent_name != 0) { // make the agent name optional, since in a mission the is typically only one SHERPA box.
+
+		/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
+		char* scope_id = 0;
+		if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", agent_name)) { // only search within the scope of this agent
+			printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+			return false;
+		}
+
+		/* Find the node based on the above scope id */
+		if (!get_node_by_attribute_in_subgrapgh(self, &sherpa_box_status_id, "sherpa:status_type", "sherpa_box", scope_id)) {
+			printf("[%s] [ERROR] Cannot get sherpa_box_status_id \n", self->name);
+			return false;
+		}
+    } else { // search globally. usually the cases for a SHARPA mission
+		if (!get_node_by_attribute(self, &sherpa_box_status_id, "sherpa:status_type", "sherpa_box")) {
+			printf("[%s] [ERROR] Cannot get sherpa_box_status_id \n", self->name);
+			return false;
+		}
+    }
 
 	/*
 	 * Get all attributes of the node
