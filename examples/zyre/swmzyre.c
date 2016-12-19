@@ -705,8 +705,28 @@ bool get_gis_origin_id(component_t *self, char** origin_id) {
 
 bool get_observations_group_id(component_t *self, char** observations_id) {
 	assert(self);
-//	*observations_id = NULL;
-	return get_node_by_attribute(self, observations_id, "name", "observations"); //TODO only search in subgraph of local root node
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* scope_id = 0;
+	if (!get_root_node_id(self, &scope_id)) {
+		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		return false;
+	}
+
+	return get_node_by_attribute_in_subgrapgh(self, observations_id, "name", "observations", scope_id); // only search within the scope of this agent (root node)
+}
+
+bool get_status_group_id(component_t *self, char** status_id) {
+	assert(self);
+
+	/* Get root ID to restrict search to subgraph of local SWM */
+	char* scope_id = 0;
+	if (!get_root_node_id(self, &scope_id)) {
+		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		return false;
+	}
+
+	return get_node_by_attribute_in_subgrapgh(self, status_id, "name", "status", scope_id); // only search within the scope of this agent (root node)
 }
 
 bool get_node_by_attribute(component_t *self, char** node_id, const char* key, const char* value) {
@@ -1672,18 +1692,18 @@ bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* 
 	if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp", scope_id)) { // measurement node does not exist yet, so we will add it here
 
 		/* Get observationGroupId */
-		char* observationGroupId = 0;
-		if(!get_observations_group_id(self, &observationGroupId)) {
-			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+		char* statusGroupId = 0;
+		if(!get_status_group_id(self, &statusGroupId)) {
+			printf("[%s] [ERROR] Cannot get status group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+		printf("[%s] status Id = %s \n", self->name, statusGroupId);
 
 
 		json_t *newWaspStatusMsg = json_object();
 		json_object_set_new(newWaspStatusMsg, "@worldmodeltype", json_string("RSGUpdate"));
 		json_object_set_new(newWaspStatusMsg, "operation", json_string("CREATE"));
-		json_object_set_new(newWaspStatusMsg, "parentId", json_string(observationGroupId));
+		json_object_set_new(newWaspStatusMsg, "parentId", json_string(statusGroupId));
 		json_t *newWaspNode = json_object();
 		json_object_set_new(newWaspNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();
@@ -1824,18 +1844,18 @@ bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* auth
 	if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp_docking", scope_id)) { // measurement node does not exist yet, so we will add it here
 
 		/* Get observationGroupId */
-		char* observationGroupId = 0;
-		if(!get_observations_group_id(self, &observationGroupId)) {
-			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+		char* statusGroupId = 0;
+		if(!get_status_group_id(self, &statusGroupId)) {
+			printf("[%s] [ERROR] Cannot get status group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+		printf("[%s] status Id = %s \n", self->name, statusGroupId);
 
 
 		json_t *newWaspStatusMsg = json_object();
 		json_object_set_new(newWaspStatusMsg, "@worldmodeltype", json_string("RSGUpdate"));
 		json_object_set_new(newWaspStatusMsg, "operation", json_string("CREATE"));
-		json_object_set_new(newWaspStatusMsg, "parentId", json_string(observationGroupId));
+		json_object_set_new(newWaspStatusMsg, "parentId", json_string(statusGroupId));
 		json_t *newWaspNode = json_object();
 		json_object_set_new(newWaspNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();
@@ -2133,19 +2153,19 @@ bool add_sherpa_box_status(component_t *self, sbox_status status, char* author) 
 	char* batteryId = 0;
 	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:status_type", "sherpa_box", root_id)) { // battery does not exist yet, so we will add it here
 
-		/* Get observationGroupId */
-		char* observationGroupId = 0;
-		if(!get_observations_group_id(self, &observationGroupId)) {
-			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+		/* Get statusGroupId */
+		char* statusGroupId = 0;
+		if(!get_status_group_id(self, &statusGroupId)) {
+			printf("[%s] [ERROR] Cannot get status group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+		printf("[%s] observation Id = %s \n", self->name, statusGroupId);
 
 
 		json_t *newSherpaBoxStatusNodeMsg = json_object();
 		json_object_set_new(newSherpaBoxStatusNodeMsg, "@worldmodeltype", json_string("RSGUpdate"));
 		json_object_set_new(newSherpaBoxStatusNodeMsg, "operation", json_string("CREATE"));
-		json_object_set_new(newSherpaBoxStatusNodeMsg, "parentId", json_string(observationGroupId));
+		json_object_set_new(newSherpaBoxStatusNodeMsg, "parentId", json_string(statusGroupId));
 		json_t *newSBoxNode = json_object();
 		json_object_set_new(newSBoxNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();

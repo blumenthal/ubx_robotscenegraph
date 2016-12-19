@@ -269,6 +269,12 @@ bool get_gis_origin_id(component_t *self, char** origin_id);
 bool get_observations_group_id(component_t *self, char** observations_id);
 
 /**
+ * Analog to get_observations_group_id
+ */
+bool get_status_group_id(component_t *self, char** status_id);
+
+
+/**
  * Get a node by a single specific attribute.
  * @param[in] self Handle to the communication component.
  * @param[out] node_id Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.

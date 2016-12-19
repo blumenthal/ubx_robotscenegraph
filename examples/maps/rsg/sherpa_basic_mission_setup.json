@@ -19,6 +19,19 @@
 	
 			    ]   
 		    }
+	    },
+	    {
+	  		"@childtype": "Child",
+	  		"child": {		
+			    "@graphtype": "Group",
+			    "attributes": [
+			    	{"key": "name", "value": "status"},
+			    	{"key": "comment", "value": "Status information that belongs to an individual agent."}
+			    ],
+			    "childs": [				  
+	
+			    ]   
+		    }
 	    }
     ]
   },
