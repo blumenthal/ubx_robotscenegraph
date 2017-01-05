@@ -14,7 +14,7 @@
 #include <brics_3d/worldModel/sceneGraph/ISceneGraphUpdateObserver.h>
 #include <brics_3d/worldModel/sceneGraph/GraphConstraintUpdateFilter.h>
 #include <brics_3d/worldModel/sceneGraph/TimeStamper.h>
-
+#include <brics_3d/worldModel/sceneGraph/HDF5AppendOnlyLogger.h>
 
 using namespace brics_3d;
 using brics_3d::Logger;
@@ -314,6 +314,11 @@ int rsg_json_sender_init(ubx_block_t *b)
     		LOG(INFO) << "rsg_json_sender: time stamping benchmark turned on.";
     		inf->time_stamper = new TimeStamper(inf->wm, "swm_send_after_encoding");
     		inf->constraint_filter->attachUpdateObserver(inf->time_stamper); // right after the JSON serializer
+
+    		// optional HDF5 logger
+    		brics_3d::rsg::HDF5AppendOnlyLogger* logger = new brics_3d::rsg::HDF5AppendOnlyLogger(inf->wm);
+    		inf->wm->scene.attachUpdateObserver(logger);
+
     	}
 
         return 0;
