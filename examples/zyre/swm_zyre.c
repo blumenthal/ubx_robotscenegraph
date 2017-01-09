@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     shout_message(self, msg);
 
     /* Wait for a reply */
-    char* reply = wait_for_reply(self);
+    char* reply = wait_for_reply(self, msg, self->timeout);
 
     /* Print reply */
     printf("#########################################\n");

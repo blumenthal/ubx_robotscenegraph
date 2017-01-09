@@ -32,7 +32,7 @@ typedef struct _component_t {
 	char *RSG_parent;
 	zyre_t *local;
 	json_t *config;
-	zpoller_t *poller;
+	zactor_t *communication_actor;
 	zlist_t *query_list;
 	int timeout;
 	int no_of_updates;
@@ -117,7 +117,7 @@ char* encode_json_message_from_string(component_t* self, char* message);
 
 char* encode_json_message(component_t* self, json_t* message);
 
-char* wait_for_reply(component_t* self);
+char* wait_for_reply(component_t* self, char *msg, int timeout);
 
 int shout_message(component_t* self, char* message);
 
@@ -327,7 +327,7 @@ void handle_exit(component_t *self, zmsg_t *msg);
 
 void handle_whisper (component_t *self, zmsg_t *msg);
 
-void handle_shout(component_t *self, zmsg_t *msg, char **reply);
+void handle_shout(component_t *self, zmsg_t *msg, char **rep);
 
 void handle_join (component_t *self, zmsg_t *msg);
 
