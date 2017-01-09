@@ -2520,9 +2520,12 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		json_t *newAgentNode = json_object();
 		json_object_set_new(newAgentNode, "@graphtype", json_string("Group"));
 		zuuid_t *uuid = zuuid_new ();
-		const char* new_agentId;
-		new_agentId = zuuid_str_canonical(uuid);
-		json_object_set_new(newAgentNode, "id", json_string(new_agentId));
+//		const char* new_agentId;
+//		new_agentId = zuuid_str_canonical(uuid);
+//		json_object_set_new(newAgentNode, "id", json_string(new_agentId));
+		agentId = zuuid_str_canonical(uuid);
+		json_object_set_new(newAgentNode, "id", json_string(agentId));
+
 
 		// attributes
 		json_t* attributes = json_array();
