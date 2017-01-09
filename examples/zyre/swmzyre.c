@@ -838,7 +838,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
 		if( json_array_size(array) > 0 ) {
 			nodeIdAsJSON = json_array_get(array, 0);
 			*node_id = strdup(json_string_value(nodeIdAsJSON));
-			printf("[%s] get_node_by_attribute ID is: %s \n", self->name, *node_id);
+//			printf("[%s] get_node_by_attribute ID is: %s \n", self->name, *node_id);
 		} else {
 			json_decref(nodeIdReply);
 			json_decref(getNodeMsg);
@@ -2975,5 +2975,6 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* agent_n
     free(msg);
     free(reply);
 
+    return true;
 }
 
