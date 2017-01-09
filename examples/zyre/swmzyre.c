@@ -857,7 +857,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
 	return true;
 }
 
-bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value) {
+bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value, int max_cache_duration_in_sec) {
 	assert(self);
 	*new_geopose_id = NULL;
 	char *msg;
@@ -937,6 +937,17 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 		json_object_set_new(poseAttribute2, "value", json_string(value));
 		json_array_append_new(poseAttributes, poseAttribute2);
 	}
+
+	const int default_cache_duration_in_sec = 10;
+	if (max_cache_duration_in_sec != default_cache_duration_in_sec) {
+		json_t *poseAttribute3 = json_object();
+		json_object_set_new(poseAttribute3, "key", json_string("tf:max_duration"));
+		char duration[512] = {0};
+		snprintf(duration, sizeof(duration), "%i%s", max_cache_duration_in_sec, "s");
+		json_object_set_new(poseAttribute3, "value", json_string(duration));
+		json_array_append_new(poseAttributes, poseAttribute3);
+	}
+
 	json_object_set_new(newTfConnection, "attributes", poseAttributes);
 	// sourceIds
 	json_t *sourceIds = json_array();
@@ -1206,7 +1217,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
 
 
 	char* poseId;
-	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0, 10);
 
 
 	/* Clean up */
@@ -1325,7 +1336,7 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 
 
 	char* poseId;
-	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0);
+	bool succsess = add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, transform_matrix, utc_time_stamp_in_mili_sec, 0, 0 , 10);
 
 
 	/* Clean up */
@@ -2547,7 +2558,8 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/*
 		 * Finally add a pose ;-)
 		 */
-		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "tf:name", poseName)) {
+		int mission_history_in_sec = 3600; // Up to one hour of caching.
+		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "tf:name", poseName, mission_history_in_sec)) {
 			printf("[%s] [ERROR] Cannot add agent pose  \n", self->name);
 			return false;
 		}

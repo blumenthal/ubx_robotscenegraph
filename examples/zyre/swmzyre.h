@@ -310,7 +310,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
  * @param value Optional attribute value. Ignored on NULL
  * @return Resulting ID or NULL. Owned by caller, so it is has to be freed afterwards.
  */
-bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value);
+bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id, double* transform_matrix, double utc_time_stamp_in_mili_sec, const char* key, const char* value, int max_cache_duration_in_sec);
 
 /**
  * Get the UUID of the Mediator component by using "query_mediator_uuid" query type.
