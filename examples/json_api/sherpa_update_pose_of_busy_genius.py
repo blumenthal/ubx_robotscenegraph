@@ -18,18 +18,24 @@ import ctypes
 
 ###################### Zyre ##################################
 
+# Setup config file
+configFile='../zyre/swm_zyre_config.json'
+if len(sys.argv) > 1:
+    configFile =  sys.argv[1]
+
 ### Setup Zyre helper library: swmzyrelib
 swmzyrelib = ctypes.CDLL('../zyre/build/libswmzyre.so')
 swmzyrelib.wait_for_reply.restype = ctypes.c_char_p
-cfg = swmzyrelib.load_config_file('../zyre/swm_zyre_config.json')
+cfg = swmzyrelib.load_config_file(configFile)
 component = swmzyrelib.new_component(cfg)
+timeOutInMilliSec = 5000
 
 ### Define helper method to send a single messagne and receive its reply 
 def sendZyreMessageToSWM(message):
   print("Sending message: %s " % (message))
   jsonMsg = swmzyrelib.encode_json_message_from_string(component, message);
   err = swmzyrelib.shout_message(component, jsonMsg);
-  result = swmzyrelib.wait_for_reply(component);
+  result = swmzyrelib.wait_for_reply(component, jsonMsg, timeOutInMilliSec);
   print("Received result: %s " % (result))
   return result
 
@@ -64,7 +70,10 @@ def sendMessageToSWM(message):
 x=44.153278
 y=12.241426
 z=0
-agentName="genius"
+agentName="operator0"
+
+if len(sys.argv) > 2:
+    agentName =  sys.argv[2]
 
 ##############################################################
 
@@ -141,7 +150,7 @@ if (len(ids) > 0): # yes, it exists; so we need to now the ID of its pose
     "@worldmodeltype": "RSGQuery",
     "query": "GET_NODES",
     "attributes": [
-        {"key": "name", "value": agentName + "_geopose"}, 
+        {"key": "tf:name", "value": agentName + "_geopose"}, 
     ]
   }
   result = json.loads(sendMessageToSWM(json.dumps(getAgentPose)))
@@ -187,7 +196,7 @@ else: # no, we have to add one
       "id": tfId,
       "attributes": [
         {"key": "tf:type", "value": "wgs84"},
-        {"key": "name", "value": agentName + "_geopose"},    
+        {"key": "tf:name", "value": agentName + "_geopose"},    
       ],
       "sourceIds": [
         originId,

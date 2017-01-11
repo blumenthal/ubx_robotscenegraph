@@ -666,6 +666,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 					}
 				}
 			}
+		// else if Monitor, then call callback
 		} else if (streq (result->type, "mediator_uuid")) {
 			// load the payload as json
 			json_t *payload;
