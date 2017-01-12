@@ -12,11 +12,18 @@ import json
 ### Variables ###
 
 objectAttribute = "sherpa:agent_name"
-objectValue = "genius"
+objectValue = "fw0"
 server = "tcp://localhost:22422" #local
 #server = "tcp://192.168.0.104:22422" #sherpa box
 #server = "tcp://127.0.0.1:22422" #local
 
+if len(sys.argv) >= 2:
+    objectValue =  sys.argv[1]
+
+if len(sys.argv) >= 3:
+    objectValue =  sys.argv[1]
+    port = sys.argv[2]
+    server = "tcp://localhost:"+port
 
 ### Communication Setup ###
 
@@ -27,22 +34,28 @@ socket.connect(server)
 
 ### Query to get Ids of object and reference frame ####
 
-# Get root node Id as reference
-getRootNodeMsg = {
+# Get origin 
+getOrigin = {
   "@worldmodeltype": "RSGQuery",
-  "query": "GET_ROOT_NODE"
+  "query": "GET_NODES",
+  "attributes": [
+      {"key": "gis:origin", "value": "wgs84"},
+  ]
 }
 
-print("Sending query for root node Id: %s " % json.dumps(getRootNodeMsg))
-socket.send_string(json.dumps(getRootNodeMsg))
+print("Sending query for origin node Id: %s " % json.dumps(getOrigin))
+socket.send_string(json.dumps(getOrigin))
 result = socket.recv()
 socket.close()
-print("Received reply for root node Id: %s " % result)
-
+print("Received reply for origin node Id: %s " % result)
 msg = json.loads(result.decode('utf8'))
-rootId = msg["rootId"]
-print("rootId = %s " % rootId)
-referenceId = rootId
+ids = msg["ids"]
+
+if (len(ids) == 0): 
+  print("ERROR. No origin node found. Did you forget to call scene_setup() for the SWM?")
+  exit()
+else:
+  referenceId = ids[0]
 
 
 # Get object Id 
@@ -80,7 +93,7 @@ if (len(ids) > 0):
       "@worldmodeltype": "RSGQuery",
       "query": "GET_TRANSFORM",
       "id": ids[0],
-      "idReferenceNode": rootId,
+      "idReferenceNode": referenceId,
       "timeStamp": {
         "@stamptype": "TimeStampDate",
         "stamp": currentTimeStamp,
@@ -92,6 +105,6 @@ if (len(ids) > 0):
     result = socket.recv()
     socket.close()
     print("Received reply for object pose: %s " % result)
-
+    time.sleep(0.1)
 
 
