@@ -99,9 +99,23 @@ if (len(ids) > 0):
         "stamp": currentTimeStamp,
       } 
     }
+
+    getPoseTimeStampUTCms = {
+      "@worldmodeltype": "RSGQuery",
+      "query": "GET_TRANSFORM",
+      "id": ids[0],
+      "idReferenceNode": referenceId,
+      "timeStamp": {
+        "@stamptype": "TimeStampUTCms",
+        "stamp": time.time()*1000.0,
+      },
+    }
+
+
     socket = context.socket(zmq.REQ)
     socket.connect(server)
-    socket.send_string(json.dumps(getPose))
+    #socket.send_string(json.dumps(getPose))
+    socket.send_string(json.dumps(getPoseTimeStampUTCms))
     result = socket.recv()
     socket.close()
     print("Received reply for object pose: %s " % result)

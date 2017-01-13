@@ -132,6 +132,7 @@ int rsg_json_query_start(ubx_block_t *b)
     		if (*log_level == 0) {
     			LOG(INFO) << "rsg_json_query: log_level set to DEBUG level.";
     			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
+    			brics_3d::Logger::setLogfile("rsg_json_query.log", true);
     		} else if (*log_level == 1) {
     			LOG(INFO) << "rsg_json_query: log_level set to INFO level.";
     			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::INFO);
