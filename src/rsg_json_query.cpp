@@ -132,7 +132,29 @@ int rsg_json_query_start(ubx_block_t *b)
     		if (*log_level == 0) {
     			LOG(INFO) << "rsg_json_query: log_level set to DEBUG level.";
     			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
-    			brics_3d::Logger::setLogfile("rsg_json_query.log", true);
+
+    			std::stringstream tmpFileName;
+    			time_t rawtime;
+    			struct tm* timeinfo;
+    			time(&rawtime);
+    			timeinfo = localtime(&rawtime);
+    			tmpFileName << "20" // This will have to be adjusted in year 2100 ;-)
+    					<< (timeinfo->tm_year)-100 << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	(timeinfo->tm_mon)+1 << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_mday << "_"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_hour << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_min << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_sec;
+
+    			std::string fileName = "rsg_json_query-" + tmpFileName.str() + ".log";
+    			bool doAppend = false;
+    			brics_3d::Logger::setLogfile(fileName, doAppend);
+
     		} else if (*log_level == 1) {
     			LOG(INFO) << "rsg_json_query: log_level set to INFO level.";
     			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::INFO);
