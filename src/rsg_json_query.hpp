@@ -12,7 +12,7 @@ ubx_type_t types[] = {
 
 /* block meta information */
 char rsg_json_query_meta[] =
-        " { doc='A block that recieves and decodes JSON based updates for the Robot Scene Graph',"
+        " { doc='A block that receives and decodes JSON based updates for the Robot Scene Graph',"
         "   real-time=false,"
         "}";
 
@@ -21,6 +21,7 @@ ubx_config_t rsg_json_query_config[] = {
         { .name="wm_handle", .type_name = "struct rsg_wm_handle", .doc="Handle to the world wodel instance. This parameter is mandatory." },
     	{ .name="buffer_len", .type_name = "uint32_t", .doc="Maximum number of data elements the of the input buffer." },
         { .name="log_level", .type_name = "int", .doc="Set the log level: LOGDEBUG = 0, INFO = 1, WARNING = 2, LOGERROR = 3, FATAL = 4" },
+        { .name="store_log_files", .type_name = "int", .doc="If store_log_files is set to true (=1), the log messages will be stored in a .log file. For debugging only, can degenerate system performance." },
     	{ NULL },
 };
 

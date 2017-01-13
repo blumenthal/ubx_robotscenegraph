@@ -314,11 +314,22 @@ int rsg_json_sender_init(ubx_block_t *b)
     		LOG(INFO) << "rsg_json_sender: time stamping benchmark turned on.";
     		inf->time_stamper = new TimeStamper(inf->wm, "swm_send_after_encoding");
     		inf->constraint_filter->attachUpdateObserver(inf->time_stamper); // right after the JSON serializer
+    	}
 
-    		// optional HDF5 logger
-    		brics_3d::rsg::HDF5AppendOnlyLogger* logger = new brics_3d::rsg::HDF5AppendOnlyLogger(inf->wm);
-    		inf->wm->scene.attachUpdateObserver(logger);
+    	int* store_hdf_files =  ((int*) ubx_config_get_data_ptr(b, "store_hdf_files", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_json_sender: No store_hdf_files configuration given. Turned off by default.";
+    	} else {
+    		if (*store_hdf_files == 1) {
+    			LOG(INFO) << "rsg_json_sender: store_hdf_files turned on.";
 
+        		// optional HDF5 logger
+        		brics_3d::rsg::HDF5AppendOnlyLogger* logger = new brics_3d::rsg::HDF5AppendOnlyLogger(inf->wm);
+        		inf->wm->scene.attachUpdateObserver(logger);
+
+    		} else {
+    			LOG(INFO) << "rsg_json_sender: store_hdf_files turned off.";
+    		}
     	}
 
         return 0;
@@ -329,9 +340,45 @@ int rsg_json_sender_start(ubx_block_t *b)
 {
         /* struct rsg_json_sender_info *inf = (struct rsg_json_sender_info*) b->private_data; */
         int ret = 0;
+    	unsigned int clen;
+
+        /* Set up log file */
+    	int* store_log_files =  ((int*) ubx_config_get_data_ptr(b, "store_log_files", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_json_sender: No store_log_files configuration given. Turned off by default.";
+    	} else {
+    		if (*store_log_files == 1) {
+    			LOG(INFO) << "rsg_json_sender: store_log_files turned on.";
+
+    			std::stringstream tmpFileName;
+    			time_t rawtime;
+    			struct tm* timeinfo;
+    			time(&rawtime);
+    			timeinfo = localtime(&rawtime);
+    			tmpFileName << "20" // This will have to be adjusted in year 2100 ;-)
+    					<< (timeinfo->tm_year)-100 << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	(timeinfo->tm_mon)+1 << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_mday << "_"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_hour << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_min << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_sec;
+
+    			std::string blockName(b->name);
+    			std::string fileName = "rsg_json_sender-" + blockName + tmpFileName.str() + ".log";
+    			bool doAppend = false;
+    			brics_3d::Logger::setLogfile(fileName, doAppend);
+
+    		} else {
+    			LOG(INFO) << "rsg_json_sender: store_log_files turned off.";
+    		}
+    	}
 
     	/* Set logger level */
-    	unsigned int clen;
     	int* log_level =  ((int*) ubx_config_get_data_ptr(b, "log_level", &clen));
     	if(clen == 0) {
     		LOG(INFO) << "rsg_json_sender: No log_level configuation given.";
@@ -352,7 +399,8 @@ int rsg_json_sender_start(ubx_block_t *b)
     			LOG(INFO) << "rsg_json_sender: log_level set to FATAL level.";
     			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::FATAL);
     		} else {
-    			LOG(INFO) << "rsg_json_sender: unknown log_level = " << *log_level;		}
+    			LOG(INFO) << "rsg_json_sender: unknown log_level = " << *log_level;
+    		}
     	}
 
         return ret;

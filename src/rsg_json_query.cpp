@@ -122,16 +122,15 @@ int rsg_json_query_start(ubx_block_t *b)
 {
         /* struct rsg_json_query_info *inf = (struct rsg_json_query_info*) b->private_data; */
         int ret = 0;
-
-    	/* Set logger level */
     	unsigned int clen;
-    	int* log_level =  ((int*) ubx_config_get_data_ptr(b, "log_level", &clen));
+
+        /* Set up log file */
+    	int* store_log_files =  ((int*) ubx_config_get_data_ptr(b, "store_log_files", &clen));
     	if(clen == 0) {
-    		LOG(INFO) << "rsg_json_query: No log_level configuation given.";
+    		LOG(INFO) << "rsg_json_query: No store_log_files configuration given. Turned off by default.";
     	} else {
-    		if (*log_level == 0) {
-    			LOG(INFO) << "rsg_json_query: log_level set to DEBUG level.";
-    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
+    		if (*store_log_files == 1) {
+    			LOG(INFO) << "rsg_json_query: store_log_files turned on.";
 
     			std::stringstream tmpFileName;
     			time_t rawtime;
@@ -151,10 +150,24 @@ int rsg_json_query_start(ubx_block_t *b)
     					<< std::setw(2) << std::setfill('0')
     					<<	timeinfo->tm_sec;
 
-    			std::string fileName = "rsg_json_query-" + tmpFileName.str() + ".log";
+    			std::string blockName(b->name);
+    			std::string fileName = "rsg_json_query-" + blockName + tmpFileName.str() + ".log";
     			bool doAppend = false;
     			brics_3d::Logger::setLogfile(fileName, doAppend);
 
+    		} else {
+    			LOG(INFO) << "rsg_json_query: store_log_files turned off.";
+    		}
+    	}
+
+    	/* Set logger level */
+    	int* log_level =  ((int*) ubx_config_get_data_ptr(b, "log_level", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_json_query: No log_level configuation given.";
+    	} else {
+    		if (*log_level == 0) {
+    			LOG(INFO) << "rsg_json_query: log_level set to DEBUG level.";
+    			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::LOGDEBUG);
     		} else if (*log_level == 1) {
     			LOG(INFO) << "rsg_json_query: log_level set to INFO level.";
     			brics_3d::Logger::setMinLoglevel(brics_3d::Logger::INFO);

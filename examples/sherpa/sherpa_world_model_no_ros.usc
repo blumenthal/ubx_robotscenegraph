@@ -255,6 +255,8 @@ local osm_map_file = getEnvWithDefault("SWM_OSM_MAP_FILE", "examples/maps/osm/ma
 local generate_dot_files = tonumber(getEnvWithDefault("SWM_GENERATE_DOT_FILES", 0))
 local generate_img_files = tonumber(getEnvWithDefault("SWM_GENERATE_IMG_FILES", 0)) -- requres generate_dot_files to be true
 local store_dot_history = tonumber(getEnvWithDefault("SWM_STORE_DOT_HISTORY", 0)) -- requres generate_dot_files to be true
+local store_log_files = tonumber(getEnvWithDefault("SWM_STORE_LOG_FILES", 0))
+local store_hdf_files = tonumber(getEnvWithDefault("SWM_STORE_HDF_FILES", 0))
 
 --------------------------------THE system model------------------------------- 
 
@@ -371,7 +373,9 @@ return bd.system
           store_history_as_dot_files = store_dot_history,      
           dot_name_prefix = worldModelAgentName,
           log_level = logLevel, 
-          max_freq = max_transform_freq 
+          max_freq = max_transform_freq,
+          store_log_files = store_log_files,
+          store_hdf_files = store_hdf_files  
         } 
       },
       { name="zyre_local_bridge", 
@@ -388,8 +392,8 @@ return bd.system
 
         } 
       },
-      { name="zmq_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
-      { name="zyre_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel  }},
+      { name="zmq_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel, store_log_files = store_log_files }},
+      { name="zyre_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel, store_log_files = store_log_files }},
       { name="zmq_json_query_server", config = { connection_spec="tcp://127.0.1:" .. local_json_query_port } }, 
 --      { name="ros_json_publisher", config = { topic_name="world_model/json/updates" } },
 --      { name="ros_json_subscriber", config = { topic_name="world_model/json/knowrob_updates" } },
