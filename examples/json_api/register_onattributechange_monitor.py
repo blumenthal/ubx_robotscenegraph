@@ -35,7 +35,8 @@ def sendZyreMessageToSWM(message):
   print("Sending message: %s " % (message))
   jsonMsg = swmzyrelib.encode_json_message_from_string(component, message);
   err = swmzyrelib.shout_message(component, jsonMsg);
-  result = swmzyrelib.wait_for_reply(component);
+  timeOutInMilliSec = 5000
+  result = swmzyrelib.wait_for_reply(component, jsonMsg, timeOutInMilliSec);
   print("Received result: %s " % (result))
   return result
 

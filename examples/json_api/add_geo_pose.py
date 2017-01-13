@@ -10,12 +10,17 @@ import time
 import json
 import ctypes
 
+# Setup config file
+configFile='../zyre/swm_zyre_config.json'
+if len(sys.argv) > 1:
+    configFile =  sys.argv[1]
+
 ###################### Zyre ##################################
 
 ### Setup Zyre helper library: swmzyrelib
 swmzyrelib = ctypes.CDLL('../zyre/build/libswmzyre.so')
 swmzyrelib.wait_for_reply.restype = ctypes.c_char_p
-cfg = swmzyrelib.load_config_file('../zyre/swm_zyre_config.json')
+cfg = swmzyrelib.load_config_file(configFile)
 component = swmzyrelib.new_component(cfg)
 
 ### Define helper method to send a single messagne and receive its reply 
@@ -23,7 +28,8 @@ def sendZyreMessageToSWM(message):
   print("Sending message: %s " % (message))
   jsonMsg = swmzyrelib.encode_json_message_from_string(component, message);
   err = swmzyrelib.shout_message(component, jsonMsg);
-  result = swmzyrelib.wait_for_reply(component);
+  timeOutInMilliSec = 5000
+  result = swmzyrelib.wait_for_reply(component, jsonMsg, timeOutInMilliSec);
   print("Received result: %s " % (result))
   return result
 
