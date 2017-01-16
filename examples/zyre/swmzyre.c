@@ -666,7 +666,25 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 					}
 				}
 			}
-		// else if Monitor, then call callback
+		} else if (streq (result->type, "RSGMonitor")) {
+			// load the payload as json
+			json_t *payload;
+			json_error_t error;
+			payload= json_loads(result->payload,0,&error);
+			if(!payload) {
+				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+			} else {
+
+				printf("[%s] received a RSGMonitor message: %s \n", self->name, result->payload);
+				char*monitor_msg = strdup(result->payload);
+
+				/* In form potential listener */
+				// call callback
+
+
+				free (monitor_msg);
+				json_decref(payload);
+			}
 		} else if (streq (result->type, "mediator_uuid")) {
 			// load the payload as json
 			json_t *payload;
