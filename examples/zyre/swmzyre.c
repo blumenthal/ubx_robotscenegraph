@@ -4,6 +4,8 @@
 #include <string.h>
 #include "swmzyre.h"
 
+
+
 void query_destroy (query_t **self_p) {
         assert (self_p);
         if(*self_p) {
@@ -47,6 +49,8 @@ void destroy_component (component_t **self_p) {
         *self_p = NULL;
     }
 }
+
+
 
 query_t * query_new (const char *uid, const char *requester, json_msg_t *msg, zactor_t *loop) {
         query_t *self = (query_t *) zmalloc (sizeof (query_t));
@@ -122,6 +126,7 @@ component_t* new_component(json_t *config) {
             return NULL;
 
     self->config = config;
+    self->monitor = 0;
 
 	self->name = json_string_value(json_object_get(config, "short-name"));
     if (!self->name) {
@@ -221,7 +226,9 @@ json_t * load_config_file(char* file) {
     return root;
 }
 
-
+void register_monitor_callback(component_t* self, monitor_callback_t monitor) {
+	self->monitor = monitor;
+}
 
 int decode_json(char* message, json_msg_t *result) {
 	/**
@@ -678,9 +685,10 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 				printf("[%s] received a RSGMonitor message: %s \n", self->name, result->payload);
 				char*monitor_msg = strdup(result->payload);
 
-				/* In form potential listener */
-				// call callback
-
+				/* In form potential listener, if it exists */
+				if(self->monitor) {
+					(*self->monitor)(monitor_msg);
+				}
 
 				free (monitor_msg);
 				json_decref(payload);

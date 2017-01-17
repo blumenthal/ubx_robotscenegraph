@@ -1,15 +1,3 @@
-/**
- * Example on how the send RSG-JSON messages via zyre.
- * It uses the swmzyre library as helper.
- */
-
-#include <zyre.h>
-#include <jansson.h>
-#include <uuid/uuid.h>
-#include <string.h>
-
-#include "swmzyre.h"
-
 /*
  * This example shows how to use the C "client" API.
  * It essentially wraps a subset of the JSON API,
@@ -19,6 +7,22 @@
  * Please make ensure a correct zyre configuration file
  * is passed.
  */
+
+#include <zyre.h>
+#include <jansson.h>
+#include <uuid/uuid.h>
+#include <string.h>
+
+#include "swmzyre.h"
+
+
+/*
+ * Example callback for incoming monitor messages
+ */
+void handle_monitor_msg(char *msg) {
+	printf("handle_monitor_msg: msg =  %s\n", msg);
+}
+
 int main(int argc, char *argv[]) {
 
 	char agent_name[] = "fw0"; // or wasp1, operator0, ... donkey0, sherpa_box0. Please use the same as SWM_AGENT_NAME environment variable.
@@ -52,6 +56,8 @@ int main(int argc, char *argv[]) {
 	double z = 405;
 	double utcTimeInMiliSec = 0.0;
 
+	/* Optional: register a callback for incoming monitor messages. */
+	register_monitor_callback(self, &handle_monitor_msg);
 
 	int i;
 	struct timeval tp;

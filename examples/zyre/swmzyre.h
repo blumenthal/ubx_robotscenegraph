@@ -26,6 +26,9 @@ typedef struct _query_t {
         zactor_t *loop;
 } query_t;
 
+/// Callback for potential incoming monitor messages.
+typedef void (*monitor_callback_t)(char *);
+
 typedef struct _component_t {
 	const char *name;
 	const char *localgroup;
@@ -39,7 +42,9 @@ typedef struct _component_t {
 	int no_of_queries;
 	int no_of_fcn_block_calls;
 	int alive;
+	monitor_callback_t monitor;
 } component_t;
+
 
 typedef struct _sbox_status_t {
 	int idle;
@@ -97,6 +102,14 @@ void query_destroy (query_t **self_p);
 void destroy_message(json_msg_t *msg);
 
 void destroy_component (component_t **self_p);
+
+/**
+ * Register a monitor callback for _all_ incoming messages of type RSGMontitor.
+ * @param self The communication component that "listens" to incoming messages.
+ * @param monitor Call back that gets called. The RSG message will be passed as parameter.
+ *                To unregister, set the value to 0. This is also the default.
+ */
+void register_monitor_callback(component_t* self, monitor_callback_t monitor);
 
 query_t * query_new (const char *uid, const char *requester, json_msg_t *msg, zactor_t *loop);
 
