@@ -134,7 +134,7 @@ unloadFunctionBlock =  {
     "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
   }
 } 
-result = json.loads(sendMessageToSWM(json.dumps(unloadFunctionBlock))) # optional
+#result = json.loads(sendMessageToSWM(json.dumps(unloadFunctionBlock))) # optional
 
 loadFunctionBlock =  {
   "@worldmodeltype": "RSGFunctionBlock",
@@ -214,9 +214,62 @@ result = json.loads(sendMessageToSWM(json.dumps(getPoseListQuery)))
 print(result)  
 
 
-### Clean up
-swmzyrelib.destroy_component(component);
+### Start listening to all incomming monitor messages.
+MONITORFUNC = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p) # Siganture of callback (required for python bindings)
 
+def monitiorCallback(monitorMsg): # The actual custom monitor callback function.
+  print("monitorCallback:" + monitorMsg)
+  # to be extended here ...
+
+pyMonitiorCallback = MONITORFUNC(monitiorCallback) # make cutome monitor callback adhere the python bindings signatur
+swmzyrelib.register_monitor_callback(component, pyMonitiorCallback); # register the callback to the SWM client library. 
+
+
+### Apply a set of updates to see the monitir in action. 
+
+updateAttributesMsg1 =  {
+  "@worldmodeltype": "RSGUpdate",
+  "operation": "UPDATE_ATTRIBUTES",
+  "updateMode": "UPDATE",
+  "node": {
+    "@graphtype": "Node",
+    "id": "41bba5aa-ebab-45ec-86a9-c37524afd550", 
+    "attributes": [
+          {"key": "ambient_temperature", "value": "-7C"}
+    ]
+  }
+}
+
+updateAttributesMsg2 =  {
+  "@worldmodeltype": "RSGUpdate",
+  "operation": "UPDATE_ATTRIBUTES",
+  "updateMode": "UPDATE",
+  "node": {
+    "@graphtype": "Node",
+    "id": "41bba5aa-ebab-45ec-86a9-c37524afd550", 
+    "attributes": [
+          {"key": "ambient_temperature", "value": "-8C"}
+    ]
+  }
+}
+
+sendMessageToSWM(json.dumps(updateAttributesMsg1)) # 1.) -7
+sendMessageToSWM(json.dumps(updateAttributesMsg2)) # 2.) -8
+sendMessageToSWM(json.dumps(updateAttributesMsg2)) #(-8) this is not a change, so it will not trigger to send a monitor message
+sendMessageToSWM(json.dumps(updateAttributesMsg1)) # 3.) -7
+sendMessageToSWM(json.dumps(updateAttributesMsg1)) #(-7) this is not a change, so it will not trigger to send a monitor message
+sendMessageToSWM(json.dumps(updateAttributesMsg2)) # 4.) -8
+sendMessageToSWM(json.dumps(updateAttributesMsg1)) # 5.) -7
+sendMessageToSWM(json.dumps(updateAttributesMsg2)) # 6.) -8
+sendMessageToSWM(json.dumps(updateAttributesMsg1)) # 7.) -7
+sendMessageToSWM(json.dumps(updateAttributesMsg2)) # 8.) -8
+
+#time.sleep(2)
+
+### Clean up
+print("Unregister monitor callback")
+swmzyrelib.register_monitor_callback(component, 0); # Unregister by passing a 0
+swmzyrelib.destroy_component(component);
 
 
 
