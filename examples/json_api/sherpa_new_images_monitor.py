@@ -68,6 +68,23 @@ def sendMessageToSWM(message):
   #return sendZMQMessageToSWM(message)
   return sendZyreMessageToSWM(message)
 
+### Query to get gis origin as reference frame ####
+getOrigin = {
+  "@worldmodeltype": "RSGQuery",
+  "query": "GET_NODES",
+  "attributes": [
+      {"key": "gis:origin", "value": "wgs84"},
+  ]
+}
+result = json.loads(sendMessageToSWM(json.dumps(getOrigin)))
+ids = result["ids"]
+print("ids = %s " % ids)
+
+if (len(ids) <= 0): 
+  exit()
+
+originId = ids[0]
+
 ################ Setup monitor ##################
 
 # Work-flow in a nutshell:
@@ -161,6 +178,24 @@ def monitiorCallback(monitorMsg): # The actual custom monitor callback function.
   print("monitorId = " + monitorId)
   if(monitorId == "460b1aa5-78bf-490b-9585-10cf17b6077a"):
     print("Received a new monitor message for creation of a new image.")
+    newNodeid = msg['newNodeid']
+
+    # E.g. get the geo location for that image.
+    # WARNING: The geo location can be further updated after creation. 
+    # Query the pose again for fresh data, when it is needed. 
+    getPose = {
+      "@worldmodeltype": "RSGQuery",
+      "query": "GET_TRANSFORM",
+      "id": newNodeid,
+      "idReferenceNode": originId,
+      "timeStamp": {
+        "@stamptype": "TimeStampUTCms",
+        "stamp": time.time()*1000.0,
+      },
+    }
+    result = json.loads(sendMessageToSWM(json.dumps(getPose)))
+    print(result)  
+
     # to be extended here ... 
 
 
