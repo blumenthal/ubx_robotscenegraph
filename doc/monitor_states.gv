@@ -1,0 +1,15 @@
+digraph {
+  rankdir=LR;
+  size="8,5"
+  node [shape = circle];
+  S [ style = filled, color=black ];
+#  E [ style = filled, shape = doublecircle, color=black ];
+  S -> unloaded
+#  unloaded -> E
+  unloaded -> loaded [ label = "LOAD" ];
+  loaded -> unloaded [ label = "UNLOAD" ];
+  loaded -> registered [ label = "REGISTER" ];
+  registered -> loaded [ label = "UNREGISTER" ];
+  registered -> started [ label = "START" ];
+  started -> registered [ label = "STOP" ];
+}
