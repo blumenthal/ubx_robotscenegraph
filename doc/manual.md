@@ -313,8 +313,8 @@ The is allows to filter out monitor messages in a client program that do not bel
 
 Every monitor has a different model for its input. Is is defined as a JSON Schema file that is references in the ``metamodel`` field.
 The meta model for the *oncreate* monitor block  is defined in the file 
-[fbx-oncreate-input-schema.json](https://github.com/blumenthal/brics_3d_function_blocks/models/fbx-oncreate-input-schema.json).
-Other input definitions can be fond in the same model [folder](https://github.com/blumenthal/brics_3d_function_blocks/models/) as well. 
+[fbx-oncreate-input-schema.json](https://github.com/blumenthal/brics_3d_function_blocks/blob/master/models/fbx-oncreate-input-schema.json).
+Other input definitions can be fond in the same model [folder](https://github.com/blumenthal/brics_3d_function_blocks/blob/master/models) as well. 
 
 The below message registers a monitor listener for the *oncreate* monitor.
 

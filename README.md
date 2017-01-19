@@ -11,7 +11,7 @@ RSG integration into Microblox (UBX) [![Build Status](https://travis-ci.org/blum
  * The [data model](doc/manual.md#data-model)
  * The [update](doc/manual.md#updates) capabilities
  * The [query](doc/manual.md#queries) capabilities
- * The [monitoring](#monitors) capabilities 
+ * The [monitoring](doc/manual.md#monitors) capabilities 
  * The [distribution](doc/manual.md#distribution) capabilities
  * [Launch options](doc/manual.md#launch-options)
  * World model [debugging](doc/manual.md#debugging) techniques
