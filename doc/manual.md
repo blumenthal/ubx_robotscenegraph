@@ -260,7 +260,12 @@ The function block mechanism allows to create custom monitors (if necessary) tha
  * [oncreate](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/oncreate): 
    A monitor function block that sends an event whenever a new Atom (e.g. Node, Group, Connection, ...) with a particular set of attributes is created.
 
-As for every function block a monitor can only be loaded once. In order to allow multiple monitors with different triggering conditions of the same type **a single monitor function block** can register **multiple monitor listeners**. The work-flow to setup a monitor function block and a monitor listener involves to: 
+As for every function block a monitor can only be loaded once. In order to allow multiple monitors with different triggering conditions of the same type **a single monitor function block** can register **multiple monitor listeners**. 
+
+![SWM Monitor Overview](swm_monitors.png)
+
+
+The work-flow to setup a monitor function block and a monitor listener involves to: 
 
 1. **load** the monitor function block 
 2. **register** monitor listeners and
