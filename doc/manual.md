@@ -244,27 +244,29 @@ The [meta models](https://github.com/blumenthal/brics_3d_function_blocks/tree/ma
 ## Monitors
 
 A world model monitor raises events based on the changes of the model (here the graph) and if a certain condition is met. Examples are when attributes of a node change or new nodes are created.
-This concept is als known as *change feed* in e.g. RethinkDB.
+This concept is alse known as *change feed* in e.g. RethinkDB.
 
-A monitor is implemented via the function block mechanism. It allows to store a computation within the world model, that gets executed on every change. We refer to it as a *monitor function block*
+A monitor is implemented via the *function block* mechanism. It allows to store a computation within the world model, that gets executed on every change. We refer to it as a *monitor function block*
 In fact, it is quite similar to the idea of a function block. Still there is a slight difference:
 
  * The *function block* uses a query response pattern: A query is sent, the block gets executed and returns a reply. 
- * A *monitor function block* is triggered by a change not by a caller and it needs to continuously send data, thus it has an *output port*. 
+ * A *monitor function block* is triggered by a change not by a caller and it needs to continuously send data, thus it has conceptually some kind of an *output port*. 
    The SHERPA World Model connect this port to the Zyre communication framework in order send monitor messages. 
 
-The function block mechanism allows to create custom monitors (if necessary) that can be load at run time. Thus, there can be different types of monitors. Currently two types are provides:
+The function block mechanism allows to create custom monitors (if necessary) that can be load at run time. Thus, there can be different types of monitors. Currently two types are provided:
 
  * [onattributechange](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/onattributechange): 
    A monitor function block that sends an event whenever a certain value of an attribute for a particular node has changed.
  * [oncreate](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/oncreate): 
    A monitor function block that sends an event whenever a new Atom (e.g. Node, Group, Connection, ...) with a particular set of attributes is created.
 
-As for every function block a monitor can only be loaded once. In order to allow multiple monitors with different triggering conditions of the same type **a single monitor** function block can register **multiple listeners**. They work-flow to setup a monitor involves to 
+As for every function block a monitor can only be loaded once. In order to allow multiple monitors with different triggering conditions of the same type **a single monitor function block** can register **multiple monitor listeners**. The work-flow to setup a monitor function block and a monitor listener involves to: 
 
-1. load the block 
-2. register listeners and
-3. start or stop it.
+1. **load** the monitor function block 
+2. **register** monitor listeners and
+3. **start** or **stop** it.
+
+The below state machine diagram illustrates the necessary steps. A more detailed description can be found in the next section.
 
 ![States of a monitor listener](monitor_states.png)
 
@@ -272,12 +274,13 @@ As for every function block a monitor can only be loaded once. In order to allow
 
 #### Load a monitor function block 
 
-A monitor function block has to be load, if not done already. It is safe to load it even if it was loaded before. 
+A monitor function block has to be loaded, if not done already. It is safe to load it even if it was loaded before. 
 For testing and debugging purposes it can be useful to always unload first, such that the
 latest compiled block is used. For an actual rescue mission this can be skipped. 
 
 
-The following message loads a monitor block called ``oncreate``
+The following message loads a monitor block called *oncreate*. A complete Python example for the *oncreate* monitor can be found int the 
+[sherpa_new_images_monitor.py](../examples/json_api/sherpa_new_images_monitor.py) script.
 
 ```javascript
 {
@@ -296,16 +299,19 @@ The following message loads a monitor block called ``oncreate``
 ``@worldmodeltype, metamodel, operation`` and ``metamodel`` in the input section are always the same. 
 Only ``name`` and ``path`` need to be adopted. While name is the name of the monitor block. 
 It **must match** the name of the pre-compiled shared library. E.g. ``oncreate.so`` and 
-path must be the folder where the library is stored. This is the same as the FBX_MODULES environment variable.
+path must be the folder where the library is stored. This is the same as the ``FBX_MODULES`` environment variable.
 
 
-#### Register a monitor function block 
+#### Register a monitor listener
 
-Register the monitor.  A ``monitorId`` has to be assigned, that will be used within
-every message. This allows to filter out monitor messages that do not belong to this monitor listener.
-It is possible to register multiple monitor listeners. E.g one the listens to images and one for victims. 
+A monitor listener has to be registered to a monitor function block. 
+It is possible to register multiple monitor listeners. E.g. one that listens to new images and one for detected victims. 
+A ``monitorId`` has to be manually assigned, that will be used within
+every message. It has to be a UUID like e.g. ``460b1aa5-78bf-490b-9585-10cf17b6077a``. 
+The is allows to filter out monitor messages in a client program that do not belong to this monitor listener.
 
-Every monitor has a different model for its input. Is is defined as a JSON Schema file that is references in the ``metamodel`` filed.
+
+Every monitor has a different model for its input. Is is defined as a JSON Schema file that is references in the ``metamodel`` field.
 The meta model for the *oncreate* monitor block  is defined in the file 
 [fbx-oncreate-input-schema.json](https://github.com/blumenthal/brics_3d_function_blocks/models/fbx-oncreate-input-schema.json).
 Other input definitions can be fond in the same model [folder](https://github.com/blumenthal/brics_3d_function_blocks/models/) as well. 
@@ -336,9 +342,9 @@ For the *oncreate* monitor ``attributes`` are set to define which freshly create
 trigger to send a monitor message. In this case for creation of new atoms with the attribute 
 ``(sherpa:observation_type = image)`` It allows to monitor when new images are inserted into the SWM.
 
-#### Start a monitor function block 
+#### Start a monitor listener
 
-A monitor listener has to be stated in order to send messages. A monitor can be also stopped and no further messages will be send unless 
+A monitor listener has to be stated in order to send messages. A listener can also be stopped and no further messages will be send unless 
 it is started again.
 
 The below message starts a monitor. Set ``monitorOperation`` to ``START`` or ``STOP``, 
@@ -379,12 +385,12 @@ From now on the SWM will send monitor messages. Monitor messages always have
 ```
 
 The other fields depend on the type of monitor. In case for the *oncreate* monitor the ``id`` and the ``attributes`` are returned.
-More detail on the returned data can be found in the documentation for an individual monitor.
+More details on the returned data can be found in the documentation for an individual monitor.
 
 ### Using the SWM Zyre client library to receive monitor messages
  
-In order to receive monitor messages the SWM Zyre client library has offer teh ``register_monitor_callback`` function
-to register a callback function that is triggered whenever a monitor message arrives. A C example is given in the
+In order to receive monitor messages the [SWM Zyre client library](../examples/zyre) offers the ``register_monitor_callback`` function
+to register a callback function that is triggered whenever any monitor message arrives. A C example is given in the
 [sherpa_example.c](../examples/zyre/sherpa_example.c) program. It can be also used on a Python script as demonstrated in
 the [sherpa_new_images_monitor.py](../examples/json_api/sherpa_new_images_monitor.py)
 
