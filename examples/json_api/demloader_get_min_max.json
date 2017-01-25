@@ -1,0 +1,10 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "demloader",
+  "operation":       "EXECUTE",
+  "input": {
+    "metamodel": "fbx-demloader-input-schema.json",
+    "command":   "GET_MIN_MAX_ELEVATION"
+  }
+}

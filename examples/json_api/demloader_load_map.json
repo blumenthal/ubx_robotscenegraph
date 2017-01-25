@@ -1,0 +1,11 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "demloader",
+  "operation":       "EXECUTE",
+  "input": {
+    "metamodel": "fbx-demloader-input-schema.json",
+    "command":  "LOAD_MAP",
+    "file":     "examples/maps/dem/davos.tif"
+  }
+}
