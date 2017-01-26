@@ -276,6 +276,10 @@ ${SUDO} apt-get install -y libyaml-dev
 echo "JSON library for the Mediator and Zyre UBX bridge"
 ${SUDO} apt-get install -y libjansson-dev uuid-dev
 
+echo "GDAL library for DEM files"
+${SUDO} apt-get install -y libgdal-dev
+
+
 echo "HDF5: " # (deprecated)
 # This one is alway a bit tricky since there are many compile time
 # options avialable and version changes have API breaks. 
