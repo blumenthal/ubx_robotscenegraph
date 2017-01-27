@@ -183,6 +183,7 @@ installation. Some examples are:
 * [posehistory](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/posehistory): A query function block to retrieve the history of poses between two nodes in the scene graph
 * [nodesinarea](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/nodesinarea): A query function block to retrieve all node of the scene graph within an area
 * [poselist](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/poselist): A query to aggregate multiple pose queries into a single one, w.r.t to a single common reference and time stamp.
+* [demloader](https://github.com/blumenthal/brics_3d_function_blocks/tree/master/demloader): A query function block to load and query a Digital Elevation Map (DEM) 
 
 Client code can utilize these modules either by respective method calls on the 
 C++ API or use special JSON messages. In fact the queries are quite similar to the
@@ -244,7 +245,7 @@ The [meta models](https://github.com/blumenthal/brics_3d_function_blocks/tree/ma
 ## Monitors
 
 A world model monitor raises events based on the changes of the model (here the graph) and if a certain condition is met. Examples are when attributes of a node change or new nodes are created.
-This concept is alse known as *change feed* in e.g. RethinkDB.
+This concept is also known as *change feed* in e.g. RethinkDB.
 
 A monitor is implemented via the *function block* mechanism. It allows to store a computation within the world model, that gets executed on every change. We refer to it as a *monitor function block*
 In fact, it is quite similar to the idea of a function block. Still there is a slight difference:

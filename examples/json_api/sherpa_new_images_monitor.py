@@ -178,7 +178,7 @@ def monitiorCallback(monitorMsg): # The actual custom monitor callback function.
   print("monitorId = " + monitorId)
   if(monitorId == "460b1aa5-78bf-490b-9585-10cf17b6077a"):
     print("Received a new monitor message for creation of a new image.")
-    newNodeid = msg['newNodeid']
+    newNodeid = msg['id']
 
     # E.g. get the geo location for that image.
     # WARNING: The geo location can be further updated after creation. 
