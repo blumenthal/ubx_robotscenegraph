@@ -260,6 +260,20 @@ int main(int argc, char *argv[]) {
 			sbox_status.commandStep, sbox_status.linActuatorPosition, sbox_status.waspDockLeft, sbox_status.waspDockRight,
 			sbox_status.waspLockedLeft, sbox_status.waspLockedRight);
 
+
+	/*
+	 * Get flight/docking status
+	 */
+	printf("######################  GET WASP STATUS  #########################\n");
+	wasp_flight_status flight_status;
+	assert(get_wasp_flight_status(self, &flight_status,agent_name));
+	printf("WASP flight status = %s\n", flight_status.flight_state);
+
+
+	wasp_dock_status dock_status;
+	assert(get_wasp_dock_status(self, &dock_status,agent_name));
+	printf("WASP dock status = %s\n", dock_status.wasp_on_box);
+
 	printf("######################  DONE  #########################\n");
     /* Clean up */
     destroy_component(&self);

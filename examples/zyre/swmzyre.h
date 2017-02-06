@@ -205,7 +205,11 @@ bool add_sherpa_box_status(component_t *self, sbox_status status, char* author);
 
 bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* author);
 
+bool get_wasp_flight_status(component_t *self, wasp_flight_status* status, char* agent_name);
+
 bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* author);
+
+bool get_wasp_dock_status(component_t *self, wasp_dock_status* status, char* agent_name);
 
 //bool add_gra_status
 

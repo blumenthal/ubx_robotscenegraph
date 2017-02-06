@@ -3092,3 +3092,163 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* agent_n
     return true;
 }
 
+bool get_wasp_flight_status(component_t *self, wasp_flight_status *status, char* agent_name) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+	json_error_t error;
+	char* waspStatusId = 0;
+	if(agent_name == 0)
+	{
+		printf("[ERROR] agent_name is empty, return zero \n");
+		return false;
+	}
+	if(agent_name != 0) { // make the agent name optional, since in a mission the is typically only one SHERPA box.
+		// !get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp", scope_id)
+		/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
+		char* scope_id = 0;
+		if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", agent_name)) { // only search within the scope of this agent
+			printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+			return false;
+		}
+
+		/* Find the node based on the above scope id */
+		if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp", scope_id)) {
+			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			return false;
+		}
+	} else { // search globally. usually the cases for a SHARPA mission
+		if (!get_node_by_attribute(self, &waspStatusId, "sherpa:status_type", "wasp")) {
+			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			return false;
+		}
+	}
+
+	/*
+	 * Get all attributes of the node
+	 * {
+	 * "@worldmodeltype": "RSGQuery",
+	 * "query": "GET_NODE_ATTRIBUTES",
+	 * "id": "92cf7a8d-4529-4abd-b174-5fabbdd3068f"
+	 * }
+	 */
+	json_t *getAttributesmMsg = json_object();
+	json_object_set_new(getAttributesmMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getAttributesmMsg, "query", json_string("GET_NODE_ATTRIBUTES"));
+	json_object_set_new(getAttributesmMsg, "id", json_string(waspStatusId));
+
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getAttributesmMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/*
+	 * Parse result
+	 */
+	json_t *attributesReply = json_loads(reply, 0, &error);
+	json_t* attributes = json_object_get(attributesReply, "attributes");
+	size_t i;
+
+	for (i = 0; i < json_array_size(attributes); ++i) {
+		const char* k = json_string_value(json_object_get(json_array_get(attributes, i), "key"));
+		if(strncmp(k, "sherpa:wasp_flight_state", sizeof("sherpa:wasp_flight_state")) == 0) {
+			const char* temp = json_string_value(json_object_get(json_array_get(attributes, i), "value"));
+			status->flight_state = strdup(temp);
+			//printf("[%s] WASP (%s = %i) \n", self->name, k, status->idle);
+		}
+		//start
+		//end
+
+	}
+
+	json_decref(getAttributesmMsg);
+	json_decref(attributesReply);
+	free(msg);
+	free(reply);
+
+	return true;
+}
+
+bool get_wasp_dock_status(component_t *self, wasp_dock_status *status, char* agent_name) {
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	char* msg;
+	char* reply;
+	json_error_t error;
+	char* waspStatusId = 0;
+
+	if(agent_name == 0)
+	{
+		printf("[ERROR] agent_name is empty, return zero \n");
+		return false;
+	}
+	if(agent_name != 0) {
+		// !get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp", scope_id)
+		/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
+		char* scope_id = 0;
+		if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", agent_name)) { // only search within the scope of this agent
+			printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+			return false;
+		}
+
+		/* Find the node based on the above scope id */
+		if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp_docking", scope_id)) {
+			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			return false;
+		}
+	} else { // search globally. usually the cases for a SHARPA mission
+		if (!get_node_by_attribute(self, &waspStatusId, "sherpa:status_type", "wasp_docking")) {
+			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			return false;
+		}
+	}
+
+	/*
+	 * Get all attributes of the node
+	 * {
+	 * "@worldmodeltype": "RSGQuery",
+	 * "query": "GET_NODE_ATTRIBUTES",
+	 * "id": "92cf7a8d-4529-4abd-b174-5fabbdd3068f"
+	 * }
+	 */
+	json_t *getAttributesmMsg = json_object();
+	json_object_set_new(getAttributesmMsg, "@worldmodeltype", json_string("RSGQuery"));
+	json_object_set_new(getAttributesmMsg, "query", json_string("GET_NODE_ATTRIBUTES"));
+	json_object_set_new(getAttributesmMsg, "id", json_string(waspStatusId));
+
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getAttributesmMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/*
+	 * Parse result
+	 */
+	json_t *attributesReply = json_loads(reply, 0, &error);
+	json_t* attributes = json_object_get(attributesReply, "attributes");
+	size_t i;
+
+	for (i = 0; i < json_array_size(attributes); ++i) {
+		const char* k = json_string_value(json_object_get(json_array_get(attributes, i), "key"));
+		if(strncmp(k, "sherpa:wasp_on_box", sizeof("sherpa:wasp_on_box")) == 0) {
+			const char* temp = json_string_value(json_object_get(json_array_get(attributes, i), "value"));
+			status->wasp_on_box = strdup(temp);
+			//printf("[%s] WASP (%s = %i) \n", self->name, k, status->idle);
+		}
+		//start
+		//end
+
+	}
+}
+
