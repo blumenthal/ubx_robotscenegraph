@@ -89,6 +89,8 @@ if (len(ids) > 0):
     currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     print(currentTimeStamp)
     
+    # NOTE: TimeStampDate has a bug, better use the below getPoseTimeStampUTCms 
+    # that uses a TimeStampUTCms stamptype.  
     getPose = {
       "@worldmodeltype": "RSGQuery",
       "query": "GET_TRANSFORM",
@@ -100,6 +102,7 @@ if (len(ids) > 0):
       } 
     }
 
+    # Message for geting a pose at a time stamp
     getPoseTimeStampUTCms = {
       "@worldmodeltype": "RSGQuery",
       "query": "GET_TRANSFORM",
@@ -111,11 +114,19 @@ if (len(ids) > 0):
       },
     }
 
+    # Message for getting the latest pose. Just leave the timeStamp out.
+    getLatestPose = {
+      "@worldmodeltype": "RSGQuery",
+      "query": "GET_TRANSFORM",
+      "id": ids[0],
+      "idReferenceNode": referenceId
+    }
 
     socket = context.socket(zmq.REQ)
     socket.connect(server)
     #socket.send_string(json.dumps(getPose))
-    socket.send_string(json.dumps(getPoseTimeStampUTCms))
+    #socket.send_string(json.dumps(getPoseTimeStampUTCms))
+    socket.send_string(json.dumps(getLatestPose))
     result = socket.recv()
     socket.close()
     print("Received reply for object pose: %s " % result)

@@ -143,6 +143,7 @@ function start_all()
   start_wm()
   fbx_setup()
   sync() -- just to be on the safe side
+  start_auto_sync()
 end
 
 -- Alias s for start, calls start_all()
@@ -422,7 +423,7 @@ return bd.system
       },
       { name="cyclic_sync_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
-          period = {sec=10, usec=0 }, 
+          period = {sec=60, usec=0 }, 
           trig_blocks={ 
             { b="#rsgjsonsender", num_steps=1, measure=0 },              
           } 

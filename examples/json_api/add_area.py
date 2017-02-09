@@ -35,6 +35,14 @@ def sendMessageToSWM(message):
   print("Received result: %s " % (result))
 
 
+coodinates = [ 
+  (9.848141855014655,46.815054428015216),
+  (9.849936915109629,46.815034548584826),
+  (9.849909338796687,46.81412616861588), 
+  (9.848140502048613,46.81414549510094), 
+  (9.848141855014655,46.815054428015216)
+]
+
 # JSON message to CREATE an origin Node. (As child to the root node.)
 newOriginMsg = {
   "@worldmodeltype": "RSGUpdate",
@@ -138,9 +146,9 @@ newTransformToPolygonPoint1Msg = {
         "transform": {
           "type": "HomogeneousMatrix44",
             "matrix": [
-              [1,0,0,44.153278],
-              [0,1,0,12.241426],
-              [0,0,1,2134],
+              [1,0,0,coodinates[0][0]],
+              [0,1,0,coodinates[0][1]],
+              [0,0,1,1500],
               [0,0,0,1] 
             ],
             "unit": "latlon"
@@ -176,9 +184,9 @@ newTransformToPolygonPoint2Msg = {
         "transform": {
           "type": "HomogeneousMatrix44",
             "matrix": [
-              [1,0,0,44.153278],
-              [0,1,0,13.241426],
-              [0,0,1,2134],
+              [1,0,0,coodinates[1][0]],
+              [0,1,0,coodinates[1][1]],
+              [0,0,1,1501],
               [0,0,0,1] 
             ],
             "unit": "latlon"
@@ -214,9 +222,9 @@ newTransformToPolygonPoint3Msg = {
         "transform": {
           "type": "HomogeneousMatrix44",
             "matrix": [
-              [1,0,0,45.153278],
-              [0,1,0,13.241426],
-              [0,0,1,2134],
+              [1,0,0,coodinates[2][0]],
+              [0,1,0,coodinates[2][1]],
+              [0,0,1,1502],
               [0,0,0,1] 
             ],
             "unit": "latlon"
@@ -252,9 +260,9 @@ newTransformToPolygonPoint4Msg = {
         "transform": {
           "type": "HomogeneousMatrix44",
             "matrix": [
-              [1,0,0,45.153278],
-              [0,1,0,12.241426],
-              [0,0,1,2134],
+              [1,0,0,coodinates[3][0]],
+              [0,1,0,coodinates[3][1]],
+              [0,0,1,1503],
               [0,0,0,1] 
             ],
             "unit": "latlon"
