@@ -274,6 +274,16 @@ int main(int argc, char *argv[]) {
 	assert(get_wasp_dock_status(self, &dock_status,agent_name));
 	printf("WASP dock status = %s\n", dock_status.wasp_on_box);
 
+	/*
+	 * Digital Elevation Map
+	 */
+	printf("######################  DEM  #########################\n");
+	char map_file_name [512] = {0};
+	char project_path[512] = { SWM_ZYRE_CONFIG_DIR };
+	snprintf(map_file_name, sizeof(map_file_name), "%s%s", project_path, "/../maps/dem/davos.tif");
+
+	assert(load_dem(self, &map_file_name));
+
 	printf("######################  DONE  #########################\n");
     /* Clean up */
     destroy_component(&self);

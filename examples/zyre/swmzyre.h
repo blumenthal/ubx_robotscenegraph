@@ -211,6 +211,14 @@ bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* auth
 
 bool get_wasp_dock_status(component_t *self, wasp_dock_status* status, char* agent_name);
 
+/**
+ * Load a DEM.
+ * @param self Communication component
+ * @param map_file_name Map in geotiff format.
+ * @return True on sccucess
+ */
+bool load_dem(component_t *self, char* map_file_name);
+
 //bool add_gra_status
 
 /**

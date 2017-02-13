@@ -317,7 +317,7 @@ char* encode_json_message(component_t* self, json_t* message) {
 
     // extract queryId
 	if(json_object_get(pl,"queryId") == 0) { // no queryID in message, so we skip it here
-		printf("[%s] send_json_message: No queryId found, adding one.\n", self->name);
+		//printf("[%s] send_json_message: No queryId found, adding one.\n", self->name);
 		zuuid_t *uuid = zuuid_new ();
 		assert(uuid);
 		const char* uuid_as_string = zuuid_str_canonical(uuid);
@@ -3250,5 +3250,125 @@ bool get_wasp_dock_status(component_t *self, wasp_dock_status *status, char* age
 		//end
 
 	}
+}
+
+bool load_dem(component_t *self, char* map_file_name) {
+	char* msg;
+	char* reply;
+	json_error_t error;
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	// derive path to FBX (function blocks) modules
+	char* fbxPath = getenv("FBX_MODULES");
+	char path[512] = {0};
+	snprintf(path, sizeof(path), "%s%s", fbxPath, "/lib");
+
+	/* Load demloader block */
+//	{
+//	  "@worldmodeltype": "RSGFunctionBlock",
+//	  "metamodel":       "rsg-functionBlock-schema.json",
+//	  "name":            "demloader",
+//	  "operation":       "LOAD",
+//	  "input": {
+//	  "metamodel": "rsg-functionBlock-path-schema.json",
+//	    "path":     "/opt/src/sandbox/brics_3d_function_blocks/lib/",
+//	    "comment":  "path is the same as the FBX_MODULES environment variable appended with a lib/ folder"
+//	  }
+//	}
+
+
+	// top level message
+	json_t *loadDemBlockMsg = json_object();
+	json_object_set_new(loadDemBlockMsg, "@worldmodeltype", json_string("RSGFunctionBlock"));
+	json_object_set_new(loadDemBlockMsg, "metamodel", json_string("rsg-functionBlock-schema.json"));
+	json_object_set_new(loadDemBlockMsg, "name", json_string("demloader"));
+	json_object_set_new(loadDemBlockMsg, "operation", json_string("LOAD"));
+	json_t *functioBlockInput = json_object();
+	json_object_set_new(functioBlockInput, "metamodel", json_string("rsg-functionBlock-path-schema.json"));
+	json_object_set_new(functioBlockInput, "path", json_string(path));
+	json_object_set_new(loadDemBlockMsg, "input", functioBlockInput);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, loadDemBlockMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/* Parse reply */
+	json_t* replyAsJSON = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+
+	json_t* operationSuccessMsg = json_object_get(replyAsJSON, "operationSuccess");
+	bool querySuccess = false;
+	if (operationSuccessMsg) {
+		querySuccess = json_is_true(operationSuccessMsg);
+	}
+
+	json_decref(loadDemBlockMsg);
+	json_decref(replyAsJSON);
+	json_decref(operationSuccessMsg);
+
+	if(!querySuccess) {
+		printf("[%s] [ERROR] Cannot load dem block \n", self->name);
+		return false;
+	}
+
+
+
+	/* Load map */
+//	{
+//	  "@worldmodeltype": "RSGFunctionBlock",
+//	  "metamodel":       "rsg-functionBlock-schema.json",
+//	  "name":            "demloader",
+//	  "operation":       "EXECUTE",
+//	  "input": {
+//	    "metamodel": "fbx-demloader-input-schema.json",
+//	    "command":  "LOAD_MAP",
+//	    "file":     "examples/maps/dem/davos.tif"
+//	  }
+//	}
+
+	// top level message
+	json_t *loadMapMsg = json_object();
+	json_object_set_new(loadMapMsg, "@worldmodeltype", json_string("RSGFunctionBlock"));
+	json_object_set_new(loadMapMsg, "metamodel", json_string("rsg-functionBlock-schema.json"));
+	json_object_set_new(loadMapMsg, "name", json_string("demloader"));
+	json_object_set_new(loadMapMsg, "operation", json_string("EXECUTE"));
+	json_t *mapInput = json_object();
+	json_object_set_new(mapInput, "metamodel", json_string("fbx-demloader-input-schema.json"));
+	json_object_set_new(mapInput, "command", json_string("LOAD_MAP"));
+	json_object_set_new(mapInput, "file", json_string(map_file_name));
+	json_object_set_new(loadMapMsg, "input", mapInput);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, loadMapMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/* Parse reply */
+	replyAsJSON = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+
+	operationSuccessMsg = json_object_get(replyAsJSON, "operationSuccess");
+	querySuccess = false;
+	if (operationSuccessMsg) {
+		querySuccess = json_is_true(operationSuccessMsg);
+	}
+
+	json_decref(loadMapMsg);
+	json_decref(replyAsJSON);
+	json_decref(operationSuccessMsg);
+
+	if(!querySuccess) {
+		printf("[%s] [ERROR] Cannot load dem map \n", self->name);
+		return false;
+	}
+
+	return true;
 }
 
