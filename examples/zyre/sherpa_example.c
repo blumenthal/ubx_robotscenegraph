@@ -282,7 +282,17 @@ int main(int argc, char *argv[]) {
 	char project_path[512] = { SWM_ZYRE_CONFIG_DIR };
 	snprintf(map_file_name, sizeof(map_file_name), "%s%s", project_path, "/../maps/dem/davos.tif");
 
+	/* A map has to be loaded first, then we get queries. */
 	assert(load_dem(self, &map_file_name));
+
+	/* Get elevation a a specific location. Queries beyond the map will return false  */
+	double elevation = 0;
+	assert(!get_elevataion_at(self, &elevation, 0, 0)); // this should fail
+	printf("DEM: elevation = %lf \n", elevation);
+
+	assert(get_elevataion_at(self, &elevation, 9.849468, 46.812785)); // this should work for the davos map
+	printf("DEM: elevation = %lf \n", elevation);
+
 
 	printf("######################  DONE  #########################\n");
     /* Clean up */

@@ -3281,7 +3281,6 @@ bool load_dem(component_t *self, char* map_file_name) {
 //	}
 
 
-	// top level message
 	json_t *loadDemBlockMsg = json_object();
 	json_object_set_new(loadDemBlockMsg, "@worldmodeltype", json_string("RSGFunctionBlock"));
 	json_object_set_new(loadDemBlockMsg, "metamodel", json_string("rsg-functionBlock-schema.json"));
@@ -3303,16 +3302,16 @@ bool load_dem(component_t *self, char* map_file_name) {
 	free(reply);
 
 	json_t* operationSuccessMsg = json_object_get(replyAsJSON, "operationSuccess");
-	bool querySuccess = false;
+	bool operationSuccess = false;
 	if (operationSuccessMsg) {
-		querySuccess = json_is_true(operationSuccessMsg);
+		operationSuccess = json_is_true(operationSuccessMsg);
 	}
 
 	json_decref(loadDemBlockMsg);
 	json_decref(replyAsJSON);
 	json_decref(operationSuccessMsg);
 
-	if(!querySuccess) {
+	if(!operationSuccess) {
 		printf("[%s] [ERROR] Cannot load dem block \n", self->name);
 		return false;
 	}
@@ -3355,17 +3354,90 @@ bool load_dem(component_t *self, char* map_file_name) {
 	free(reply);
 
 	operationSuccessMsg = json_object_get(replyAsJSON, "operationSuccess");
-	querySuccess = false;
+	operationSuccess = false;
 	if (operationSuccessMsg) {
-		querySuccess = json_is_true(operationSuccessMsg);
+		operationSuccess = json_is_true(operationSuccessMsg);
 	}
 
 	json_decref(loadMapMsg);
 	json_decref(replyAsJSON);
 	json_decref(operationSuccessMsg);
 
-	if(!querySuccess) {
+	if(!operationSuccess) {
 		printf("[%s] [ERROR] Cannot load dem map \n", self->name);
+		return false;
+	}
+
+	return true;
+}
+
+bool get_elevataion_at(component_t *self, double* elevation, double latitude, double longitude) {
+	char* msg;
+	char* reply;
+	json_error_t error;
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	*elevation = -1.0;
+
+	/* Get elevation */
+//	{
+//	  "@worldmodeltype": "RSGFunctionBlock",
+//	  "metamodel":       "rsg-functionBlock-schema.json",
+//	  "name":            "demloader",
+//	  "operation":       "EXECUTE",
+//	  "input": {
+//	    "metamodel": "fbx-demloader-input-schema.json",
+//	    "command":   "GET_ELEVATION",
+//	    "latitude":  9.849468,
+//	    "longitude": 46.812785
+//	  }
+//	}
+
+	json_t *getElevationMsg = json_object();
+	json_object_set_new(getElevationMsg, "@worldmodeltype", json_string("RSGFunctionBlock"));
+	json_object_set_new(getElevationMsg, "metamodel", json_string("rsg-functionBlock-schema.json"));
+	json_object_set_new(getElevationMsg, "name", json_string("demloader"));
+	json_object_set_new(getElevationMsg, "operation", json_string("EXECUTE"));
+	json_t *functioBlockInput = json_object();
+	json_object_set_new(functioBlockInput, "metamodel", json_string("fbx-demloader-input-schema.json"));
+	json_object_set_new(functioBlockInput, "command", json_string("GET_ELEVATION"));
+	json_object_set_new(functioBlockInput, "latitude", json_real(latitude));
+	json_object_set_new(functioBlockInput, "longitude", json_real(longitude));
+	json_object_set_new(getElevationMsg, "input", functioBlockInput);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getElevationMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/* Parse reply */
+	json_t* replyAsJSON = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+
+	json_t* operationSuccessMsg = json_object_get(replyAsJSON, "operationSuccess");
+	bool operationSuccess = false;
+	if (operationSuccessMsg) {
+		operationSuccess = json_is_true(operationSuccessMsg);
+	}
+
+	if(operationSuccess) {
+		json_t* output = json_object_get(replyAsJSON, "output");
+		if(output) {
+			*elevation = json_real_value(json_object_get(output, "elevation"));
+		}
+	}
+
+	json_decref(getElevationMsg);
+	json_decref(replyAsJSON);
+	json_decref(operationSuccessMsg);
+
+	if(!operationSuccess) {
+		printf("[%s] [ERROR] Cannot get elevation value. \n", self->name);
 		return false;
 	}
 

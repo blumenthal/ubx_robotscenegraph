@@ -219,7 +219,15 @@ bool get_wasp_dock_status(component_t *self, wasp_dock_status* status, char* age
  */
 bool load_dem(component_t *self, char* map_file_name);
 
-//bool add_gra_status
+/**
+ * Get elevation at a location. load_dem() has to be called first!
+ * @param[in] self Communication component
+ * @param[out] elevation Elevation in [m] Will be set -1.0 in case of an error.
+ * @param[in] latitude Coordinate
+ * @param[in] longitude Coordinate
+ * @return True on success. Will be false for invalid elevation data or queries beyond the map dimensions.
+ */
+bool get_elevataion_at(component_t *self, double* elevation, double latitude, double longitude);
 
 /**
  * Update pose of agent.
