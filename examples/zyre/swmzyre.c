@@ -191,6 +191,9 @@ component_t* new_component(json_t *config) {
 
 	int rc;
 	if(!json_is_null(json_object_get(config, "gossip_endpoint"))) {
+		rc = zyre_set_endpoint (self->local, "%s",json_string_value(json_object_get(config, "local_endpoint")));
+		assert (rc == 0);
+
 		//  Set up gossip network for this node
 		zyre_gossip_connect (self->local, "%s", json_string_value(json_object_get(config, "gossip_endpoint")));
 		printf("[%s] using gossip with gossip hub '%s' \n", self->name,json_string_value(json_object_get(config, "gossip_endpoint")));
@@ -593,7 +596,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 	printf ("[%s] SHOUT %s %s %s %s\n", self->name, peerid, name, group, message);
 	json_msg_t *result = (json_msg_t *) zmalloc (sizeof (json_msg_t));
 	if (decode_json(message, result) == 0) {
-//		printf ("[%s] message type %s\n", self->name, result->type);
+		//printf ("[%s] message type %s\n", self->name, result->type);
 		if (streq (result->type, "RSGUpdateResult")) {
 			// load the payload as json
 			json_t *payload;
@@ -618,6 +621,8 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
+					} else {
+						it = zlist_next(self->query_list);
 					}
 				}
 			}
@@ -644,6 +649,8 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
+					} else {
+						it = zlist_next(self->query_list);
 					}
 				}
 			}
@@ -670,6 +677,8 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
+					} else {
+						it = zlist_next(self->query_list);
 					}
 				}
 			}
@@ -716,6 +725,8 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
+					} else {
+						it = zlist_next(self->query_list);
 					}
 				}
 			}

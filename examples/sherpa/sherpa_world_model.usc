@@ -241,6 +241,7 @@ local local_json_query_port = getEnvWithDefault("SWM_LOCAL_JSON_QUERY_PORT", "22
 local use_gossip= tonumber(getEnvWithDefault("SWM_USE_GOSSIP", 0)) -- 1 use gossip; 0 use UDB beaconing; 1 id default since the Mediator is usiong ot 
 local bind_zyre = tonumber(getEnvWithDefault("SWM_BIND_ZYRE", 0)) -- 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
 local gossip_endpoint =    getEnvWithDefault("SWM_GOSSIP_ENDPOINT", "ipc:///tmp/local-hub") -- Gossip endpoint; use this default value unless you want to have multiple Gossip networks
+local local_endpoint =     getEnvWithDefault("SWM_LOCAL_ENDPOINT", "ipc:///tmp/sherpa_wm") -- Gossip local endpoint; use this default value unless you want to have multiple Gossip networks
 local zyre_group =         getEnvWithDefault("SWM_ZYRE_GROUP", "local") 
 
 -- Filter settings
@@ -388,7 +389,7 @@ return bd.system
           gossip_flag = use_gossip, -- 0,            -- 1 for using gossip locally; 0 for using UDP beaconing instead
           gossip_endpoint = gossip_endpoint  , -- Endpoint for zyre gossip discovery. Default is "ipc:///tmp/local-hub"
           bind = bind_zyre, -- 0,         -- Decides whether this node binds or connects to gossip network; The must be at least on node that binds. 
-          local_endpoint="ipc:///tmp/sherpa_wm", -- currently unused; local endpoint for zyre network;"
+          local_endpoint = local_endpoint, -- local endpoint for zyre network; MUST differ from gossip_endpoint"
           mediator=use_gossip -- 1 for unsing mediator, 0 for not using it
         } 
       },
