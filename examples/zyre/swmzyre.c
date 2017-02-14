@@ -596,7 +596,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 	printf ("[%s] SHOUT %s %s %s %s\n", self->name, peerid, name, group, message);
 	json_msg_t *result = (json_msg_t *) zmalloc (sizeof (json_msg_t));
 	if (decode_json(message, result) == 0) {
-		printf ("[%s] message type %s\n", self->name, result->type);
+		//printf ("[%s] message type %s\n", self->name, result->type);
 		if (streq (result->type, "RSGUpdateResult")) {
 			// load the payload as json
 			json_t *payload;
