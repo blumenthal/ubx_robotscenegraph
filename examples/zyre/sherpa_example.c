@@ -233,8 +233,9 @@ int main(int argc, char *argv[]) {
 	z = 0;
 	gettimeofday(&tp, NULL);
 	utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
-	get_position(self, &x, &y, &z, utcTimeInMiliSec, agent_name);
+	assert(get_position(self, &x, &y, &z, utcTimeInMiliSec, agent_name));
 	printf ("Latest position of agent = (%f,%f,%f)\n", x,y,z);
+	assert(!get_position(self, &x, &y, &z, utcTimeInMiliSec, "non-exisiting-agent"));
 
 	/*
 	 * Get ID of mediator
@@ -300,7 +301,7 @@ int main(int argc, char *argv[]) {
 								9.849909338796687,46.81412616861588,
 								9.848140502048613,46.81414549510094,
 								9.848141855014655,46.815054428015216 }; //last coordinate is same s first coordinate
-	assert(add_area(self, coordinates, num_coordinates, "mission_area0"));
+	add_area(self, coordinates, num_coordinates, "mission_area0"); //NOTE: this will only work once, since this name only creates one area
 
 	printf("######################  DONE  #########################\n");
     /* Clean up */

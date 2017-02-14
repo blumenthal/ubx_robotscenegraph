@@ -3273,7 +3273,12 @@ bool add_area(component_t *self, double *polygon_coordinates, int num_coordinate
 		printf("[ERROR] Communication component is not yet initialized.\n");
 	}
 
-	/* TODO: check if it exits already?!? */
+	/* check if it exits already?!? */
+	char* existing_area_id;
+	if(get_node_by_attribute(self, &existing_area_id, "name", area_name)) {
+		printf("[%s] [ERROR] An area with name %s exists already.\n", area_name, self->name);
+		return false;
+	}
 
 	/* Get group to store polygons */
 	char* environment_id;
@@ -3297,10 +3302,10 @@ bool add_area(component_t *self, double *polygon_coordinates, int num_coordinate
 	 */
 	int i = 0;
 	char* firstNode;
-	for (i = 0; i < num_coordinates; ++i) {
+	for (i = 0; i < num_coordinates-1; ++i) {
 
 		if (i== num_coordinates-1) { // last and firsts are the same; this is only reflected in the targetIds so we skip creation of the last point
-			json_array_append_new(targetIds, json_string(zuuid_str_canonical(firstNode)));
+			json_array_append_new(targetIds, json_string(firstNode));
 		}
 
 		/* create node */
