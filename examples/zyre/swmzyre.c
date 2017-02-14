@@ -191,6 +191,9 @@ component_t* new_component(json_t *config) {
 
 	int rc;
 	if(!json_is_null(json_object_get(config, "gossip_endpoint"))) {
+		rc = zyre_set_endpoint (self->local, "%s",json_string_value(json_object_get(config, "local_endpoint")));
+		assert (rc == 0);
+
 		//  Set up gossip network for this node
 		zyre_gossip_connect (self->local, "%s", json_string_value(json_object_get(config, "gossip_endpoint")));
 		printf("[%s] using gossip with gossip hub '%s' \n", self->name,json_string_value(json_object_get(config, "gossip_endpoint")));
@@ -613,11 +616,13 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 						*rep = strdup(result->payload);
 //						free(it->msg->payload);
 						query_t *dummy = it;
-						it = zlist_next(self->query_list);
+
 						zlist_remove(self->query_list,dummy);
 						query_destroy(&dummy);
 					    json_decref(payload);
 						break;
+					} else {
+						it = zlist_next(self->query_list);
 					}
 				}
 			}
