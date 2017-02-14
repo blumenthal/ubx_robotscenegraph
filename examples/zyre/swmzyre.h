@@ -212,9 +212,20 @@ bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* auth
 bool get_wasp_dock_status(component_t *self, wasp_dock_status* status, char* agent_name);
 
 /**
+ * Add am area with a custom name. It is defined by a closed polygon on latitude and longitude coordinates.
+ * @param[in] self Communication component.
+ * @param polygon_coordinates Array with coordinates on form of:
+ *  [lat0,lon0 ,lat1,lon1, lat2, lon2, ... ]
+ * @param[in] num_coordinates Number of coordinates in above array. E.g. for 3 coordinates len = 3 Note, the array actually has 6 elements.
+ * @paramV area_name Name to identify the area. E.g. "mission_area0"
+ * @return True on success.
+ */
+bool add_area(component_t *self, double *polygon_coordinates, int num_coordinates, char* area_name);
+
+/**
  * Load a DEM.
- * @param self Communication component
- * @param map_file_name Map in geotiff format.
+ * @param[in] self Communication component
+ * @param[in] map_file_name Map in geotiff format.
  * @return True on sccucess
  */
 bool load_dem(component_t *self, char* map_file_name);

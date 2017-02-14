@@ -3252,6 +3252,202 @@ bool get_wasp_dock_status(component_t *self, wasp_dock_status *status, char* age
 	}
 }
 
+bool add_area(component_t *self, double *polygon_coordinates, int num_coordinates, char* area_name) {
+	char* msg;
+	char* reply;
+	json_error_t error;
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	/* TODO: check if it exits already?!? */
+
+	/* Get group to store polygons */
+	char* environment_id;
+	if(!get_node_by_attribute(self, &environment_id, "name", "enviroment")) {
+		printf("[%s] [ERROR] Cannot get id for environment Group. \n", self->name);
+		return false;
+	}
+
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	double utcTimeInMiliSec = tp.tv_sec * 1000 + tp.tv_usec / 1000; //get current timestamp in milliseconds
+
+	/*
+	 * Every node for a point in the polygon has to be later referenced by a Connection on the field "targetIds".
+	 * So we collect the ids while the node are being created.
+	 * */
+	json_t *targetIds = json_array();
+
+	/*
+	 * FOR each polygon add a geo point
+	 */
+	int i = 0;
+	char* firstNode;
+	for (i = 0; i < num_coordinates; ++i) {
+
+		if (i== num_coordinates-1) { // last and firsts are the same; this is only reflected in the targetIds so we skip creation of the last point
+			json_array_append_new(targetIds, json_string(zuuid_str_canonical(firstNode)));
+		}
+
+		/* create node */
+		json_t *newPointMsg = json_object();
+		json_object_set_new(newPointMsg, "@worldmodeltype", json_string("RSGUpdate"));
+		json_object_set_new(newPointMsg, "operation", json_string("CREATE"));
+		json_object_set_new(newPointMsg, "parentId", json_string(environment_id));
+		json_t *newPointNode = json_object();
+		json_object_set_new(newPointNode, "@graphtype", json_string("Node"));
+		zuuid_t *uuid = zuuid_new ();
+		json_object_set_new(newPointNode, "id", json_string(zuuid_str_canonical(uuid)));
+
+		// attributes
+		json_t *newPointAttributes = json_array();
+		json_t *attribute1 = json_object();
+		json_object_set_new(attribute1, "key", json_string("name"));
+		char pointName[512] = {0};
+		snprintf(pointName, sizeof(pointName), "%s%s%i", area_name, "_point_", i);
+		json_array_append_new(newPointAttributes, attribute1);
+		json_object_set_new(attribute1, "value", json_string(pointName));
+		json_object_set_new(newPointNode, "attributes", newPointAttributes);
+		json_object_set_new(newPointMsg, "node", newPointNode);
+
+		/* Send message and wait for reply */
+		msg = encode_json_message(self, newPointMsg);
+		shout_message(self, msg);
+		reply = wait_for_reply(self, msg, self->timeout);
+
+		/* Parse reply */
+		json_t* replyAsJSON = json_loads(reply, 0, &error);
+		free(msg);
+		free(reply);
+
+		json_t* querySuccessMsg = json_object_get(replyAsJSON, "updateSuccess");
+		bool querySuccess = false;
+		if (querySuccessMsg) {
+			querySuccess = json_is_true(querySuccessMsg);
+		}
+
+
+		json_decref(newPointMsg);
+		json_decref(replyAsJSON);
+		json_decref(querySuccessMsg);
+
+		if(!querySuccess) {
+			printf("[%s] [ERROR] Cannot add polygon point. \n", self->name);
+			return false;
+		}
+
+		/* add geopose to node */
+		char* poseId;
+		double matrix[16] = { 1, 0, 0, 0,
+				               0, 1, 0, 0,
+				               0, 0, 1, 0,
+				               0, 0, 0, 1}; // y,x,z,1 remember this is column-major!
+		matrix[12] = polygon_coordinates[2*i];
+		matrix[13] = polygon_coordinates[(2*i)+1];
+		if(!add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, matrix, utcTimeInMiliSec, 0, 0, 10)) {
+			printf("[%s] [ERROR] Cannot add polygon coordinates. \n", self->name);
+			return false;
+		}
+
+		/* store id for connection */
+		json_array_append_new(targetIds, json_string(zuuid_str_canonical(uuid))); // ID of node that we just have created before
+
+
+		if(i==0) {
+			firstNode = strdup(zuuid_str_canonical(uuid));
+		}
+
+		free(poseId);
+	}
+
+	/*
+	 * Finally we explicitly reference the above created nodes by a Connection.
+	 */
+//	{
+//	  "@worldmodeltype": "RSGUpdate",
+//	  "operation": "CREATE",
+//	  "node": {
+//
+//	    "@graphtype": "Connection",
+//	    "id": "8ce59f8e-6072-49c0-a0fc-481ee288e24b",
+//	    "attributes": [
+//	      {"key": "geo:area", "value": "polygon"},
+//	    ],
+//	    "sourceIds": [
+//	    ],
+//	    "targetIds": [
+//	      "7a47e674-f3c3-47d9-aae3-fd558603076b",
+//	      "2743bbaa-a590-42b7-aa38-d573c18fe6f6",
+//	      "e2bb6580-a15f-4f90-84cc-a0696b031294",
+//	      "bb54d653-4e8f-47a7-af9b-b0f935a181e2",
+//	      "7a47e674-f3c3-47d9-aae3-fd558603076b",
+//	    ],
+//	    "start": { "@stamptype": "TimeStampUTCms" , "stamp": 0.0 },
+//	    "end": { "@stamptype": "TimeStampDate" , "stamp": "2020-00-00T00:00:00Z" }
+//
+//	  },
+//	  "parentId": "e379121f-06c6-4e21-ae9d-ae78ec1986a1",
+//	}
+	json_t *newAreaConnectionMsg = json_object();
+	json_object_set_new(newAreaConnectionMsg, "@worldmodeltype", json_string("RSGUpdate"));
+	json_object_set_new(newAreaConnectionMsg, "operation", json_string("CREATE"));
+	json_object_set_new(newAreaConnectionMsg, "parentId", json_string(environment_id));
+
+	json_t *newAreaConnection = json_object();
+	json_object_set_new(newAreaConnection, "@graphtype", json_string("Connection"));
+	zuuid_t *areaUuid = zuuid_new();
+	json_object_set_new(newAreaConnection, "id", json_string(areaUuid));
+
+	// Attributes
+	json_t *attribute1 = json_object();
+	json_object_set_new(attribute1, "key", json_string("geo:area"));
+	json_object_set_new(attribute1, "value", json_string("polygon"));
+	json_t *poseAttributes = json_array();
+	json_array_append_new(poseAttributes, attribute1);
+	json_t *attribute2 = json_object();
+	json_object_set_new(attribute2, "key", json_string("name"));
+	json_object_set_new(attribute2, "value", json_string(area_name));
+	json_array_append_new(poseAttributes, attribute2);
+	json_object_set_new(newAreaConnection, "attributes", poseAttributes);
+
+	// sourceIds
+	json_t *sourceIds = json_array();
+	json_object_set_new(newAreaConnection, "sourceIds", sourceIds);
+
+	// sourceIds
+	json_object_set_new(newAreaConnection, "targetIds", targetIds); // add  above collected ids here
+
+	json_object_set_new(newAreaConnectionMsg, "node", newAreaConnection);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, newAreaConnectionMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/* Parse reply */
+	json_t* replyAsJSON = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+
+	json_t* querySuccessMsg = json_object_get(replyAsJSON, "updateSuccess");
+	bool querySuccess = false;
+	if (querySuccessMsg) {
+		querySuccess = json_is_true(querySuccessMsg);
+	}
+
+	json_decref(newAreaConnectionMsg);
+	json_decref(replyAsJSON);
+	json_decref(querySuccessMsg);
+	free(areaUuid);
+
+
+	return querySuccess;
+}
+
+
 bool load_dem(component_t *self, char* map_file_name) {
 	char* msg;
 	char* reply;
