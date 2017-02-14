@@ -3276,7 +3276,7 @@ bool add_area(component_t *self, double *polygon_coordinates, int num_coordinate
 	/* check if it exits already?!? */
 	char* existing_area_id;
 	if(get_node_by_attribute(self, &existing_area_id, "name", area_name)) {
-		printf("[%s] [ERROR] An area with name %s exists already.\n", area_name, self->name);
+		printf("[%s] [ERROR] An area with name %s exists already.\n", self->name, area_name);
 		return false;
 	}
 
@@ -3656,3 +3656,85 @@ bool get_elevataion_at(component_t *self, double* elevation, double latitude, do
 	return true;
 }
 
+bool get_min_max_elevation_in_area(component_t *self, double* min_elevation, double* max_elevation, char* area_name) {
+	char* msg;
+	char* reply;
+	json_error_t error;
+
+	if (self == NULL) {
+		return false;
+		printf("[ERROR] Communication component is not yet initialized.\n");
+	}
+
+	*min_elevation = -1.0;
+	*max_elevation = -1.0;
+
+
+	char* area_id;
+	if(!get_node_by_attribute(self, &area_id, "name", area_name)) {
+		printf("[%s] [ERROR] An area with name does not exist.\n", area_name, self->name);
+		return false;
+	}
+
+
+
+	/* Get elevation */
+//	{
+//	  "@worldmodeltype": "RSGFunctionBlock",
+//	  "metamodel":       "rsg-functionBlock-schema.json",
+//	  "name":            "demloader",
+//	  "operation":       "EXECUTE",
+//	  "input": {
+//	    "metamodel": "fbx-demloader-input-schema.json",
+//	    "command":   "GET_MIN_MAX_ELEVATION",
+//	    "areaId":    "8ce59f8e-6072-49c0-a0fc-481ee288e24b"
+//	  }
+//	}
+
+	json_t *getElevationMsg = json_object();
+	json_object_set_new(getElevationMsg, "@worldmodeltype", json_string("RSGFunctionBlock"));
+	json_object_set_new(getElevationMsg, "metamodel", json_string("rsg-functionBlock-schema.json"));
+	json_object_set_new(getElevationMsg, "name", json_string("demloader"));
+	json_object_set_new(getElevationMsg, "operation", json_string("EXECUTE"));
+	json_t *functioBlockInput = json_object();
+	json_object_set_new(functioBlockInput, "metamodel", json_string("fbx-demloader-input-schema.json"));
+	json_object_set_new(functioBlockInput, "command", json_string("GET_MIN_MAX_ELEVATION"));
+	json_object_set_new(functioBlockInput, "areaId", json_string(area_id));
+	json_object_set_new(getElevationMsg, "input", functioBlockInput);
+
+	/* Send message and wait for reply */
+	msg = encode_json_message(self, getElevationMsg);
+	shout_message(self, msg);
+	reply = wait_for_reply(self, msg, self->timeout);
+
+	/* Parse reply */
+	json_t* replyAsJSON = json_loads(reply, 0, &error);
+	free(msg);
+	free(reply);
+
+	json_t* operationSuccessMsg = json_object_get(replyAsJSON, "operationSuccess");
+	bool operationSuccess = false;
+	if (operationSuccessMsg) {
+		operationSuccess = json_is_true(operationSuccessMsg);
+	}
+
+	if(operationSuccess) {
+		json_t* output = json_object_get(replyAsJSON, "output");
+		if(output) {
+			*min_elevation = json_real_value(json_object_get(output, "minElevation"));
+			*max_elevation = json_real_value(json_object_get(output, "maxElevation"));
+		}
+	}
+
+	json_decref(getElevationMsg);
+	json_decref(replyAsJSON);
+	json_decref(operationSuccessMsg);
+
+	if(!operationSuccess) {
+		printf("[%s] [ERROR] Cannot get elevation min/max values. \n", self->name);
+		return false;
+	}
+
+
+	return true;
+}

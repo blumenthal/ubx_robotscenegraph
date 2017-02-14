@@ -294,14 +294,21 @@ int main(int argc, char *argv[]) {
 	assert(get_elevataion_at(self, &elevation, 9.849468, 46.812785)); // this should work for the davos map
 	printf("DEM: elevation = %lf \n", elevation);
 
+	double min_elevation = 0;
+	double max_elevation = 0;
+	assert(!get_min_max_elevation_in_area(self, &min_elevation, &max_elevation, "non-existing-area")); // check that it fails
+
 	/* Add an area */
 	const int num_coordinates = 5;
 	double coordinates[10] = { 9.848141855014655,46.815054428015216,
 								9.849936915109629,46.815034548584826,
 								9.849909338796687,46.81412616861588,
 								9.848140502048613,46.81414549510094,
-								9.848141855014655,46.815054428015216 }; //last coordinate is same s first coordinate
+								9.848141855014655,46.815054428015216 }; //last coordinate is the same as first coordinate
 	add_area(self, coordinates, num_coordinates, "mission_area0"); //NOTE: this will only work once, since this name only creates one area
+
+	assert(get_min_max_elevation_in_area(self, &min_elevation, &max_elevation, "mission_area0"));
+	printf("DEM: MIN/MAX elevation = [%lf,%lf] \n", min_elevation, max_elevation);
 
 	printf("######################  DONE  #########################\n");
     /* Clean up */

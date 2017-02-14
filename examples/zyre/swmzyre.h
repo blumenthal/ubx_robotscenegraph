@@ -241,6 +241,16 @@ bool load_dem(component_t *self, char* map_file_name);
 bool get_elevataion_at(component_t *self, double* elevation, double latitude, double longitude);
 
 /**
+ * Get elevation at a location. load_dem() and add_area() have to be called first!
+ * @param[in] self Communication component
+ * @param min_elevation Min elevation in [m] Will be set -1.0 in case of an error.
+ * @param max_elevation Max elevation in [m] Will be set -1.0 in case of an error.
+ * @param area_name The name of an are. Same as used in add_area.
+ * @return True on success. Will be false for a non existing area.
+ */
+bool get_min_max_elevation_in_area(component_t *self, double* min_elevation, double* max_elevation, char* area_name);
+
+/**
  * Update pose of agent.
  * The agent must exist before hands.
  * Note, this is a more light weight version off add_agent() since it performs less checks.
