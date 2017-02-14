@@ -616,7 +616,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 						*rep = strdup(result->payload);
 //						free(it->msg->payload);
 						query_t *dummy = it;
-
+						it = zlist_next(self->query_list);
 						zlist_remove(self->query_list,dummy);
 						query_destroy(&dummy);
 					    json_decref(payload);
