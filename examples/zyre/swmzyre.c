@@ -389,7 +389,7 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
     	queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"UID"));
     	if(!queryID) {
         	printf("[%s] Message has no queryID to wait for: %s\n", self->name, msg);
-        	return ret;
+        	goto cleanup;
     	}
     }
 
@@ -402,16 +402,16 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 			json_t *pl;
 			pl = json_loads(ret, 0, &error);
 			if(!pl) {
-				printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
-				return NULL;
+				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+				goto cleanup;
 			}
 			//streq cannot take NULL, so check before
-			char *received_queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"queryId"));
+			char *received_queryID = json_string_value(json_object_get(json_object_get(pl,"payload"),"queryId"));
 			if(!received_queryID) {
-				received_queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"UID"));
+				received_queryID = json_string_value(json_object_get(json_object_get(pl,"payload"),"UID"));
 				if(!received_queryID) {
 					printf("[%s] Received message has no queryID: %s\n", self->name, msg);
-					return NULL;
+					goto cleanup;
 				}
 			}
 			if (streq(received_queryID,queryID)){
@@ -436,8 +436,9 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 			printf ("[%s] could not get current time\n", self->name);
 		}
     }
-    json_decref(sent_msg);
 
+cleanup:
+    json_decref(sent_msg);
     return ret;
 }
 
