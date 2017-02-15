@@ -235,6 +235,7 @@ int decode_json(char* message, json_msg_t *result) {
     json_t *root;
     json_error_t error;
     root = json_loads(message, 0, &error);
+    int ret = 0;
 
     if(!root) {
     	printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
@@ -245,28 +246,33 @@ int decode_json(char* message, json_msg_t *result) {
     	result->metamodel = strdup(json_string_value(json_object_get(root, "metamodel")));
     } else {
     	printf("Error parsing JSON string! Does not conform to msg model.\n");
-    	return -1;
+    	ret = -1;
+    	goto cleanup;
     }
     if (json_object_get(root, "model")) {
 		result->model = strdup(json_string_value(json_object_get(root, "model")));
 	} else {
 		printf("Error parsing JSON string! Does not conform to msg model.\n");
-		return -1;
+		ret = -1;
+		goto cleanup;
 	}
     if (json_object_get(root, "type")) {
 		result->type = strdup(json_string_value(json_object_get(root, "type")));
 	} else {
 		printf("Error parsing JSON string! Does not conform to msg model.\n");
-		return -1;
+		ret = -1;
+		goto cleanup;
 	}
     if (json_object_get(root, "payload")) {
     	result->payload = strdup(json_dumps(json_object_get(root, "payload"), JSON_ENCODE_ANY));
 	} else {
 		printf("Error parsing JSON string! Does not conform to msg model.\n");
-		return -1;
+		ret = -1;
+		goto cleanup;
 	}
+cleanup:
     json_decref(root);
-    return 0;
+    return ret;
 }
 
 char* encode_json_message_from_file(component_t* self, char* message_file) {
@@ -2735,7 +2741,7 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
 	/* Send message and wait for reply */
     msg = encode_json_message(self, getOriginMsg);
     shout_message(self, msg);
-    reply = wait_for_reply(self, msg, self->timeout); // TODO free older reply
+    reply = wait_for_reply(self, msg, self->timeout);
     printf("#########################################\n");
     printf("[%s] Got reply: %s \n", self->name, reply);
 
@@ -2784,7 +2790,7 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
 	/* Send message and wait for reply */
     msg = encode_json_message(self, getTransformMsg);
     shout_message(self, msg);
-    reply = wait_for_reply(self, msg, self->timeout); // TODO free older reply
+    reply = wait_for_reply(self, msg, self->timeout);
     printf("#########################################\n");
     printf("[%s] Got reply: %s \n", self->name, reply);
 
