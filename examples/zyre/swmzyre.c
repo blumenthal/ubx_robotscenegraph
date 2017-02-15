@@ -429,7 +429,7 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 			double ts_msec = ts.tv_sec*1.0e3 +ts.tv_nsec*1.0e-6;
 			if (curr_time_msec - ts_msec > timeout) {
 				printf("[%s] Timeout! No query answer received.\n",self->name);
-				destroy_component(&self);
+				//destroy_component(&self);
 				break;
 			}
 		} else {
@@ -1190,7 +1190,7 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 	json_object_set_new(getMediatorIDMsg, "model", json_string("http://kul/query_mediator_uuid.json"));
 	json_object_set_new(getMediatorIDMsg, "type", json_string("query_mediator_uuid"));
 	json_t* pl = json_object();
-	zuuid_t *uuid = zuuid_new ();
+	zuuid_t *uuid = zuuid_new();
 	assert(uuid);
 	json_object_set_new(pl, "UID", json_string(zuuid_str_canonical(uuid)));
 	json_object_set_new(getMediatorIDMsg, "payload", pl);
@@ -1237,6 +1237,70 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 		printf("Reply did not contain mediator ID.\n");
 		return false;
 	}
+
+	return true;
+}
+
+bool get_file_by_uri(component_t *self, char* uri, char* target_file_name) {
+
+	assert(self);
+	char* reply = NULL;
+//    json_t *root;
+//    root = json_object();
+//    json_object_set(root, "metamodel", json_string("sherpa_mgs"));
+//    json_object_set(root, "model", json_string("http://kul/query_remote_file.json"));
+//    json_object_set(root, "type", json_string("query_remote_file"));
+//    json_t *payload;
+//    payload = json_object();
+//    json_object_set(payload, "UID", json_string(uid));
+//    json_object_set(payload, "URI", json_string(uri));
+//    json_object_set(payload, "TARGET", json_string(target));
+//    json_object_set(root, "payload", payload);
+
+	json_t *getfileMsg = json_object();
+	json_object_set_new(getfileMsg, "metamodel", json_string("sherpa_mgs"));
+	json_object_set_new(getfileMsg, "model", json_string("http://kul/query_remote_file.json"));
+	json_object_set_new(getfileMsg, "type", json_string("query_remote_file"));
+
+    json_t *payload = json_object();
+	zuuid_t *uuid = zuuid_new();
+	json_object_set_new(payload, "UID", json_string(zuuid_str_canonical(uuid)));
+    json_object_set_new(payload, "URI", json_string(uri));
+    json_object_set_new(payload, "TARGET", json_string(target_file_name));
+    json_object_set_new(getfileMsg, "payload", payload);
+
+    /* Prepare for a returning message */
+	// add it to the query list
+	json_msg_t *msg = (json_msg_t *) zmalloc (sizeof (json_msg_t));
+	msg->metamodel = strdup("sherpa_mgs");
+	msg->model = strdup("http://kul/query_remote_file.json");
+	msg->type = strdup("query_remote_file");
+	msg->payload = json_dumps(payload, JSON_ENCODE_ANY);
+	query_t * q = query_new(zuuid_str_canonical(uuid), zyre_uuid(self->local), msg, NULL);
+	zlist_append(self->query_list, q);
+	free(uuid);
+
+	/* Encode message */
+	char* ret = json_dumps(getfileMsg, JSON_ENCODE_ANY);
+	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
+
+	/* Send message and wait for reply */
+	shout_message(self, ret);
+	reply = wait_for_reply(self, ret, self->timeout);
+	if (reply==0) {
+		printf("[%s] Received no reply for mediator_id query.\n", self->name);
+		free(msg);
+		free(ret);
+		free(reply);
+		return false;
+	}
+	printf("[%s] Got reply for query_mediator_uuid: %s \n", self->name, reply);
+
+
+	free(msg);
+	free(ret);
+	free(reply);
+	json_decref(getfileMsg);
 
 	return true;
 }

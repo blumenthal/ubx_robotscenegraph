@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
 	 * This can be used the check connectivity to the SMW.
 	 * Typically false means the local SWM cannot be reached. Is it actually started?
 	 */
-	assert(get_root_node_id(self, &root_id));
+	get_root_node_id(self, &root_id);         // First chance
+	assert(get_root_node_id(self, &root_id)); // Second chance
 	free(root_id);
 
 

@@ -374,6 +374,16 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
  */
 bool get_mediator_id(component_t *self, char** mediator_id);
 
+/**
+ * Get a file via the Mediator from a remote Mediator
+ * @param self  Communication component
+ * @param uri URI in form of <Mediator UUID>:<fileName> e.g. 2BC298A07C76C6D6A46337516BEEDEBB:/tmp/img045.jpg
+ * @param target_file_name File name on local file sytem e.g /tmp/img045.jpg
+ * @return
+ */
+bool get_file_by_uri(component_t *self, char* uri, char* target_file_name);
+
+
 /* Internal handlers */
 void handle_enter(component_t *self, zmsg_t *msg);
 
