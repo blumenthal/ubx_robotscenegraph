@@ -140,10 +140,12 @@ end
 function start_all()
 --  scene_setup()
 --  load_map()
+  os.execute("sleep 1")
   start_wm()
   fbx_setup()
   sync() -- just to be on the safe side
   start_auto_sync()
+  os.execute("sleep 1")
 end
 
 -- Alias s for start, calls start_all()
