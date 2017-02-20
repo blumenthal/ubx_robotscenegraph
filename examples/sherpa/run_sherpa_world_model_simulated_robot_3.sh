@@ -22,9 +22,10 @@ export SWM_GLOBAL_ID=e379121f-06c6-4e21-ae9d-ae78ec1986a1   # default value =
 #export SWM_BIND_ZYRE=0  # 1 => this SWM "binds". There must be exactly one Zyre nore that binds. In case a Mediator is used, it will bind. Thus 0 is default  
 export SWM_LOCAL_JSON_QUERY_PORT=22424  # default value = 22422
 
-#export SWM_GOSSIP_ENDPOINT=ipc:///tmp/uav2-hub
-#export SWM_USE_GOSSIP=1
-#export SWM_ZYRE_GROUP=uav2-local
+export SWM_GOSSIP_ENDPOINT=ipc:///tmp/operator3-hub
+export SWM_LOCAL_ENDPOINT=ipc:///tmp/operator3-swm
+export SWM_USE_GOSSIP=1
+export SWM_ZYRE_GROUP=local
 
 
 # Filter settings (optional)

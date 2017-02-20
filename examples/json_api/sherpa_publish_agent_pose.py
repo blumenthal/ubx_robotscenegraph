@@ -62,7 +62,7 @@ x=45.8450
 y=7.73180
 z=0
 
-updateFreq = 5 # Hz
+updateFreq = 10 # Hz
 
 # Types to be used with wrapper
 DOUBLE = ctypes.c_double
@@ -92,8 +92,12 @@ if result == 1:
 			               0, 0, 1, 0,
 			               x, y, z, 1)
 
-    stamp = DOUBLE(time.time()*1000.0)
-    result = swmzyrelib.update_pose(component, matrix, stamp, agentName)
+    stamp1 = time.time()*1000.0
+    #stamp = DOUBLE(stamp1)
+    result = swmzyrelib.update_pose(component, matrix, DOUBLE(stamp1), agentName)
+    stamp2 = time.time()*1000.0 
+    stamp3 = (stamp2-stamp1)/1000.0
+    print("UPDATE TOOK %f [s]" % stamp3 )
     time.sleep(1.0/updateFreq)
 
 else:
