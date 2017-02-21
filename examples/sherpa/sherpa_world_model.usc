@@ -408,7 +408,7 @@ return bd.system
       { name="ros_updates_input_buffer", config = { element_num=50 , element_size=20000 } },
       { name="zmq_query_req_buffer", config = { element_num=50 , element_size=90000 } },
       { name="zmq_query_rep_buffer", config = { element_num=50 , element_size=90000 } },
-      { name="zyre_query_req_buffer", config = { element_num=3000 , element_size=90000 } }, -- element_num=5000 for a small city map
+      { name="zyre_query_req_buffer", config = { element_num=2000 , element_size=90000 } }, -- element_num=5000 for a small city map
       { name="zyre_query_rep_buffer", config = { element_num=50 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
