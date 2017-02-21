@@ -111,9 +111,9 @@ while (True):
   stamp1 = time.time()*1000.0
   
   #pose
-  result = swmzyrelib.get_pose(component, matrix, DOUBLE(stamp1), agentName)
-
-  if result == 1:
+  poseresult = swmzyrelib.get_pose(component, matrix, DOUBLE(stamp1), agentName)
+  
+  if poseresult == 1:
     print("STATUS [ " + agentName + " ]: (" + str(matrix[12]) + ", " + str(matrix[13]) + ", " + str(matrix[14]) + ")" )
   else:
     print("STATUS [ " + agentName + " ]: WARNIG: Agent does not exist.")    
