@@ -57,7 +57,7 @@ end
 rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
 wm:addNodeAttribute(rootId, "name", worldModelAgentName .. "_started_" .. os.date("%Y-%m-%d_%H-%M-%S")); -- optional; can cause crashes when modifies for a second time
-wm:setLogLevel(0)
+wm:setLogLevel(1)
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "send no GeometricNodes");
 
 -- optionally load constraints bases on a lua file. Typcally this is:  "examples/sherpa/constraints.lua" use "" to disable this feature

@@ -4,7 +4,17 @@
 #include <string.h>
 #include "swmzyre.h"
 
+#ifdef DEBUG
+# define DBG(fmt, args...) ( fprintf(stderr, "%s: ", __FUNCTION__), \
+			     fprintf(stderr, fmt, ##args),	    \
+			     fprintf(stderr, "\n") )
+#else
+# define DBG(fmt, args...)  do {} while (0)
+#endif
 
+#define ERR(fmt, args...) ( fprintf(stderr, "ERR %s: ", __FUNCTION__),	\
+			    fprintf(stderr, fmt, ##args),		\
+			    fprintf(stderr, "\n") )
 
 void query_destroy (query_t **self_p) {
         assert (self_p);
@@ -88,9 +98,9 @@ static void communication_actor (zsock_t *pipe, void *args)
 				char *rep;
 				handle_shout (self, msg, &rep);
 				if (rep) {
-					printf("communication actor received reply: %s\n",rep);
+					DBG("communication actor received reply: %s\n",rep);
 					zstr_sendf(pipe,"%s",rep);
-					printf("sent");
+					DBG("sent");
 					zstr_free(&rep);
 				}
 			} else if (streq (event, "WHISPER")) {
@@ -247,32 +257,37 @@ int decode_json(char* message, json_msg_t *result) {
     root = json_loads(message, 0, &error);
 
     if(!root) {
-    	printf("Error parsing JSON string! line %d: %s\n", error.line, error.text);
+    	DBG("Error parsing JSON string! line %d: %s\n", error.line, error.text);
+    	printf("*");
     	return -1;
     }
 
     if (json_object_get(root, "metamodel")) {
     	result->metamodel = strdup(json_string_value(json_object_get(root, "metamodel")));
     } else {
-    	printf("Error parsing JSON string! Does not conform to msg model.\n");
+    	DBG("Error parsing JSON string! Does not conform to msg model.\n");
+    	printf("*");
     	return -1;
     }
     if (json_object_get(root, "model")) {
 		result->model = strdup(json_string_value(json_object_get(root, "model")));
 	} else {
-		printf("Error parsing JSON string! Does not conform to msg model.\n");
+		DBG("Error parsing JSON string! Does not conform to msg model.\n");
+    	printf("*");
 		return -1;
 	}
     if (json_object_get(root, "type")) {
 		result->type = strdup(json_string_value(json_object_get(root, "type")));
 	} else {
-		printf("Error parsing JSON string! Does not conform to msg model.\n");
+		DBG("Error parsing JSON string! Does not conform to msg model.\n");
+    	printf("*");
 		return -1;
 	}
     if (json_object_get(root, "payload")) {
     	result->payload = strdup(json_dumps(json_object_get(root, "payload"), JSON_ENCODE_ANY));
 	} else {
-		printf("Error parsing JSON string! Does not conform to msg model.\n");
+		DBG("Error parsing JSON string! Does not conform to msg model.\n");
+    	printf("*");
 		return -1;
 	}
     json_decref(root);
@@ -284,9 +299,9 @@ char* encode_json_message_from_file(component_t* self, char* message_file) {
     json_t * pl;
     // create the payload, i.e., the query
     pl = json_load_file(message_file, JSON_ENSURE_ASCII, &error);
-    printf("[%s] message file: %s\n", message_file, json_dumps(pl, JSON_ENCODE_ANY));
+    DBG("[%s] message file: %s\n", message_file, json_dumps(pl, JSON_ENCODE_ANY));
     if(!pl) {
-   	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+   	ERR("Error parsing JSON file! line %d: %s\n", error.line, error.text);
     	return NULL;
     }
 
@@ -298,9 +313,9 @@ char* encode_json_message_from_string(component_t* self, char* message) {
     json_error_t error;
     pl = json_loads(message, 0, &error);
 
-    printf("[%s] message : %s\n", self->name , json_dumps(pl, JSON_ENCODE_ANY));
+    DBG("[%s] message : %s\n", self->name , json_dumps(pl, JSON_ENCODE_ANY));
 	if(!pl) {
-	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+		ERR("Error parsing JSON file! line %d: %s\n", error.line, error.text);
 		return NULL;
 	}
 
@@ -314,7 +329,7 @@ char* encode_json_message(component_t* self, json_t* message) {
 
 
     if(!pl) {
-   	printf("Error parsing JSON file! line %d: %s\n", error.line, error.text);
+   	ERR("Error parsing JSON file! line %d: %s\n", error.line, error.text);
     	return NULL;
     }
 
@@ -349,7 +364,7 @@ char* encode_json_message(component_t* self, json_t* message) {
 	zlist_append(self->query_list, q);
 
     char* ret = json_dumps(env, JSON_ENCODE_ANY);
-	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
+	DBG("[%s] send_json_message: message = %s:\n", self->name, ret);
 
 	json_decref(env);
 
@@ -388,7 +403,7 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
     if(!queryID) {
     	queryID = json_string_value(json_object_get(json_object_get(sent_msg,"payload"),"UID"));
     	if(!queryID) {
-        	printf("[%s] Message has no queryID to wait for: %s\n", self->name, msg);
+        	DBG("[%s] Message has no queryID to wait for: %s\n", self->name, msg);
         	goto cleanup;
     	}
     }
@@ -402,7 +417,7 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 			json_t *pl;
 			pl = json_loads(ret, 0, &error);
 			if(!pl) {
-				printf("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
+				ERR("Error parsing JSON payload! line %d, column %d: %s\n", error.line, error.column, error.text);
 				goto cleanup;
 			}
 			//streq cannot take NULL, so check before
@@ -410,12 +425,12 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 			if(!received_queryID) {
 				received_queryID = json_string_value(json_object_get(json_object_get(pl,"payload"),"UID"));
 				if(!received_queryID) {
-					printf("[%s] Received message has no queryID: %s\n", self->name, msg);
+					DBG("[%s] Received message has no queryID: %s\n", self->name, msg);
 					goto cleanup;
 				}
 			}
 			if (streq(received_queryID,queryID)){
-				printf("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
+				DBG("[%s] wait_for_reply received answer to query %s:\n", self->name, ret);
 				json_decref(pl);
 				break;
 			}
@@ -433,7 +448,7 @@ char* wait_for_reply(component_t* self, char *msg, int timeout) {
 				break;
 			}
 		} else {
-			printf ("[%s] could not get current time\n", self->name);
+			ERR ("[%s] could not get current time\n", self->name);
 		}
     }
 
@@ -515,7 +530,7 @@ char* send_update(component_t* self, char* operation, json_t* update_params) {
     json_object_set(pl, "queryId", json_string(zuuid_str_canonical(uuid)));
 
     if (!json_object_get(update_params,"node")) {
-    	printf("[%s:send_update] No node object on parameters",self->name);
+    	ERR("[%s:send_update] No node object on parameters",self->name);
     	return NULL;
     }
 	if (json_object_size(update_params)>0) {
@@ -594,7 +609,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 	char *name = zmsg_popstr (msg);
 	char *group = zmsg_popstr (msg);
 	char *message = zmsg_popstr (msg);
-	printf ("[%s] SHOUT %s %s %s %s\n", self->name, peerid, name, group, message);
+	DBG ("[%s] SHOUT %s %s %s %s\n", self->name, peerid, name, group, message);
 	json_msg_t *result = (json_msg_t *) zmalloc (sizeof (json_msg_t));
 	if (decode_json(message, result) == 0) {
 		//printf ("[%s] message type %s\n", self->name, result->type);
@@ -604,16 +619,16 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				ERR("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
-						printf("Skipping RSGUpdateResult message without queryId");
+						ERR("Skipping RSGUpdateResult message without queryId");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
-						printf("[%s] received answer to query %s:\n %s\n ", self->name,it->uid,result->payload);
+						DBG("[%s] received answer to query %s:\n %s\n ", self->name,it->uid,result->payload);
 						*rep = strdup(result->payload);
 //						free(it->msg->payload);
 						query_t *dummy = it;
@@ -633,16 +648,16 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				ERR("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
-						printf("Skipping RSGQueryResult message without queryId\n");
+						ERR("Skipping RSGQueryResult message without queryId\n");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
-						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						DBG("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						*rep = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
@@ -661,16 +676,16 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				ERR("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
-						printf("Skipping RSGFunctionBlockResult message without queryId\n");
+						DBG("Skipping RSGFunctionBlockResult message without queryId\n");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
-						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						DBG("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						*rep = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
@@ -689,10 +704,10 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				ERR("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
 			} else {
 
-				printf("[%s] received a RSGMonitor message: %s \n", self->name, result->payload);
+				DBG("[%s] received a RSGMonitor message: %s \n", self->name, result->payload);
 				char*monitor_msg = strdup(result->payload);
 
 				/* In form potential listener, if it exists */
@@ -709,16 +724,16 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 			json_error_t error;
 			payload= json_loads(result->payload,0,&error);
 			if(!payload) {
-				printf("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
+				ERR("Error parsing JSON send_remote! line %d: %s\n", error.line, error.text);
 			} else {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"UID") == 0) { // no queryIt in message, so we skip it here
-						printf("Skipping mediator_uuid message without queryId\n");
+						ERR("Skipping mediator_uuid message without queryId\n");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"UID")))) {
-						printf("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
+						DBG("[%s] received answer to query %s of type %s:\n Query:\n %s\n Result:\n %s \n", self->name,it->uid,result->type,it->msg->payload, result->payload);
 						*rep = strdup(result->payload);
 						query_t *dummy = it;
 						it = zlist_next(self->query_list);
@@ -732,10 +747,10 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 				}
 			}
 		} else {
-			printf("[%s] Unknown msg type!\n",self->name);
+			DBG("[%s] Unknown msg type!\n",self->name);
 		}
 	} else {
-		printf ("[%s] message could not be decoded\n", self->name);
+		DBG ("[%s] message could not be decoded\n", self->name);
 	}
 	destroy_message(result);
 	zstr_free(&peerid);
@@ -785,8 +800,8 @@ bool get_root_node_id(component_t *self, char** root_id) {
 	msg = encode_json_message(self, getRootNodeMsg);
 	shout_message(self, msg);
 	reply = wait_for_reply(self, msg, self->timeout);
-	printf("#########################################\n");
-	printf("[%s] Got reply for get_root_node_id: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply for get_root_node_id: %s \n", self->name, reply);
 
 	/* Parse reply */
     json_error_t error;
@@ -798,7 +813,7 @@ bool get_root_node_id(component_t *self, char** root_id) {
 	json_t* querySuccessMsg = json_object_get(rootNodeIdReply, "querySuccess");
 	bool querySuccess = false;
 	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 	free(dump);
 	if (querySuccessMsg) {
 		querySuccess = json_is_true(querySuccessMsg);
@@ -807,7 +822,7 @@ bool get_root_node_id(component_t *self, char** root_id) {
 	json_t* rootIdMsg = json_object_get(rootNodeIdReply, "rootId");
 	if (rootIdMsg) {
 		*root_id = strdup(json_string_value(rootIdMsg));
-		printf("[%s] get_root_node_id ID is: %s \n", self->name, *root_id);
+		DBG("[%s] get_root_node_id ID is: %s \n", self->name, *root_id);
 	} else {
 		querySuccess = false;
 	}
@@ -880,8 +895,8 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 	msg = encode_json_message(self, getNodeMsg);
 	shout_message(self, msg);
 	reply = wait_for_reply(self, msg, self->timeout);
-	printf("#########################################\n");
-	printf("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
 
 	/* Parse reply */
     json_error_t error;
@@ -891,11 +906,11 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 	json_t* nodeIdAsJSON = 0;
 	json_t* array = json_object_get(nodeIdReply, "ids");
 	if (array) {
-		printf("[%s] result array found: \n", self->name);
+		DBG("[%s] result array found: \n", self->name);
 		if( json_array_size(array) > 0 ) {
 			nodeIdAsJSON = json_array_get(array, 0);
 			*node_id = strdup(json_string_value(nodeIdAsJSON));
-			printf("[%s] get_node_by_attribute ID is: %s \n", self->name, *node_id);
+			DBG("[%s] get_node_by_attribute ID is: %s \n", self->name, *node_id);
 		} else {
 			json_decref(nodeIdReply);
 			json_decref(getNodeMsg);
@@ -945,8 +960,8 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
 	msg = encode_json_message(self, getNodeMsg);
 	shout_message(self, msg);
 	reply = wait_for_reply(self, msg, self->timeout);
-	printf("#########################################\n");
-	printf("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
 
 	/* Parse reply */
     json_error_t error;
@@ -956,7 +971,7 @@ bool get_node_by_attribute_in_subgrapgh(component_t *self, char** node_id, const
 	json_t* nodeIdAsJSON = 0;
 	json_t* array = json_object_get(nodeIdReply, "ids");
 	if (array) {
-		printf("[%s] result array found: \n", self->name);
+		DBG("[%s] result array found: \n", self->name);
 		if( json_array_size(array) > 0 ) {
 			nodeIdAsJSON = json_array_get(array, 0);
 			*node_id = strdup(json_string_value(nodeIdAsJSON));
@@ -987,10 +1002,10 @@ bool add_geopose_to_node(component_t *self, char* node_id, char** new_geopose_id
 
 	char* originId = 0;
     if(!get_gis_origin_id(self, &originId)) {
-    	printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
+    	ERR("[%s] [ERROR] Cannot get origin Id \n", self->name);
     	return false;
     }
-	printf("[%s] add_geopose_to_node origin Id = %s \n", self->name, originId);
+    DBG("[%s] add_geopose_to_node origin Id = %s \n", self->name, originId);
 
 	zuuid_t *uuid = zuuid_new ();
 	assert(uuid);
@@ -1207,14 +1222,14 @@ bool get_mediator_id(component_t *self, char** mediator_id) {
 	free(uuid);
 
 	char* ret = json_dumps(getMediatorIDMsg, JSON_ENCODE_ANY);
-	printf("[%s] send_json_message: message = %s:\n", self->name, ret);
+	DBG("[%s] send_json_message: message = %s:\n", self->name, ret);
 	json_decref(getMediatorIDMsg);
 
 	/* Send message and wait for reply */
 	shout_message(self, ret);
 	reply = wait_for_reply(self, ret, self->timeout);
 	if (reply==0) {
-		printf("[%s] Received no reply for mediator_id query.\n", self->name);
+		ERR("[%s] Received no reply for mediator_id query.\n", self->name);
 		free(msg);
 		free(ret);
 		free(reply);
@@ -1323,7 +1338,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
     	printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
     	return false;
     }
-	printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+    DBG("[%s] observation Id = %s \n", self->name, observationGroupId);
 
     /*
      * Get the "origin" node. It is relevant to specify a new pose.
@@ -1333,7 +1348,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
     	printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
     	return false;
     }
-	printf("[%s] origin Id = %s \n", self->name, originId);
+    DBG("[%s] origin Id = %s \n", self->name, originId);
 
 
 	/*
@@ -1398,8 +1413,8 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
 	/* Wait for a reply */
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
-	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply: %s \n", self->name, reply);
 
 
 	char* poseId;
@@ -1420,7 +1435,7 @@ bool add_victim(component_t *self, double* transform_matrix, double utc_time_sta
 bool add_image(component_t *self, double* transform_matrix, double utc_time_stamp_in_mili_sec, char* author, char* file_name) {
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	char* msg;
@@ -1430,25 +1445,25 @@ bool add_image(component_t *self, double* transform_matrix, double utc_time_stam
 	/* Get observationGroupId */
 	char* observationGroupId = 0;
     if(!get_observations_group_id(self, &observationGroupId)) {
-    	printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+    	ERR("[%s] [ERROR] Cannot get observation group Id \n", self->name);
     	return false;
     }
-	printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+    DBG("[%s] observation Id = %s \n", self->name, observationGroupId);
 
     /*
      * Get the "origin" node. It is relevant to specify a new pose.
      */
 	char* originId = 0;
     if(!get_gis_origin_id(self, &originId)) {
-    	printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
+    	ERR("[%s] [ERROR] Cannot get origin Id \n", self->name);
     	return false;
     }
-	printf("[%s] origin Id = %s \n", self->name, originId);
+    DBG("[%s] origin Id = %s \n", self->name, originId);
 
 	/* get Mediator ID */
 	char* mediator_uuid; //= "79346b2b-e0a1-4e04-a7c8-981828436357";
 	if(!get_mediator_id(self, &mediator_uuid)) {
-		printf("[%s] [ERROR] Cannot get Mediator ID. Is the Mediator started? \n", self->name);
+		ERR("[%s] [ERROR] Cannot get Mediator ID. Is the Mediator started? \n", self->name);
 		return false;
 	}
 
@@ -1669,7 +1684,7 @@ bool add_artva(component_t *self, double* transform_matrix, double artva0, doubl
 bool add_artva_measurement(component_t *self, artva_measurement measurement, char* author) {
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	char* msg;
@@ -1680,7 +1695,7 @@ bool add_artva_measurement(component_t *self, artva_measurement measurement, cha
 	/* Get root ID to restrict search to subgraph of local SWM */
 	char* scope_id = 0;
 	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
-		printf("[%s] [ERROR] Cannot get cope Id \n", self->name);
+		ERR("[%s] [ERROR] Cannot get cope Id \n", self->name);
 		return false;
 	}
 
@@ -1741,7 +1756,7 @@ bool add_artva_measurement(component_t *self, artva_measurement measurement, cha
 			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+		DBG("[%s] observation Id = %s \n", self->name, observationGroupId);
 
 
 		json_t *newArtvaMeasurementMsg = json_object();
@@ -1766,8 +1781,8 @@ bool add_artva_measurement(component_t *self, artva_measurement measurement, cha
 		/* Wait for a reply */
 		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
-		printf("#########################################\n");
-		printf("[%s] Got reply: %s \n", self->name, reply);
+		DBG("#########################################\n");
+		DBG("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
 		json_t* newArtvaNodeReply = json_loads(reply, 0, &error);
@@ -1829,15 +1844,15 @@ bool add_artva_measurement(component_t *self, artva_measurement measurement, cha
 	/* Wait for a reply */
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
-	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
 	json_t* updateArtvaReply = json_loads(reply, 0, &error);
 	json_t* querySuccessMsg = json_object_get(updateArtvaReply, "updateSuccess");
 	bool updateSuccess = false;
 	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 	free(dump);
 
 	if (querySuccessMsg) {
@@ -1868,7 +1883,7 @@ bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* 
 	/* Get root ID to restrict search to subgraph of local SWM */
 	char* scope_id = 0;
 	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
-		printf("[%s] [ERROR] Cannot get cope Id \n", self->name);
+		ERR("[%s] [ERROR] Cannot get cope Id \n", self->name);
 		return false;
 	}
 
@@ -1894,7 +1909,7 @@ bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* 
 			printf("[%s] [ERROR] Cannot get status group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] status Id = %s \n", self->name, statusGroupId);
+		DBG("[%s] status Id = %s \n", self->name, statusGroupId);
 
 
 		json_t *newWaspStatusMsg = json_object();
@@ -1919,8 +1934,8 @@ bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* 
 		/* Wait for a reply */
 		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
-		printf("#########################################\n");
-		printf("[%s] Got reply: %s \n", self->name, reply);
+		DBG("#########################################\n");
+		DBG("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
 		json_t* newWaspStatusNodeReply = json_loads(reply, 0, &error);
@@ -1982,8 +1997,8 @@ bool add_wasp_flight_status(component_t *self, wasp_flight_status status, char* 
 	/* Wait for a reply */
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
-	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
 	json_t* updateWaspStatusReply = json_loads(reply, 0, &error);
@@ -2043,10 +2058,10 @@ bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* auth
 		/* Get observationGroupId */
 		char* statusGroupId = 0;
 		if(!get_status_group_id(self, &statusGroupId)) {
-			printf("[%s] [ERROR] Cannot get status group Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get status group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] status Id = %s \n", self->name, statusGroupId);
+		DBG("[%s] status Id = %s \n", self->name, statusGroupId);
 
 
 		json_t *newWaspStatusMsg = json_object();
@@ -2071,15 +2086,15 @@ bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* auth
 		/* Wait for a reply */
 		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
-		printf("#########################################\n");
-		printf("[%s] Got reply: %s \n", self->name, reply);
+		DBG("#########################################\n");
+		DBG("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
 		json_t* newWaspStatusNodeReply = json_loads(reply, 0, &error);
 		json_t* querySuccessMsg = json_object_get(newWaspStatusNodeReply, "updateSuccess");
 		bool querySuccess = false;
 		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 		free(dump);
 
 		if (querySuccessMsg) {
@@ -2134,15 +2149,15 @@ bool add_wasp_dock_status(component_t *self, wasp_dock_status status, char* auth
 	/* Wait for a reply */
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
-	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
 	json_t* updateWaspStatusReply = json_loads(reply, 0, &error);
 	json_t* querySuccessMsg = json_object_get(updateWaspStatusReply, "updateSuccess");
 	bool updateSuccess = false;
 	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 	free(dump);
 
 	if (querySuccessMsg) {
@@ -2162,7 +2177,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	char* msg;
@@ -2173,7 +2188,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	/* Get root ID to restrict search to subgraph of local SWM */
 	char* root_id = 0;
 	if (!get_root_node_id(self, &root_id)) {
-		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		ERR("[%s] [ERROR] Cannot get root  Id \n", self->name);
 		return false;
 	}
 
@@ -2183,10 +2198,10 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		/* Get observationGroupId */
 		char* observationGroupId = 0;
 		if(!get_observations_group_id(self, &observationGroupId)) {
-			printf("[%s] [ERROR] Cannot get observation group Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get observation group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] observation Id = %s \n", self->name, observationGroupId);
+		DBG("[%s] observation Id = %s \n", self->name, observationGroupId);
 
 
 		json_t *newBatteryNodeMsg = json_object();
@@ -2226,8 +2241,8 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		/* Wait for a reply */
 		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
-		printf("#########################################\n");
-		printf("[%s] Got reply: %s \n", self->name, reply);
+		DBG("#########################################\n");
+		DBG("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
 		json_t* newBatteryReply = json_loads(reply, 0, &error);
@@ -2304,15 +2319,15 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	/* Wait for a reply */
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
-	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
 	json_t* updateBatteryReply = json_loads(reply, 0, &error);
 	json_t* querySuccessMsg = json_object_get(updateBatteryReply, "updateSuccess");
 	bool updateSuccess = false;
 	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 	free(dump);
 
 	if (querySuccessMsg) {
@@ -2343,7 +2358,7 @@ bool add_sherpa_box_status(component_t *self, sbox_status status, char* author) 
 	/* Get root ID to restrict search to subgraph of local SWM */
 	char* root_id = 0;
 	if (!get_root_node_id(self, &root_id)) {
-		printf("[%s] [ERROR] Cannot get root  Id \n", self->name);
+		ERR("[%s] [ERROR] Cannot get root  Id \n", self->name);
 		return false;
 	}
 
@@ -2353,10 +2368,10 @@ bool add_sherpa_box_status(component_t *self, sbox_status status, char* author) 
 		/* Get statusGroupId */
 		char* statusGroupId = 0;
 		if(!get_status_group_id(self, &statusGroupId)) {
-			printf("[%s] [ERROR] Cannot get status group Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get status group Id \n", self->name);
 			return false;
 		}
-		printf("[%s] observation Id = %s \n", self->name, statusGroupId);
+		DBG("[%s] observation Id = %s \n", self->name, statusGroupId);
 
 
 		json_t *newSherpaBoxStatusNodeMsg = json_object();
@@ -2431,15 +2446,15 @@ bool add_sherpa_box_status(component_t *self, sbox_status status, char* author) 
 		/* Wait for a reply */
 		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
-		printf("#########################################\n");
-		printf("[%s] Got reply: %s \n", self->name, reply);
+		DBG("#########################################\n");
+		DBG("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
 		json_t* newSherpaBoxStatusReply = json_loads(reply, 0, &error);
 		json_t* querySuccessMsg = json_object_get(newSherpaBoxStatusReply, "updateSuccess");
 		bool querySuccess = false;
 		char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-		printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+		DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 		free(dump);
 
 		if (querySuccessMsg) {
@@ -2544,15 +2559,15 @@ bool add_sherpa_box_status(component_t *self, sbox_status status, char* author) 
 	/* Wait for a reply */
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
-	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply: %s \n", self->name, reply);
 
 	/* Parse reply */
 	json_t* updateSherpaBoxStatusReply = json_loads(reply, 0, &error);
 	json_t* querySuccessMsg = json_object_get(updateSherpaBoxStatusReply, "updateSuccess");
 	bool updateSuccess = false;
 	char* dump = json_dumps(querySuccessMsg, JSON_ENCODE_ANY);
-	printf("[%s] querySuccessMsg is: %s \n", self->name, dump);
+	DBG("[%s] querySuccessMsg is: %s \n", self->name, dump);
 	free(dump);
 
 	if (querySuccessMsg) {
@@ -2584,7 +2599,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	 */
 	char* rootId = 0;
 	if(!get_root_node_id(self, &rootId)) {
-		printf("[%s] [ERROR] Cannot get root Id \n", self->name);
+		ERR("[%s] [ERROR] Cannot get root Id \n", self->name);
 		return false;
 	}
 	printf("[%s] root Id = %s \n", self->name, rootId);
@@ -2594,7 +2609,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	 */
 	char* originId = 0;
 	if(!get_gis_origin_id(self, &originId)) {
-		printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
+		ERR("[%s] [ERROR] Cannot get origin Id \n", self->name);
 		return false;
 	}
 	printf("[%s] origin Id = %s \n", self->name, originId);
@@ -2606,7 +2621,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/* Get observationGroupId */
 		char* agentsGroupId = 0;
 		if(!get_node_by_attribute(self, &agentsGroupId, "name", "animals")) {
-			printf("[%s] [ERROR] Cannot get agents  group Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get agents  group Id \n", self->name);
 			return false;
 		}
 		printf("[%s] observation Id = %s \n", self->name, agentsGroupId);
@@ -2646,8 +2661,8 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/* Wait for a reply */
 		reply = wait_for_reply(self, msg, self->timeout);
 		/* Print reply */
-		printf("#########################################\n");
-		printf("[%s] Got reply: %s \n", self->name, reply);
+		DBG("#########################################\n");
+		DBG("[%s] Got reply: %s \n", self->name, reply);
 
 		/* Parse reply */
 		json_t* newAgentReply = json_loads(reply, 0, &error);
@@ -2667,7 +2682,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		free(reply);
 
 		if(!querySuccess) {
-			printf("[%s] [ERROR] CAn nor add agent.\n", self->name);
+			ERR("[%s] [ERROR] Can nor add agent.\n", self->name);
 			return false;
 		}
 
@@ -2703,7 +2718,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	reply = wait_for_reply(self, msg, self->timeout);
 	/* Print reply */
 	printf("#########################################\n");
-	printf("[%s] Got reply: %s \n", self->name, reply);
+	printf("[%s] Got reply for agent child creation: %s \n", self->name, reply);
 
 	/* Parse reply */
 	json_t* newParentReply = json_loads(reply, 0, &error);
@@ -2723,7 +2738,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 	free(reply);
 
 	if(!querySuccess) {
-		printf("[%s] [ERROR] Can not add this WMA as part of SHERPA agent. Maybe is existed already?\n", self->name);
+		ERR("[%s] [ERROR] Can not add this WMA as part of SHERPA agent. Maybe is existed already?\n", self->name);
 //		return false;
 	}
 
@@ -2740,7 +2755,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		 */
 		char* originId = 0;
 		if(!get_gis_origin_id(self, &originId)) {
-			printf("[%s] [ERROR] Cannot get origin Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get origin Id \n", self->name);
 			return false;
 		}
 		printf("[%s] origin Id = %s \n", self->name, originId);
@@ -2750,7 +2765,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		 */
 		int mission_history_in_sec = 3600; // Up to one hour of caching.
 		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "tf:name", poseName, mission_history_in_sec)) {
-			printf("[%s] [ERROR] Cannot add agent pose  \n", self->name);
+			ERR("[%s] [ERROR] Cannot add agent pose  \n", self->name);
 			return false;
 		}
 		printf("[%s] agent pose Id = %s \n", self->name, poseId);
@@ -2796,8 +2811,8 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
 	msg = encode_json_message(self, getPoseIdMsg);
 	shout_message(self, msg);
 	char* reply = wait_for_reply(self, msg, self->timeout);
-	printf("#########################################\n");
-	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply for agent group: %s \n", self->name, reply);
 
 	json_decref(getPoseIdMsg);
 
@@ -2809,10 +2824,10 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
 		if( json_array_size(poseIdArray) > 0 ) {
 			poseIdAsJSON = json_array_get(poseIdArray, 0);
 			char* dump = json_dumps(poseIdAsJSON, JSON_ENCODE_ANY);
-			printf("[%s] Pose ID is: %s \n", self->name, dump);
+			DBG("[%s] Pose ID is: %s \n", self->name, dump);
 			free(dump);
 		} else {
-			printf("[%s] [ERROR] Pose does not exist!\n", self->name);
+			ERR("[%s] [ERROR] Pose does not exist!\n", self->name);
 			return false;
 		}
 	}
@@ -2886,8 +2901,8 @@ bool update_pose(component_t *self, double* transform_matrix, double utc_time_st
     msg = encode_json_message(self, newTfNodeMsg);
     shout_message(self, msg);
     reply = wait_for_reply(self, msg, self->timeout);
-    printf("#########################################\n");
-    printf("[%s] Got reply for pose: %s \n", self->name, reply);
+    DBG("#########################################\n");
+    DBG("[%s] Got reply for pose: %s \n", self->name, reply);
 
     /* Clean up */
     json_decref(newTfNodeMsg);
@@ -2934,8 +2949,8 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
 	msg = encode_json_message(self, getAgentMsg);
 	shout_message(self, msg);
 	char* reply = wait_for_reply(self, msg, self->timeout);
-	printf("#########################################\n");
-	printf("[%s] Got reply for agent group: %s \n", self->name, reply);
+	DBG("#########################################\n");
+	DBG("[%s] Got reply for agent group: %s \n", self->name, reply);
 
 	free(msg);//?!?
 	json_decref(getAgentMsg);
@@ -2972,8 +2987,8 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
     msg = encode_json_message(self, getOriginMsg);
     shout_message(self, msg);
     reply = wait_for_reply(self, msg, self->timeout); // TODO free older reply
-    printf("#########################################\n");
-    printf("[%s] Got reply: %s \n", self->name, reply);
+    DBG("#########################################\n");
+    DBG("[%s] Got reply: %s \n", self->name, reply);
 
     json_decref(getOriginMsg);
 
@@ -2984,12 +2999,12 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
     json_t* originIdAsJSON = 0;
     json_t* originArray = json_object_get(originIdReply, "ids");
     if (originArray) {
-    	printf("[%s] result array found. \n", self->name);
+    	DBG("[%s] result array found. \n", self->name);
     	if( json_array_size(originArray) > 0 ) {
     		originIdAsJSON = json_array_get(originArray, 0);
-        	printf("[%s] Origin ID is: %s \n", self->name, json_dumps(originIdAsJSON, JSON_ENCODE_ANY));
+    		DBG("[%s] Origin ID is: %s \n", self->name, json_dumps(originIdAsJSON, JSON_ENCODE_ANY));
     	} else {
-			printf("[%s] [ERROR] Origin does not exist. Pose query skipped.\n", self->name);
+			ERR("[%s] [ERROR] Origin does not exist. Pose query skipped.\n", self->name);
 			return false;
 		}
     }
@@ -3021,8 +3036,8 @@ bool get_pose(component_t *self, double* transform_matrix, double utc_time_stamp
     msg = encode_json_message(self, getTransformMsg);
     shout_message(self, msg);
     reply = wait_for_reply(self, msg, self->timeout); // TODO free older reply
-    printf("#########################################\n");
-    printf("[%s] Got reply: %s \n", self->name, reply);
+    DBG("#########################################\n");
+    DBG("[%s] Got reply: %s \n", self->name, reply);
 
 	/*
 	 * Parse result
@@ -3071,7 +3086,7 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* agent_n
 
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	char* msg;
@@ -3084,7 +3099,7 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* agent_n
 		/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
 		char* scope_id = 0;
 		if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", agent_name)) { // only search within the scope of this agent
-			printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get scope Id \n", self->name);
 			return false;
 		}
 
@@ -3095,7 +3110,7 @@ bool get_sherpa_box_status(component_t *self, sbox_status* status, char* agent_n
 		}
     } else { // search globally. usually the cases for a SHARPA mission
 		if (!get_node_by_attribute(self, &sherpa_box_status_id, "sherpa:status_type", "sherpa_box")) {
-			printf("[%s] [ERROR] Cannot get sherpa_box_status_id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get sherpa_box_status_id \n", self->name);
 			return false;
 		}
     }
@@ -3181,7 +3196,7 @@ bool get_wasp_flight_status(component_t *self, wasp_flight_status *status, char*
 	char* waspStatusId = 0;
 	if(agent_name == 0)
 	{
-		printf("[ERROR] agent_name is empty, return zero \n");
+		ERR("[ERROR] agent_name is empty, return zero \n");
 		return false;
 	}
 	if(agent_name != 0) { // make the agent name optional, since in a mission the is typically only one SHERPA box.
@@ -3189,18 +3204,18 @@ bool get_wasp_flight_status(component_t *self, wasp_flight_status *status, char*
 		/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
 		char* scope_id = 0;
 		if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", agent_name)) { // only search within the scope of this agent
-			printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get scope Id \n", self->name);
 			return false;
 		}
 
 		/* Find the node based on the above scope id */
 		if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp", scope_id)) {
-			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
 			return false;
 		}
 	} else { // search globally. usually the cases for a SHARPA mission
 		if (!get_node_by_attribute(self, &waspStatusId, "sherpa:status_type", "wasp")) {
-			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
 			return false;
 		}
 	}
@@ -3255,7 +3270,7 @@ bool get_wasp_dock_status(component_t *self, wasp_dock_status *status, char* age
 
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	char* msg;
@@ -3265,7 +3280,7 @@ bool get_wasp_dock_status(component_t *self, wasp_dock_status *status, char* age
 
 	if(agent_name == 0)
 	{
-		printf("[ERROR] agent_name is empty, return zero \n");
+		ERR("[ERROR] agent_name is empty, return zero \n");
 		return false;
 	}
 	if(agent_name != 0) {
@@ -3273,18 +3288,18 @@ bool get_wasp_dock_status(component_t *self, wasp_dock_status *status, char* age
 		/* Get ID to restrict search to subgraph of local SWM (might be skipped for sbox, since there is only one) */
 		char* scope_id = 0;
 		if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", agent_name)) { // only search within the scope of this agent
-			printf("[%s] [ERROR] Cannot get scope Id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get scope Id \n", self->name);
 			return false;
 		}
 
 		/* Find the node based on the above scope id */
 		if (!get_node_by_attribute_in_subgrapgh(self, &waspStatusId, "sherpa:status_type", "wasp_docking", scope_id)) {
-			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
 			return false;
 		}
 	} else { // search globally. usually the cases for a SHARPA mission
 		if (!get_node_by_attribute(self, &waspStatusId, "sherpa:status_type", "wasp_docking")) {
-			printf("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
+			ERR("[%s] [ERROR] Cannot get wasp_status_id \n", self->name);
 			return false;
 		}
 	}
@@ -3335,20 +3350,20 @@ bool add_area(component_t *self, double *polygon_coordinates, int num_coordinate
 
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	/* check if it exits already?!? */
 	char* existing_area_id;
 	if(get_node_by_attribute(self, &existing_area_id, "name", area_name)) {
-		printf("[%s] [ERROR] An area with name %s exists already.\n", self->name, area_name);
+		ERR("[%s] [ERROR] An area with name %s exists already.\n", self->name, area_name);
 		return false;
 	}
 
 	/* Get group to store polygons */
 	char* environment_id;
 	if(!get_node_by_attribute(self, &environment_id, "name", "enviroment")) {
-		printf("[%s] [ERROR] Cannot get id for environment Group. \n", self->name);
+		ERR("[%s] [ERROR] Cannot get id for environment Group. \n", self->name);
 		return false;
 	}
 
@@ -3429,7 +3444,7 @@ bool add_area(component_t *self, double *polygon_coordinates, int num_coordinate
 		matrix[12] = polygon_coordinates[2*i];
 		matrix[13] = polygon_coordinates[(2*i)+1];
 		if(!add_geopose_to_node(self, zuuid_str_canonical(uuid), &poseId, matrix, utcTimeInMiliSec, 0, 0, 10)) {
-			printf("[%s] [ERROR] Cannot add polygon coordinates. \n", self->name);
+			ERR("[%s] [ERROR] Cannot add polygon coordinates. \n", self->name);
 			return false;
 		}
 
@@ -3536,7 +3551,7 @@ bool load_dem(component_t *self, char* map_file_name) {
 
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	// derive path to FBX (function blocks) modules
@@ -3589,7 +3604,7 @@ bool load_dem(component_t *self, char* map_file_name) {
 	json_decref(operationSuccessMsg);
 
 	if(!operationSuccess) {
-		printf("[%s] [ERROR] Cannot load dem block \n", self->name);
+		ERR("[%s] [ERROR] Cannot load dem block \n", self->name);
 		return false;
 	}
 
@@ -3641,7 +3656,7 @@ bool load_dem(component_t *self, char* map_file_name) {
 	json_decref(operationSuccessMsg);
 
 	if(!operationSuccess) {
-		printf("[%s] [ERROR] Cannot load dem map \n", self->name);
+		ERR("[%s] [ERROR] Cannot load dem map \n", self->name);
 		return false;
 	}
 
@@ -3655,7 +3670,7 @@ bool get_elevataion_at(component_t *self, double* elevation, double latitude, do
 
 	if (self == NULL) {
 		return false;
-		printf("[ERROR] Communication component is not yet initialized.\n");
+		ERR("[ERROR] Communication component is not yet initialized.\n");
 	}
 
 	*elevation = -1.0;
@@ -3714,7 +3729,7 @@ bool get_elevataion_at(component_t *self, double* elevation, double latitude, do
 	json_decref(operationSuccessMsg);
 
 	if(!operationSuccess) {
-		printf("[%s] [ERROR] Cannot get elevation value. \n", self->name);
+		ERR("[%s] [ERROR] Cannot get elevation value. \n", self->name);
 		return false;
 	}
 
@@ -3737,7 +3752,7 @@ bool get_min_max_elevation_in_area(component_t *self, double* min_elevation, dou
 
 	char* area_id;
 	if(!get_node_by_attribute(self, &area_id, "name", area_name)) {
-		printf("[%s] [ERROR] An area with name does not exist.\n", area_name, self->name);
+		ERR("[%s] [ERROR] An area with name does not exist.\n", area_name, self->name);
 		return false;
 	}
 
@@ -3796,7 +3811,7 @@ bool get_min_max_elevation_in_area(component_t *self, double* min_elevation, dou
 	json_decref(operationSuccessMsg);
 
 	if(!operationSuccess) {
-		printf("[%s] [ERROR] Cannot get elevation min/max values. \n", self->name);
+		ERR("[%s] [ERROR] Cannot get elevation min/max values. \n", self->name);
 		return false;
 	}
 
