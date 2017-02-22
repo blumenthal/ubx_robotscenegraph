@@ -4,4 +4,5 @@
 
 rm *.gv*
 rm *.h5
-rm fmpc_world_model.log
+rm *.log
+#rm fmpc_world_model.log
