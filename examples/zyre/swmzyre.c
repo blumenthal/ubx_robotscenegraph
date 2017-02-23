@@ -2184,16 +2184,14 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 	char* reply;
     json_error_t error;
 
-
-	/* Get root ID to restrict search to subgraph of local SWM */
-	char* root_id = 0;
-	if (!get_root_node_id(self, &root_id)) {
-		ERR("[%s] [ERROR] Cannot get root  Id \n", self->name);
+	char* scope_id = 0;
+	if (!get_node_by_attribute(self, &scope_id, "sherpa:agent_name", author)) { // only search within the scope of this agent
+		ERR("[%s] [ERROR] Cannot get scope Id \n", self->name);
 		return false;
 	}
 
 	char* batteryId = 0;
-	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:observation_type", "battery", root_id)) { // battery does not exist yet, so we will add it here
+	if (!get_node_by_attribute_in_subgrapgh(self, &batteryId, "sherpa:observation_type", "battery", scope_id)) { // battery does not exist yet, so we will add it here
 
 		/* Get observationGroupId */
 		char* observationGroupId = 0;
@@ -2211,7 +2209,8 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 		json_t *newAgentNode = json_object();
 		json_object_set_new(newAgentNode, "@graphtype", json_string("Node"));
 		zuuid_t *uuid = zuuid_new ();
-		const char* batteryId = zuuid_str_canonical(uuid);
+		batteryId = zuuid_str_canonical(uuid);
+		DBG("[%s] batteryId Id = %s \n", self->name, batteryId);
 		json_object_set_new(newAgentNode, "id", json_string(batteryId));
 
 		// attributes
@@ -2270,6 +2269,7 @@ bool add_battery(component_t *self, double battery_voltage, char* battery_status
 
 		return true;
 	}
+	DBG("[%s] batteryId Id = %s \n", self->name, batteryId);
 
 	// if it exists already, just UPDATE the attributes
 
