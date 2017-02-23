@@ -624,7 +624,7 @@ void handle_shout(component_t *self, zmsg_t *msg, char **rep) {
 				query_t *it = zlist_first(self->query_list);
 				while (it != NULL) {
 					if(json_object_get(payload,"queryId") == 0) { // no queryIt in message, so we skip it here
-						ERR("Skipping RSGUpdateResult message without queryId");
+						DBG("Skipping RSGUpdateResult message without queryId");
 						break;
 					}
 					if (streq(it->uid,json_string_value(json_object_get(payload,"queryId")))) {
@@ -896,7 +896,7 @@ bool get_node_by_attribute(component_t *self, char** node_id, const char* key, c
 	shout_message(self, msg);
 	reply = wait_for_reply(self, msg, self->timeout);
 	DBG("#########################################\n");
-	DBG("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
+	DBG	("[%s] Got reply for get_node_by_attribute: %s \n", self->name, reply);
 
 	/* Parse reply */
     json_error_t error;
