@@ -120,6 +120,6 @@ while (True):
 
   stamp2 = time.time()*1000.0 
   stamp3 = (stamp2-stamp1)/1000.0
-  print("UPDATE TOOK %f [s]" % stamp3 )
+  print("%f UPDATE TOOK %f [s]" % (stamp1, stamp3) )
   time.sleep(1.0/updateFreq)
 

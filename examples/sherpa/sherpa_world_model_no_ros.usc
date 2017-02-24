@@ -58,7 +58,7 @@ rootId = wm:getRootId()
 print("World Model Agent has root Id = " .. rootId)
 wm:addNodeAttribute(rootId, "name", worldModelAgentName .. "_started_" .. os.date("%Y-%m-%d_%H-%M-%S")); -- optional; can cause crashes when modifies for a second time
 --wm:addNodeAttribute(rootId, "rsg:agent_policy", "no GeometricNodes");
-wm:setLogLevel(1)
+wm:setLogLevel(logLevel)
 
 -- optionally load constraints bases on a lua file. Typcally this is:  "examples/sherpa/constraints.lua" use "" to disable this feature
 local constraints_file = getEnvWithDefault("SWM_CONSTRAINTS_FILE", "examples/sherpa/constraints.lua")
@@ -96,7 +96,11 @@ function start_wm() -- no particular order assumed here
   ni:b("zyre_local_bridge"):do_start()
   ni:b("cyclic_io_trigger"):do_start() 
 --  ni:b("dbg_hexdump"):do_init()  
---  ni:b("dbg_hexdump"):do_start()   
+--  ni:b("dbg_hexdump"):do_start()  
+  ni:b("zyre_in_overruns"):do_init()  
+  ni:b("zyre_in_overruns"):do_start()   
+  ni:b("zyre_out_overruns"):do_init()  
+  ni:b("zyre_out_overruns"):do_start()    
 end
 
 -- Created as single dump of the RSG. It is stored on a dot file
@@ -326,7 +330,9 @@ return bd.system
       { name="cyclic_sync_trigger", type="std_triggers/ptrig" },
       
       -- Debug
-      { name = "dbg_hexdump", type="hexdump/hexdump" }
+      { name = "dbg_hexdump", type="hexdump/hexdump" },
+      { name = "zyre_in_overruns", type="hexdump/hexdump" },      
+      { name = "zyre_out_overruns", type="hexdump/hexdump" }
     },
 
     connections = {
@@ -355,6 +361,9 @@ return bd.system
 --      { src="ros_json_subscriber.ros_in", tgt="ros_updates_input_buffer" },
 --      { src="ros_json_subscriber.ros_in", tgt="dbg_hexdump" }, --DBG
 --      { src="ros_updates_input_buffer", tgt="rsgjsonreciever.rsg_in" },
+
+      { src="zyre_query_rep_buffer.overruns", tgt="zyre_in_overruns" },      
+      { src="zyre_query_req_buffer.overruns", tgt="zyre_out_overruns" },
 
     },
 
@@ -410,7 +419,7 @@ return bd.system
       { name="zmq_query_req_buffer", config = { element_num=50 , element_size=90000 } },
       { name="zmq_query_rep_buffer", config = { element_num=50 , element_size=90000 } },
       { name="zyre_query_req_buffer", config = { element_num=2000 , element_size=90000 } }, -- element_num=5000 for a small city map
-      { name="zyre_query_rep_buffer", config = { element_num=50 , element_size=90000 } },
+      { name="zyre_query_rep_buffer", config = { element_num=500 , element_size=90000 } },
       { name="cyclic_io_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
           period = {sec=0, usec=100 }, 

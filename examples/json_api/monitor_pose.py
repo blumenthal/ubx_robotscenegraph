@@ -126,8 +126,12 @@ if (len(ids) > 0):
     socket.connect(server)
     #socket.send_string(json.dumps(getPose))
     #socket.send_string(json.dumps(getPoseTimeStampUTCms))
+    stamp1 = time.time()*1000.0
     socket.send_string(json.dumps(getLatestPose))
     result = socket.recv()
+    stamp2 = time.time()*1000.0 
+    stamp3 = (stamp2-stamp1)/1000.0
+    print("%f UPDATE TOOK %f [s]" % (stamp1, stamp3) )
     socket.close()
     print("Received reply for object pose: %s " % result)
     time.sleep(0.1)
