@@ -69,6 +69,8 @@ else
   dofile(constraints_file)
 end
 
+local enable_update_port = tonumber(getEnvWithDefault("SWM_ENABLE_UPDATE_PORT", 1))
+
 ----------------------------------helper functions-----------------------------
 
 -- Below is a set of functions that can be called at runtime by 
@@ -86,7 +88,9 @@ function start_wm() -- no particular order assumed here
   ni:b("ros_json_publisher"):do_start()
   ni:b("ros_json_subscriber"):do_start()
   ni:b("zyre_updates_output_buffer"):do_start()
---  ni:b("zyre_updates_input_buffer"):do_start() -- superseeded by zyre_rsgjsonqueryrunner
+  if enable_update_port == 1 then
+    ni:b("zyre_updates_input_buffer"):do_start() -- superseeded by zyre_rsgjsonqueryrunner
+  end
   ni:b("ros_updates_output_buffer"):do_start()
   ni:b("ros_updates_input_buffer"):do_start()
   ni:b("zmq_query_req_buffer"):do_start()
@@ -340,7 +344,7 @@ return bd.system
       -- Zyre updates
       { src="rsgjsonsender.rsg_out", tgt="zyre_updates_output_buffer" },
       { src="zyre_updates_output_buffer", tgt="zyre_local_bridge.zyre_out" },       
-      { src="zyre_local_bridge.zyre_in", tgt="zyre_updates_input_buffer" },
+      { src="zyre_local_bridge.zyre_in_global_updates", tgt="zyre_updates_input_buffer" },
       { src="zyre_updates_input_buffer", tgt="rsgjsonreciever.rsg_in" },     
       -- Zyre queries
       { src="zyre_local_bridge.zyre_in", tgt="zyre_query_req_buffer" },
@@ -401,8 +405,8 @@ return bd.system
           gossip_endpoint = gossip_endpoint  , -- Endpoint for zyre gossip discovery. Default is "ipc:///tmp/local-hub"
           bind = bind_zyre, -- 0,         -- Decides whether this node binds or connects to gossip network; The must be at least on node that binds. 
           local_endpoint = local_endpoint, -- local endpoint for zyre network; MUST differ from gossip_endpoint"
-          mediator=use_gossip -- 1 for unsing mediator, 0 for not using it
-
+          mediator=use_gossip, -- 1 for unsing mediator, 0 for not using it
+          enable_update_port=enable_update_port -- 1 using the update port i.e. global updates will be filtered and written to zyre_in_global_updates port; 0 for using without"
         } 
       },
       { name="zmq_rsgjsonqueryrunner", config =  { buffer_len=90000, wm_handle={wm = wm:getHandle().wm}, log_level = logLevel, store_log_files = store_log_files }},
@@ -413,7 +417,7 @@ return bd.system
       { name="scenesetup", config =  { wm_handle={wm = wm:getHandle().wm}, rsg_file=rsg_map_file } },
       { name="rsgdump", config =  { wm_handle={wm = wm:getHandle().wm}, dot_name_prefix = "rsg_dump_" .. worldModelAgentName } },
       { name="zyre_updates_output_buffer", config = { element_num=5000 , element_size=20000 } },
-      { name="zyre_updates_input_buffer", config = { element_num=50 , element_size=20000 } },
+      { name="zyre_updates_input_buffer", config = { element_num=2000 , element_size=20000 } },
       { name="ros_updates_output_buffer", config = { element_num=50 , element_size=20000 } },
       { name="ros_updates_input_buffer", config = { element_num=50 , element_size=20000 } },
       { name="zmq_query_req_buffer", config = { element_num=50 , element_size=90000 } },
