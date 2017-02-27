@@ -2763,7 +2763,7 @@ bool add_agent(component_t *self, double* transform_matrix, double utc_time_stam
 		/*
 		 * Finally add a pose ;-)
 		 */
-		int mission_history_in_sec = 3600; // Up to one hour of caching.
+		int mission_history_in_sec = 10; // Up to one hour of caching.
 		if(!add_geopose_to_node(self, agentId, &poseId, transform_matrix, utc_time_stamp_in_mili_sec, "tf:name", poseName, mission_history_in_sec)) {
 			ERR("[%s] [ERROR] Cannot add agent pose  \n", self->name);
 			return false;
