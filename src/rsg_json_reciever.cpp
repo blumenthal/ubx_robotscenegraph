@@ -194,9 +194,45 @@ int rsg_json_reciever_start(ubx_block_t *b)
 {
         /* struct rsg_json_reciever_info *inf = (struct rsg_json_reciever_info*) b->private_data; */
         int ret = 0;
+    	unsigned int clen;
+
+        /* Set up log file */
+    	int* store_log_files =  ((int*) ubx_config_get_data_ptr(b, "store_log_files", &clen));
+    	if(clen == 0) {
+    		LOG(INFO) << "rsg_json_reciever: No store_log_files configuration given. Turned off by default.";
+    	} else {
+    		if (*store_log_files == 1) {
+    			LOG(INFO) << "rsg_json_reciever: store_log_files turned on.";
+
+    			std::stringstream tmpFileName;
+    			time_t rawtime;
+    			struct tm* timeinfo;
+    			time(&rawtime);
+    			timeinfo = localtime(&rawtime);
+    			tmpFileName << "20" // This will have to be adjusted in year 2100 ;-)
+    					<< (timeinfo->tm_year)-100 << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	(timeinfo->tm_mon)+1 << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_mday << "_"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_hour << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_min << "-"
+    					<< std::setw(2) << std::setfill('0')
+    					<<	timeinfo->tm_sec;
+
+    			std::string blockName(b->name);
+    			std::string fileName = "rsg_json_receiver-" + blockName + tmpFileName.str() + ".log";
+    			bool doAppend = false;
+    			brics_3d::Logger::setLogfile(fileName, doAppend);
+
+    		} else {
+    			LOG(INFO) << "rsg_json_reciever: store_log_files turned off.";
+    		}
+    	}
 
     	/* Set logger level */
-    	unsigned int clen;
     	int* log_level =  ((int*) ubx_config_get_data_ptr(b, "log_level", &clen));
     	if(clen == 0) {
     		LOG(INFO) << "rsg_json_reciever: No log_level configuation given.";
@@ -273,6 +309,7 @@ void rsg_json_reciever_step(ubx_block_t *b)
 		const char *dataBuffer = (char *)msg.data;
 		int transferred_bytes;
 		if ((dataBuffer!=0) && (msg.len > 1) && (readBytes > 1)) {
+			LOG(INFO) << dataBuffer;
 			inf->wm_deserializer->write(dataBuffer, readBytes, transferred_bytes);
 			LOG(INFO) << "rsg_json_reciever: \t transferred_bytes = " << transferred_bytes;
 		} else if (dataBuffer == 0) {

@@ -24,6 +24,7 @@ ubx_config_t rsg_json_reciever_config[] = {
         { .name="enable_input_filter", .type_name = "int", .doc="If true every deserialized message gets filtered and potentially rejected. Default is false." },
         { .name="input_filter_pattern", .type_name = "char" , .doc="Pattern to exclude name spaces." },
         { .name="remote_root_auto_mount_id", .type_name = "char" , .doc="Any new remote root node will be added as child to this node. En empty string disables this feature." },
+        { .name="store_log_files", .type_name = "int", .doc="If store_log_files is set to true (=1), the log messages will be stored in a .log file. For debugging only, can degenerate system performance." },
         { NULL },
 };
 

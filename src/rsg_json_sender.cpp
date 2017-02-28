@@ -31,7 +31,7 @@ public:
 	virtual ~RsgToUbxPort(){};
 
 	int write(const char *dataBuffer, int dataLength, int &transferredBytes) {
-		LOG(INFO) << "RsgToUbxPort: Feeding data forwards.";
+		LOG(DEBUG) << "RsgToUbxPort: Feeding data forwards.";
 		assert(port != 0);
 
 		ubx_data_t msg;
@@ -40,6 +40,7 @@ public:
 		msg.type = type;
 
 		LOG(INFO) << "Sending " << msg.len << " bytes: ";
+		LOG(INFO) << (char*) msg.data; // We know that it is a string.
 		__port_write(port, &msg);
 
 		return 0;

@@ -379,7 +379,8 @@ return bd.system
           log_level = logLevel, 
           enable_input_filter = enable_input_filter,
           input_filter_pattern = input_filter_pattern,
-          remote_root_auto_mount_id = worldModelGlobalId  
+          remote_root_auto_mount_id = worldModelGlobalId,
+          store_log_files = store_log_files  
         } 
       },
       { name="rsgjsonsender", 
