@@ -439,7 +439,7 @@ return bd.system
       },
       { name="cyclic_sync_trigger", -- Note: on first failure the other blocks are not triggered any more...
         config = { 
-          period = {sec=60, usec=0 }, 
+          period = {sec=180, usec=0 }, 
           trig_blocks={
             { b="#rsgdump", num_steps=1, measure=0 },  
             { b="#rsgjsonsender", num_steps=1, measure=0 },              
