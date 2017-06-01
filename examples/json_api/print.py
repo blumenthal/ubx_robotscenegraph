@@ -12,6 +12,7 @@ import uuid
 import datetime
 import ctypes
 import os
+import signal
 
 ### Variables ###
 fbxPath = os.environ['FBX_MODULES']
@@ -31,15 +32,25 @@ swmzyrelib = ctypes.CDLL('../zyre/build/libswmzyre.so')
 swmzyrelib.wait_for_reply.restype = ctypes.c_char_p
 cfg = swmzyrelib.load_config_file(configFile)
 component = swmzyrelib.new_component(cfg)
+timeOutInMilliSec = 5000
 
 ### Define helper method to send a single messagne and receive its reply 
 def sendZyreMessageToSWM(message):
   print("Sending message: %s " % (message))
   jsonMsg = swmzyrelib.encode_json_message_from_string(component, message);
   err = swmzyrelib.shout_message(component, jsonMsg);
-  result = swmzyrelib.wait_for_reply(component);
+  result = swmzyrelib.wait_for_reply(component, jsonMsg, timeOutInMilliSec);
+  #result = swmzyrelib.wait_for_reply(component);
   print("Received result: %s " % (result))
   return result
+
+def signal_handler(signal, frame):
+        print('You pressed Ctrl+C Stopping.')
+        time.sleep(1)
+        swmzyrelib.destroy_component(component)
+        sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 ################ ZMQ REQ-REP as alternative ##################
 
@@ -84,7 +95,8 @@ ids = result["ids"]
 print("ids = %s " % ids)
 
 if (len(ids) <= 0): 
-  exit()
+  print("")
+  #exit()
 
 subgraphId = ids[0]
 

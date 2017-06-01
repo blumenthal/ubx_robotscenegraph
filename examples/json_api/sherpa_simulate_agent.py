@@ -72,7 +72,7 @@ z=0
 initialVoltage = 15.3 #V
 
 i=0
-updateFreq = 10 # Hz e.g. 10
+updateFreq = 1 # Hz e.g. 10
 slowUpdateRatio = 5 # updateFreq/slowUptateRatio => freq for slow update; e.g. 10 is 10th
 verySlowUpdateRatio = 60 # 60 once per minute in case of updateFreq = 10
 
