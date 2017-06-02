@@ -108,7 +108,7 @@ getRootNodeMsg = {
 result = json.loads(sendMessageToSWM(json.dumps(getRootNodeMsg)))
 rootId = result["rootId"]
 print("rootId = %s " % rootId)
-
+globalRootId="e379121f-06c6-4e21-ae9d-ae78ec1986a1"
 
 ### Prepare dotgenerator functionblock ###  
 blockName = "dotgenerator"
@@ -146,7 +146,7 @@ saveToDoFileCommand =  {
   "operation":       "EXECUTE",
   "input": {
     "metamodel": "fbx-subgraph-and-file-schema.json",
-    "subgraphId": rootId,
+    "subgraphId": globalRootId,
     "path": "/tmp/",
     "dotFileName": "rsg_dump_1"
   }

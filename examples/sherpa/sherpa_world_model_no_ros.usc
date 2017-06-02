@@ -204,11 +204,38 @@ function fbx_setup()
   load_function_block("poselist")
   load_function_block("posehistory")
   load_function_block("nodesinarea")
+  load_function_block("dotgenerator")
 end
 
+-- print agent
 function pa()
 --  local msg = "{\"@worldmodeltype\": \"RSGQuery\",\"query\": \"GET_NODES\",\"attributes\": [{\"key\": \"" .. key .. "\", \"value\": \"*\"}]}"   
 --  send_json_to_rsg(msg)
+  local save_to_dot_file_command = "{"
+    .. "  \"@worldmodeltype\": \"RSGFunctionBlock\","
+    .. "  \"metamodel\":       \"rsg-functionBlock-schema.json\","
+    .. "  \"name\":            \"dotgenerator\","
+    .. "  \"operation\":       \"EXECUTE\","
+    .. "  \"input\": {"
+    .. "    \"metamodel\": \"fbx-subgraph-and-file-schema.json\","
+    .. "  }"
+  .. "}"
+  send_json_to_rsg(save_to_dot_file_command) 
+end  
+
+-- print world
+function pw()
+  local save_to_dot_file_command = "{"
+    .. "  \"@worldmodeltype\": \"RSGFunctionBlock\","
+    .. "  \"metamodel\":       \"rsg-functionBlock-schema.json\","
+    .. "  \"name\":            \"dotgenerator\","
+    .. "  \"operation\":       \"EXECUTE\","
+    .. "  \"input\": {"
+    .. "  \"subgraphId\": \"" .. worldModelGlobalId .. "\","
+    .. "    \"metamodel\": \"fbx-subgraph-and-file-schema.json\","
+    .. "  }"
+  .. "}"
+  send_json_to_rsg(save_to_dot_file_command) 
 end  
 
 function help()
