@@ -205,6 +205,7 @@ function fbx_setup()
   load_function_block("posehistory")
   load_function_block("nodesinarea")
   load_function_block("dotgenerator")
+  load_function_block("jsongenerator")
 end
 
 -- print agent
@@ -238,6 +239,21 @@ function pw()
   send_json_to_rsg(save_to_dot_file_command) 
 end  
 
+-- print world
+function save()
+  local save_to_json_file_command = "{"
+    .. "  \"@worldmodeltype\": \"RSGFunctionBlock\","
+    .. "  \"metamodel\":       \"rsg-functionBlock-schema.json\","
+    .. "  \"name\":            \"jsongenerator\","
+    .. "  \"operation\":       \"EXECUTE\","
+    .. "  \"input\": {"
+    .. "  \"subgraphId\": \"" .. worldModelGlobalId .. "\","
+    .. "    \"metamodel\": \"fbx-subgraph-and-file-schema.json\","
+    .. "  }"
+  .. "}"
+  send_json_to_rsg(save_to_json_file_command) 
+end 
+
 function help()
   local helpMsg =
   [[
@@ -254,7 +270,9 @@ SWM command list
   load_map()                Loads an OpenStreetMap from a file as specified in the SWM_RSG_MAP_FILE environment variable.
   load_function_block(name) Loads a function block as specified by a name e.g. load_function_block("posehistory").
                             It is safe to call it multiple times. Used by fbx_setup()
-  dump_wm() or p()          Dump the current world model into a graphviz file.
+  dump_wm() or p() pr pw()  Dump the current world model into a graphviz file.
+  pa()                      Dump the current agent view world model into a graphviz file.
+  save()                    Save the current world model into a RSG-JSON file.
 
   
 Typical invocations after start
