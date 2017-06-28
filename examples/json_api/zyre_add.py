@@ -8,7 +8,7 @@ import sys
 import time
 import datetime
 import ctypes
-
+import json
 
 
 # Setup messge
@@ -43,7 +43,8 @@ def sendZyreMessageToSWM(message):
   err = swmzyrelib.shout_message(component, jsonMsg);
   timeOutInMilliSec = 5000
   result = swmzyrelib.wait_for_reply(component, jsonMsg, timeOutInMilliSec);
-  print("Received result: %s " % (result))
+  print("Received result: %s " % ( json.dumps(json.loads(result),indent=2, sort_keys=False ) ))
+  
   return result
 
 # Send message
