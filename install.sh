@@ -287,7 +287,8 @@ echo "HDF5: " # (deprecated)
 # Note the option HDF5_1_8_12_OR_HIGHER must be set if a verison
 # 1.8.12 or higher is used due to API incompatibilities.
 if [ ! -d hdf5-1.8.13 ]; then
-  wget www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/hdf5-1.8.13.tar.gz
+  # wget www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/hdf5-1.8.13.tar.gz
+  wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.13/src/hdf5-1.8.13.tar.gz
   tar -xvf hdf5-1.8.13.tar.gz
 fi
 cd hdf5-1.8.13/
