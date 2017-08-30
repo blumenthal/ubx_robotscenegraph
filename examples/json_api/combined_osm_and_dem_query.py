@@ -151,8 +151,6 @@ result = json.loads(sendMessageToSWM(json.dumps(loadDEM)))
 print("=== Result = " + str(result['operationSuccess']) + " ===")
 
 
-
-
 ### Get all forests 
 getForests = {
   "@worldmodeltype": "RSGQuery",
@@ -161,7 +159,7 @@ getForests = {
       {"key": "osm:landuse", "value": "forest"},
   ]
 }
-getForests = { # this is a a priori know forest
+getForests = { # this is an a priori know forest
   "@worldmodeltype": "RSGQuery",
   "query": "GET_NODES",
   "attributes": [
@@ -175,6 +173,7 @@ print("=== Forest ids = %s " % ids + " ===")
 ### Get min max elevation for forest
 
 if (len(ids) <= 0): 
+  print("No OSM map available. Please call load_map() in SWM")
   exit()
 forestId = ids[0]
 
@@ -196,6 +195,7 @@ for id in ids:
   result = json.loads(sendMessageToSWM(json.dumps(getForestElevation)))
   print("=== Result = " + str(result['operationSuccess']) + " ===")
 
+
 getElevation = {
   "@worldmodeltype": "RSGFunctionBlock",
   "metamodel":       "rsg-functionBlock-schema.json",
@@ -210,33 +210,28 @@ result = json.loads(sendMessageToSWM(json.dumps(getElevation)))
 print("=== Result = " + str(result['operationSuccess']) + " ===")
 
 
+### Optionally get all agents in the forest (invoke sherpa_publish_agent_pose.py to get a correct answer)
+getNodesInAreaQuery =  {
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "nodesinarea",
+  "operation":       "EXECUTE",
+  "input": {
+    "metamodel": "fbx-nodesinarea-input-schema.json",
+	  "areaId": forestId,
+    "attributes": [
+      {"key": "sherpa:agent_name", "value": "*"},
+    ],
+  }
+} 
+result = json.loads(sendMessageToSWM(json.dumps(getNodesInAreaQuery)))
+print("=== Result = " + str(result['operationSuccess']) + " ===")
 
 
-
-
-### Query to get Ids of object and reference frame ####
-# Check if an "origin" node exists already.
-getOrigin = {
-  "@worldmodeltype": "RSGQuery",
-  "query": "GET_NODES",
-  "attributes": [
-      {"key": "gis:origin", "value": "wgs84"},
-  ]
-}
-result = json.loads(sendMessageToSWM(json.dumps(getOrigin)))
-ids = result["ids"]
-print("ids = %s " % ids)
-
-if (len(ids) <= 0): 
-  exit()
-
-originId = ids[0]
-
-
-time.sleep(1)
+#time.sleep(1)
 
 ### Clean up
 swmzyrelib.destroy_component(component);
-
+time.sleep(1)
 
 

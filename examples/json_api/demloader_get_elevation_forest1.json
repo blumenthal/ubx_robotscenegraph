@@ -1,0 +1,12 @@
+{
+  "@worldmodeltype": "RSGFunctionBlock",
+  "metamodel":       "rsg-functionBlock-schema.json",
+  "name":            "demloader",
+  "operation":       "EXECUTE",
+  "input": {
+    "metamodel": "fbx-demloader-input-schema.json",
+    "command":   "GET_ELEVATION", 
+    "latitude":  9.8451960, 
+    "longitude": 46.8147665  
+  }
+}

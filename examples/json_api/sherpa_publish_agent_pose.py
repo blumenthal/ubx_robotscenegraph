@@ -62,6 +62,12 @@ x=45.8450
 y=7.73180
 z=0
 
+# in forest
+x = 46.814523
+y = 9.845806
+x = 46.81478 # (OSM)
+y = 9.84566  # (OSM)
+
 updateFreq = 10 # Hz
 
 # Types to be used with wrapper
